@@ -1,0 +1,14 @@
+# This is a SkyMaker2 list file
+# The format is:
+# <code (100 = star, 200 = galaxy)> <x> <y> <magnitude> <...>
+#
+# Examples:
+# A star at FITS coordinates (128.4,99.5) with magnitude 7.123 :
+100 128.4 99.5 7.123
+# A galaxy at FITS coordinates (102.0,180.7) with "total" magnitude 19.41,
+# bulge-to-total ratio 0.42, bulge equivalent-radius 2.3 arcsec,
+# projected bulge aspect ratio 0.8,
+# bulge position angle 32.3 degrees (CCW, with respect to x axis),
+# disk scale-length 4.0 arcsec, disk inclination (aspect ratio) 0.2, and
+# disk position angle 31.3 degrees (CCW, with respect to x axis),
+200 102.0 180.7 19.41 0.42 2.3 0.8 32.3 4.0 0.2 31.3
