@@ -1,0 +1,8 @@
+Ville Laurikari	<vl@iki.fi>
+	For his VL_PROG_CC_WARNINGS (modified to ACX_PROG_CC_OPTIM)
+
+Steven G. Johnson <stevenj@alum.mit.edu>	
+	For his acx_pthread.m4
+
+Thomas Erben <terben@astro.uni-bonn.de>
+	Help in discovering bugs or bringing suggestions

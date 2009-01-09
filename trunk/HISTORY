@@ -1,0 +1,43 @@
+Jan 2007: version 3.1
+        - fully parallelized
+        - FFTs rely now on FFTW library.
+
+Sep 2005: version 3.0
+        - partially rewritten and repackaged version
+        - support for external PSFs
+
+Oct 99: version 2.3.3
+        - copy of configuration parameters added in FITS headers
+
+Sep 99: version 2.3.1
+        - galaxy support improved; input file format changed for galaxies.
+
+Sep 98: version 2.2.1
+        - galaxy support added.
+
+Aug 98: version 2.1.0
+	- various portability issues solved.
+
+Nov 96:	version 2.0 beta3
+	- bugs in the simulation of asymetric PSFs and aureoles fixed.
+	- optical aberrations added by P. Fouque, including spheric, astigmatism,
+	  and coma.
+
+Jul 96:	version 2.0 beta1
+	- code TOTALLY rewritten.
+	- now produces an accurate simulation of the PSF, using the diffraction
+	  and seeing theories: mandatory for serious retina learning.
+	- ``microscan'' mode for DeNIS J and K images.
+	- jitter, tracking errors and defocus simulated.
+
+Jul 95:	version 1.2
+	- a few bugs corrected, but code is still ugly.
+
+Feb 95:	version 1.1
+	- K correction for Cousins B and R bands up to z=2.
+	- produced several thousands of 512x512 images for training SExtractor's
+	  neural network star/galaxy classifier.
+
+Dec 93:	FIRST version 1.0 of SkyMaker
+	- written in 2 weeks, to test the proto-SExtractor!!
+ 	- includes galaxies (K correction valid in Bj and Rf photographic bands).

@@ -1,0 +1,168 @@
+/*
+                                ChangeLog
+
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+*
+*       Part of:        SkyMaker
+*
+*       Author:         E. BERTIN (IAP)
+*
+*       Contents:       log of changes made to the SkyMaker source
+*
+*       Last modify:    16/01/2007
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+*/
+
+------------------------------------------------------------------------
+r379 | bertin | 2007-01-16 21:35:04 +0100 (Tue, 16 Jan 2007) | 2 lines
+
+Changed PSF_NORDER to 11 (max galaxy convolution mask size = 2048 pixels).
+
+------------------------------------------------------------------------
+r377 | bertin | 2007-01-16 21:21:29 +0100 (Tue, 16 Jan 2007) | 5 lines
+
+Cleaned up old, unused FFT routines.
+Updated HISTORY, BUGS and README.
+Added support for 32 and 64 builds compiled with icc.
+Pushed version number to 3.1.
+
+------------------------------------------------------------------------
+r376 | bertin | 2007-01-15 22:02:07 +0100 (Mon, 15 Jan 2007) | 2 lines
+
+Fixed missing libfftw3f_threads link.
+
+------------------------------------------------------------------------
+r375 | bertin | 2007-01-15 21:38:42 +0100 (Mon, 15 Jan 2007) | 2 lines
+
+Fixed mutex bug with galaxy lists.
+
+------------------------------------------------------------------------
+r366 | bertin | 2006-11-17 17:41:54 +0100 (Fri, 17 Nov 2006) | 3 lines
+
+Fixed (again) the galaxy disk boundary problem.
+Fixed help options and syntax.
+
+------------------------------------------------------------------------
+r343 | bertin | 2006-09-23 22:54:54 +0200 (Sat, 23 Sep 2006) | 5 lines
+
+Made image resampling routine more flexible.
+Changed default resampling to bilinear (instead of Lanczos3).
+Fixed frame scaling bug for disks (thanks to Celine Delleluche).
+Lowered quantization limit to 1 in IMAGE_TYPE IMAGE_NONOISE mode.
+
+------------------------------------------------------------------------
+r334 | bertin | 2006-09-17 20:20:18 +0200 (Sun, 17 Sep 2006) | 2 lines
+
+Fixed compilation issue with random_poisson().
+
+------------------------------------------------------------------------
+r332 | bertin | 2006-08-21 22:15:59 +0200 (Mon, 21 Aug 2006) | 2 lines
+
+Fixed default number of threads.
+
+------------------------------------------------------------------------
+r331 | bertin | 2006-08-21 10:38:05 +0200 (Mon, 21 Aug 2006) | 3 lines
+
+Fixed missing "noise" mutex.
+Fixed flux issue with aureoles.
+
+------------------------------------------------------------------------
+r330 | bertin | 2006-08-17 21:58:08 +0200 (Thu, 17 Aug 2006) | 7 lines
+
+Parallelised FFT in aureole generation.
+Added noise parallelisation.
+Redesigned noise functions to make them reentrant.
+Log display added in multithreaded mode.
+SkyMaker now fully parallelised.
+A flux amplitude bug problem remains in galaxy simulations.
+
+------------------------------------------------------------------------
+r329 | bertin | 2006-08-17 18:03:24 +0200 (Thu, 17 Aug 2006) | 3 lines
+
+Added support for multithreaded FFTW in PSF generation.
+Some further optimisations in image cosmetics routines.
+
+------------------------------------------------------------------------
+r328 | bertin | 2006-08-16 21:21:42 +0200 (Wed, 16 Aug 2006) | 4 lines
+
+Changed star image resampling routine (same as galaxies now). 
+Added multithreading to starfield generation.
+Changed memory handling for image buffers.
+
+------------------------------------------------------------------------
+r326 | bertin | 2006-08-15 22:02:12 +0200 (Tue, 15 Aug 2006) | 4 lines
+
+Added multithreaded list object image generation (not fully tested yet).
+Added automatic detection of the number of CPUs on BSD, HP/UX and IRIX systems.
+Updated the FITS library to the latest version.
+
+------------------------------------------------------------------------
+r325 | bertin | 2006-08-10 19:22:05 +0200 (Thu, 10 Aug 2006) | 2 lines
+
+Merged with official version 3.0.3.
+
+
+-------------------------------- old ChangeLog --------------------------------
+Who     When            Where(mostly)   What
+
+EB      17/08/98        random.c        New randomization module.
+                        fitsutil.c      Upgraded fitswrite() function
+                        -               Portability issues fixed.
+
+EB      15/09/98        fft.c           Portability issues fixed.
+
+EB      24/09/98        -               Preliminary support for galaxies added.
+
+EB      28/09/98        galaxies.c      New galaxy simulation procedure.
+
+EB      29/09/98        fft.c           Unused functions removed.
+
+EB      02/01/99        readlist()
+                        putgal()        Improve robustness towards inadequate
+                                        and missing parameters in input lists.
+
+EB      05/01/99        image.c
+                        putgal()        Fixed galaxy centering bug.
+
+EB      06/02/99        putgal()        Fixed another galaxy centering bug.
+
+EB      09/03/99        makeaureole()   Temporary "fix" of an aureole
+                                        generation on Linux PCs. Waiting for a
+                                        more serious debugging.
+
+EB      13/04/99        useprefs()      Make sure that oversampling is odd.
+
+EB      15/09/99        putgal()
+                        list.c          Change of input/output list format:
+                                        add a column for bulge position angle
+                                        (and z is now available for output, too).
+
+EB      26/09/99        psf.c           Soft, circular clipping of PSF and DFT
+                                        masks.
+                        galaxies.c      Thresholding of raw and convolved
+                                        galaxies to remove mask artifacts.
+                        useprefs()      Better computation of PSF area.
+                        writeobj()      Output re-formatted.
+
+EB      02/10/99        writeima()
+                        imaout.h        Added config. in FITS header.
+
+EB      06/10/99        fft.c
+                        fft.h
+                        imaout.c        Fixed compilation warnings on OSF.
+
+EB      12/10/99        fft.c           Fixed compilation warnings on Solaris.
+
+EB      15/10/99        putgal()        Fixed galaxy size bugs for faint objects
+
+EB      21/09/2005      -               Partially rewritten and repackaged
+                                        version with support for external PSFs.
+
+EB      26/09/2005      fft.c           Convolution of galaxies now done with
+                                        FFTW.
+
+EB      28/09/2005      imaout.c        FITS output rewritten to improve FITS
+                                        compliance.
+
+EB      15/06/2006      sim_init()      Fixed missing motion y factor scaling.
