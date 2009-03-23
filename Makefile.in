@@ -97,6 +97,7 @@ DATE2 = @DATE2@
 DATE3 = @DATE3@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -121,6 +122,7 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+NMEDIT = @NMEDIT@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGER = @PACKAGER@
@@ -188,11 +190,12 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # Main Makefile for SkyMaker
-# Copyright (C) 1995-2008 Emmanuel Bertin.
+# Copyright (C) 1995-2009 Emmanuel Bertin.
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = man src
 EXTRA_DIST = config doc AUTHORS BUGS ChangeLog COPYING \
@@ -664,32 +667,6 @@ rpm:	dist
 rpm-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
 	USE_ICC="1" rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
-
-rpm-opteron:	dist
-	echo @PLPLOT_CFLAGS@
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -march=opteron" TPXLIBS="-lpthread -lfftw3f -lm" rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME).spec
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXFLAGS="-O3 -g -pthread -funroll-loops -fomit-frame-pointer -Wall -march=opteron" TPXLIBS="-lpthread -lfftw3f_threads -lfftw3f -lm" rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME)-mp.spec
-
-rpm-athlon:	dist
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="gcc" TPXFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse -mtune=athlon" TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lpthread -lfftw3f -lm" rpmbuild -ba --target=i686 --clean $(PACKAGE_NAME).spec
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="gcc" TPXFLAGS="-O3 -g -pthread -funroll-loops -fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse -mtune=athlon" TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lpthread -lfftw3f_threads -lfftw3f -lm" rpmbuild -ba --target=i686 --clean $(PACKAGE_NAME)-mp.spec
-
-rpm-opteron-icc:	dist
-	echo @PLPLOT_CFLAGS@
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc" TPXFLAGS="-O3 -axWP -ip -unroll" TPXLIBS="-lpthread -lfftw3f -lm" rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME).spec
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc" TPXFLAGS="-O3 -axWP -ip -unroll -pthread" TPXLIBS="-lpthread -lfftw3f_threads -lfftw3f -lm" rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME)-mp.spec
-
-rpm-athlon-icc:	dist
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc32" TPXFLAGS="-O3 -ip -unroll" TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lpthread -lfftw3f -lm" rpmbuild -ba --target=i686 --clean $(PACKAGE_NAME).spec
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc32" TPXFLAGS="-O3 -ip -unroll -pthread" TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lpthread -lfftw3f_threads -lfftw3f -lm" rpmbuild -ba --target=i686 --clean $(PACKAGE_NAME)-mp.spec
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
