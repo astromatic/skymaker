@@ -1581,8 +1581,8 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-threads[=<max_number_of_threads>]
-                          Enable multhreading (on with up to $n_pthreads
-                          threads by default)
+                          Enable multhreading (on with up to 16 threads by
+                          default)
   --enable-debug          Enable special mode for debugging (off by default)
   --enable-gprof          Enable special mode for compilation with the gprof
                           profiler (off by default)
