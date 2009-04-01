@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for prefs.c.
 *
-*	Last modify:	19/03/2008
+*	Last modify:	01/04/2009
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -94,7 +94,7 @@ typedef struct
   int		grid_size;		/* Grid size (pixels) in GRID mode */
 /* Misc */
   enum {QUIET, NORM, LOG, FULL} verbose_type;   /* display type */
-  enum {NONE, TERAPIX}  xml_type;               /* XML output type */
+  enum {NONE, ASTROMATIC}  xml_type;               /* XML output type */
   char          xml_name[MAXCHAR];              /* XML file name */
   char          sdate_start[12];                /* SCAMP start date */
   char          stime_start[12];                /* SCAMP start time */
