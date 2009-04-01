@@ -9,7 +9,7 @@
 *
 *	Contents:	global definitions.
 *
-*	Last modify:	01/09/2008
+*	Last modify:	01/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -25,10 +25,8 @@
 #define         EXECUTABLE      "sky"
 #define		MYVERSION	VERSION
 #define         COPYRIGHT       "Emmanuel BERTIN <bertin@iap.fr>"
-#define		WEBSITE		"http://terapix.iap.fr/soft/skymaker"
-#define	       	MAILINGLIST	"skymaker@iap.fr"
-#define	       	MAILINGLISTREQ	"skymaker-request@iap.fr"
-#define		INSTITUTE	"TERAPIX team at IAP  http://terapix.iap.fr"
+#define		WEBSITE		"http://astromatic.iap.fr/software/skymaker"
+#define		INSTITUTE	"IAP  http://www.iap.fr"
 
 /*----------------------------- Internal constants --------------------------*/
 #define		OUTPUT		stdout		/* where all msgs are sent */

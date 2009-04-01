@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the writing of the image(s).
 *
-*	Last modify:	19/03/2008
+*	Last modify:	01/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -258,7 +258,7 @@ void	writeima(simstruct *sim)
     fitswrite(tab->headbuf, "DATE-OBS", prefs.stime_start, H_STRING, T_STRING);
 /*--- Reference */
     addkeywordto_head(tab, "REFERENC", "Software web page");
-    fitswrite(tab->headbuf, "REFERENC", "http://terapix.iap.fr/soft/skymaker",
+    fitswrite(tab->headbuf, "REFERENC", "http://astromatic.iap.fr/software/skymaker",
 		H_STRING, T_STRING);
 
     for (headkey=headparam;*(headkey->name); headkey++)
