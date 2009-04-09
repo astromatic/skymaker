@@ -38,7 +38,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYING HISTORY INSTALL README THANKS
+%doc AUTHORS ChangeLog COPYRIGHT HISTORY INSTALL README THANKS
 /%{_bindir}/sky
 %{_mandir}/man1/sky.1*
 %{_mandir}/manx/sky.x*

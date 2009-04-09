@@ -2,7 +2,7 @@
 # Copyright (C) 1995-2009 Emmanuel Bertin.
 AUTOMAKE_OPTIONS	= foreign no-dependencies
 SUBDIRS			= man src
-EXTRA_DIST		= config doc AUTHORS BUGS ChangeLog COPYING \
+EXTRA_DIST		= config doc AUTHORS BUGS ChangeLog COPYRIGHT \
 			  HISTORY INSTALL README THANKS \
 			  acx_fftw.m4 acx_pthread.m4 acx_prog_cc_optim.m4 
 RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
