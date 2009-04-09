@@ -35,7 +35,7 @@ subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(srcdir)/skymaker.spec.in $(top_srcdir)/configure AUTHORS \
-	COPYING ChangeLog INSTALL THANKS autoconf/config.guess \
+	ChangeLog INSTALL THANKS autoconf/config.guess \
 	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
 	autoconf/ltmain.sh autoconf/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
