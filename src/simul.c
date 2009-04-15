@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions related to simulation handling.
 *
-*	Last modify:	27/09/2007
+*	Last modify:	15/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,13 +36,13 @@ INPUT   -.
 OUTPUT  Pointer to an allocated and filled sim structure.
 NOTES   Global prefs variables are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 27/09/2007
+VERSION 15/04/2009
 */
 simstruct	*sim_init(void)
   {
    simstruct	*sim;
    double	motfact[2];
-   int		i,j, nmscan2, nx,ny,xoffset,yoffset;
+   int		i,nmscan2, nx,ny,xoffset,yoffset;
 
   QCALLOC(sim, simstruct, 1);
   strcpy(sim->filename, prefs.filename);
@@ -99,11 +99,12 @@ simstruct	*sim_init(void)
   sim->starposseed = prefs.starposseed;
 
 /* Force PSF dimensions to be powers of 2 */
+/*
   for (i = sim->psfsize[0]-1, j=1; i!=0; i/=2, j*=2);
   sim->psfsize[0] = j;
   for (i = sim->psfsize[1]-1, j=1; i!=0; i/=2, j*=2);
   sim->psfsize[1] = j;
-
+*/
 /* Pad the pixel map in order to bypass aliasing with the aureole FFTs */
   sim->margin[0] = sim->mscan[0]*(sim->aurange/sim->mscan[0]);
   sim->margin[1] = sim->mscan[1]*(sim->aurange/sim->mscan[1]);
