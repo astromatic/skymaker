@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	19/03/2008
+*	Last modify:	15/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -67,7 +67,7 @@ pkeystruct key[] =
   {"PIXEL_SIZE", P_FLOATLIST, &prefs.pixscale, 0,0, 1e-12,1e12,
    {""}, 1, 2, &prefs.npixscale},
   {"PSF_OVERSAMP", P_FLOAT, &prefs.psfoversamp, 0,0, 0.01, 100.0},
-  {"PSF_MAPSIZE", P_INT, prefs.psfsize, 1, 8192, 0.0,0.0,
+  {"PSF_MAPSIZE", P_INTLIST, prefs.psfsize, 1, 8192, 0.0,0.0,
    {""}, 1, 2, &prefs.npsfsize},
   {"PSF_NAME", P_STRING, prefs.psfname},
   {"PSF_TYPE", P_KEY, &prefs.psftype, 0,0, 0.0,0.0,
