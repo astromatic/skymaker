@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([skymaker],[3.3.3],[bertin@iap.fr])
+AC_INIT([skymaker],[3.3.5],[bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS([config.h])
@@ -162,6 +162,9 @@ ACX_FFTW($fftw_libdir,$fftw_incdir,$use_pthreads,yes,
 	[use_fftw=yes],[use_fftw=no])
 if test "$use_fftw" = "yes"; then
   LIBS="$FFTW_LIBS $LIBS"
+  if test "$FFTW_WARN" != ""; then
+    AC_MSG_WARN([$FFTW_WARN])
+  fi
 else
   AC_MSG_ERROR([$FFTW_ERROR Exiting.])
 fi

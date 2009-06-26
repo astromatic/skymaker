@@ -9,7 +9,7 @@
 *
 *       Contents:       Routines dealing with FFT.
 *
-*       Last modify:    15/04/2009
+*       Last modify:    26/06/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,7 +46,7 @@ INPUT	-.
 OUTPUT	-.
 NOTES	Global preferences are used for multhreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	15/01/2007
+VERSION	26/06/2009
  ***/
 void    fft_init(int nthreads)
  {
@@ -54,12 +54,14 @@ void    fft_init(int nthreads)
     {
 #ifdef USE_THREADS
     QPTHREAD_MUTEX_INIT(&fftmutex, NULL);
+#ifdef HAVE_FFTWF_MP
     if (nthreads > 1)
       {
       if (!fftwf_init_threads())
         error(EXIT_FAILURE, "*Error*: thread initialization failed in ","FFTW");
       fftwf_plan_with_nthreads(nthreads);
       }
+#endif
 #endif
     firsttimeflag = 1;
     }
@@ -75,7 +77,7 @@ INPUT	-.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/08/2006
+VERSION	26/06/2009
  ***/
 void    fft_end(int nthreads)
  {
@@ -86,7 +88,9 @@ void    fft_end(int nthreads)
 #ifdef USE_THREADS
     if (nthreads > 1)
       {
+#ifdef HAVE_FFTWF_MP
       fftwf_cleanup_threads();
+#endif
       QPTHREAD_MUTEX_DESTROY(&fftmutex);
       }
     else
