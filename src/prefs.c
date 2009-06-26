@@ -429,6 +429,13 @@ void	useprefs(void)
 	"NTHREADS defaulted to 2");
       }
     }
+#ifndef HAVE_FFTWF_MP
+   if (prefs.nthreads>1)
+     warning("This executable has been compiled using a version of the FFTW "
+	"library without support for multithreading. ",
+	"Performance will be degraded.");
+#endif
+
 #else
   if (prefs.nthreads != 1)
     {
