@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([skymaker],[3.3.5],[bertin@iap.fr])
+AC_INIT([skymaker],[3.4.0],[bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS([config.h])
@@ -19,7 +19,6 @@ AC_SUBST(PACKAGER, "Emmanuel Bertin")
 AC_SUBST(DATE2, "$date2")
 AC_SUBST(DATE3, "$date3")
 
-
 # Include macros
 sinclude(acx_fftw.m4)
 sinclude(acx_prog_cc_optim.m4)
@@ -30,9 +29,16 @@ AC_MSG_RESULT([*********** Configuring:  $PACKAGE $VERSION ($date) **********])
 
 # Initialize the list of compilers to consider
 cclist="cc gcc"
-# Backup and reset the input CFLAGS
-mycflags="$CFLAGS"
-CFLAGS=""
+
+AC_MSG_CHECKING([if compilation flags are set automatically])
+AC_ARG_ENABLE(auto-flags,
+	[AC_HELP_STRING([--enable-auto-flags],
+	[Let the configure script choose the compilation flags \
+(off by default)])],
+	use_autoflag="yes"
+	AC_MSG_RESULT([yes]),
+	use_autoflag="no"
+	AC_MSG_RESULT([no]))
 
 # Provide special option for the Linux Intel C compiler
 AC_MSG_CHECKING([for Linux Intel C compiler mode])
@@ -52,9 +58,12 @@ AC_PROG_CC([$cclist])
 # C Compiler: Check that it is ANSI C and POSIX-compliant
 AM_PROG_CC_STDC
 AC_ISC_POSIX
-ACX_PROG_CC_OPTIM
-AC_DISABLE_STATIC
-#AC_DISABLE_SHARED
+# Override automatic CFLAGS and LDFLAGS with those of user
+if test "$use_autoflag" = "yes"; then
+  CFLAGS=""
+  LDFLAGS =""
+  ACX_PROG_CC_OPTIM
+fi
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 
@@ -112,16 +121,6 @@ AC_ARG_ENABLE(threads,
     use_pthreads=yes
     )
 
-# Provide special option for debugging
-AC_MSG_CHECKING([for debugger mode])
-AC_ARG_ENABLE(debug,
-	[AS_HELP_STRING(--enable-debug,Enable special mode for debugging \
-(off by default))],
-	use_debug="yes"
-	AC_MSG_RESULT([yes]),
-	use_debug="no"
-	AC_MSG_RESULT([no]))
-
 # Provide special option for gprof profiling
 AC_MSG_CHECKING([for gprof profiler mode])
 AC_ARG_ENABLE(gprof,
@@ -133,14 +132,15 @@ AC_ARG_ENABLE(gprof,
 	use_gprof="no"
 	AC_MSG_RESULT([no]))
 
-# Enable static linking
-AC_MSG_CHECKING([for static linking])
-AC_ARG_ENABLE(static,
-	[AC_HELP_STRING([--enable-static],
-	[Enable static linking (off by default)])],
-	use_static="$enableval"
+# Enable linking options for making the executable as portable as possible.
+AC_MSG_CHECKING([best linking option])
+AC_ARG_ENABLE(best-link,
+	[AC_HELP_STRING([--enable-best-link],
+	[Choose the right combination of static and dynamic linking to make \
+the executable as portable as possible (off by default)])],
+        use_best="yes"
 	AC_MSG_RESULT([yes]),
-	use_static="no"
+        use_best="no"
 	AC_MSG_RESULT([no]))
 
 ################# Actions to complete in case of multhreading ################
@@ -152,7 +152,7 @@ if test "$use_pthreads" = "yes"; then
 # CC, CFLAGS and LIBS are system and compiler-dependent
   ACX_PTHREAD
   CC="$PTHREAD_CC"
-  [CFLAGS="$CFLAGS $PTHREAD_CFLAGS -D_REENTRANT"]
+  [AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS -D_REENTRANT"]
   LIBS="$PTHREAD_LIBS $LIBS"
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
@@ -169,35 +169,38 @@ else
   AC_MSG_ERROR([$FFTW_ERROR Exiting.])
 fi
 
-# Debugging
-if test "$use_debug" = "yes"; then
-  CFLAGS="-g $CFLAGS"
-fi
-
 # Link with gprof option
 if test "$use_gprof" = "yes"; then
   if test "$use_icc" = "yes"; then
-    CFLAGS="$CFLAGS -pq"
+    AM_CFLAGS="$AM_CFLAGS -pq"
   else
-    CFLAGS="$CFLAGS -pg"
+    AM_CFLAGS="$AM_CFLAGS -pg"
   fi
-  use_static="no"
+  use_best="no"
 fi
 
-# Static linking option
-if test "$use_static" = "yes"; then
-  LDFLAGS="-static -shared-libgcc $LDFLAGS"
+# "Best" linking option
+if test "$use_best" = "yes"; then
+  AM_LDFLAGS="-shared-libgcc -static-libtool-libs $AM_LDFLAGS"
 fi
 
-# Override automatic CFLAGS and LDFLAGS with those of user
-#if test -n "$mycflags"; then
-#CFLAGS="$mycflags"
-#fi
+AC_SUBST(AM_CFLAGS)
+AC_SUBST(AM_CPPFLAGS)
+AC_SUBST(AM_LDFLAGS)
 
 # Display compiler and linker flags
-AC_MSG_RESULT([I will compile using:  $CC $CFLAGS])
-AC_MSG_RESULT([I will link using:     $CC $LDFLAGS $LIBS])
-AC_CONFIG_FILES([Makefile man/Makefile src/Makefile src/fits/Makefile \
-skymaker.spec man/sky.1])
+AC_MSG_RESULT([***************************************************************])
+AC_MSG_RESULT([Compile cmdline:  $CC $AM_CPPFLAGS $CPPFLAGS $AM_CFLAGS $CFLAGS])
+AC_MSG_RESULT([Link    cmdline:  $CC $AM_LDFLAGS $LDFLAGS $LIBS])
+AC_MSG_RESULT([Default XSLT URL: $xsl_url])
+AC_MSG_RESULT([***************************************************************])
+
+AC_CONFIG_FILES([
+Makefile
+man/Makefile
+src/Makefile
+src/fits/Makefile
+skymaker.spec
+man/sky.1])
 AC_OUTPUT
 
