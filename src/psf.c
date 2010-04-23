@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines dealing with the PSF.
 *
-*	Last modify:	19/03/2008
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -34,6 +34,13 @@
 #include "prefs.h"
 #include "psf.h"
 #include "simul.h"
+#ifdef USE_THREADS
+#include "threads.h"
+#endif
+
+#ifdef USE_THREADS
+pthread_mutex_t		*dftmutex;
+#endif
 
 /*********************************** makepsf *********************************/
 /*
@@ -52,7 +59,7 @@ void	makepsf(simstruct *sim)
 		a2,b2, cxx,cyy,cxy, bandpass, rmax2, rsig,invrsig2, rmin,rmin2;
    float	*fbmp, *fbmpt;
    int		psfsize[2], hpsfsize[2], nstep[2],
-		i, psfwm1, psfw2,psfh2,
+		i,p, psfwm1, psfw2,psfh2,
 		nbpix, nbpix2, x,y, x2,y2, x22,y22, xc,yc, osamp,osampm1,
 		bstep, narms,dx0,dy0,r0, mask, sx,sy, trackflag;
 
@@ -554,8 +561,16 @@ void	makepsf(simstruct *sim)
   sim->psf=bmp2;
   sim->psfsize[0] = psfw2;
   sim->psfsize[1] = psfh2;
+  sim->npsf = sim->psfsize[2] = sim->psfsize[3] = sim->psfsize[4] = 1;
+  QCALLOC(sim->psfdft, PIXTYPE *, sim->npsf*(PSF_NORDER+1));
   sim->psfc[0] = xcf - osampm1/2.0;
   sim->psfc[1] = ycf - osampm1/2.0;
+
+#ifdef USE_THREADS
+  QMALLOC(dftmutex, pthread_mutex_t, sim->npsf);
+  for (p=0; p<sim->npsf; p++)
+    QPTHREAD_MUTEX_INIT(&dftmutex[p], NULL);
+#endif
 
 /* Normalize the PSF */
   NFPRINTF(OUTPUT, "Normalizing PSF...");
@@ -643,35 +658,168 @@ void	makeaureole(simstruct *sim)
   }
 
 
-/********************************** makedft **********************************/
-/*
-Create the Fourier transform of the PSF components. Sizes are assumed to be
-even numbers.
-*/
-void	makedft(simstruct *sim, int order)
+/****** pos_to_indices *******************************************************
+PROTO	int pos_to_indices(simstruct *sim, double x, double y,
+			int *index, PIXTYPE *weight)
+PURPOSE	Returns vectors of indices and weights related to a PSF position.
+INPUT	Pointer to the sim structure,
+	pointer to the index array (output),
+	pointer to the weight array (output).
+OUTPUT	number of indices/weights.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	23/04/2010
+ ***/
+int	pos_to_indices(simstruct *sim, double x, double y,
+		int *index, PIXTYPE *weight)
+
   {
-   PIXTYPE	*mask,*maskt, *psf,*psft;
-   double	dx,dy, r,r2,rmin,rmin2,rmax,rmax2,rsig,invrsig2;
-   int		width,height,npix,offset, psfwidth,psfheight,psfnpix,
-		cpwidth, cpheight,hcpwidth,hcpheight, i,j,p,x,y;
+   double	dx,dy;
+   int		ix,iy, step;
 
-  psfwidth = sim->psfsize[0];
-  psfheight = sim->psfsize[1];
-  psfnpix = psfwidth*psfheight;
-  width = height = 1<<order;
-  npix = width*height;
-  cpwidth = (width>psfwidth)?psfwidth:width;
-  hcpwidth = cpwidth>>1;
-  cpwidth = hcpwidth<<1;
-  offset = width - cpwidth;
-  cpheight = (height>psfheight)?psfheight:height;
-  hcpheight = cpheight>>1;
-  cpheight = hcpheight<<1;
-  QCALLOC(mask, PIXTYPE, npix);
+/* We'll use a simple interpolation scheme for now */
+  dx = (sim->psfsize[2]-1) * x / (sim->imasize[0]-1);
+  ix = (int)dx;
+  if (ix >= sim->psfsize[2]-2)
+    ix = sim->psfsize[2]-2;
+  else if (ix<0)
+    ix = 0;
+  dx -= ix;
+  dy = (sim->psfsize[3]-1) * y / (sim->imasize[1]-1);
+  iy = (int)dy;
+  if (iy >= sim->psfsize[3]-2)
+    iy = sim->psfsize[3]-2;
+  else if (iy<0)
+    iy = 0;
+  dy -= iy;
 
-  for (p=0; p<sim->npsf; p++)
+  if (index)
     {
-    psf = sim->psf + p*psfnpix;
+    step = sim->psfsize[2];
+    index[0] = iy*step     + ix;
+    index[1] = iy*step     + ix+1;
+    index[2] = (iy+1)*step + ix;
+    index[3] = (iy+1)*step + ix+1;
+    }
+  if (weight)
+    {
+    weight[0] = (1.0 - dx) * (1.0 - dy);
+    weight[1] = dx         * (1.0 - dy);
+    weight[2] = (1.0 - dx) * dy;
+    weight[3] = dx         * dy;
+    }
+
+  return PSF_NINTERP;
+  }
+
+
+/****** interp_psf **********************************************************
+PROTO	PIXTYPE	*interp_psf(simstruct *sim, double x, double y)
+PURPOSE	Interpolate a variable PSF model at the current position.
+INPUT	Pointer to the sim structure,
+	x coordinate,
+	y coordinate.
+OUTPUT	Pointer to the interpolated PSF array.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	23/04/2010
+ ***/
+PIXTYPE	*interp_psf(simstruct *sim, double x, double y)
+
+  {
+   PIXTYPE	weight[PSF_NINTERP],
+		*psf, *pix, *pixs,
+		fac;
+   int		index[PSF_NINTERP],
+		i,p, nindex, npix;
+
+   if (sim->npsf==1)
+     return sim->psf;
+
+   nindex = pos_to_indices(sim, x, y, index, weight);
+   npix = sim->psfsize[0]*sim->psfsize[1];
+   QCALLOC(psf, PIXTYPE, npix);
+   for (p=0; p<nindex; p++)
+    {
+    pix = psf;
+    pixs = sim->psf + index[p]*npix;
+    fac = weight[p];
+    for (i=npix; i--;)
+      *(pix++) += fac**(pixs++);
+    }
+
+  return psf;
+  }
+
+
+/****** interp_dft **********************************************************
+PROTO	PIXTYPE	*interp_dft(simstruct *sim, int order, double x, double y)
+PURPOSE	Interpolate a variable PSF model DFT at the current position.
+INPUT	Pointer to the sim structure,
+	image resizing order,
+	x coordinate,
+	y coordinate.
+OUTPUT	Pointer to the interpolated PSF DFT array.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	23/04/2010
+ ***/
+PIXTYPE	*interp_dft(simstruct *sim, int order, double x, double y)
+  {
+   PIXTYPE	weight[PSF_NINTERP],
+		*mask,*maskt, *psf,*psft, *dft, *pix,*pixs,
+		fac;
+   double	dx,dy, r,r2,rmin,rmin2,rmax,rmax2,rsig,invrsig2;
+   int		index[PSF_NINTERP],
+		width,height,npix,offset, psfwidth,psfheight,psfnpix,
+		cpwidth, cpheight,hcpwidth,hcpheight,
+		i,j,p, ix,iy, nindex, ind;
+
+/* Shortcut for constant PSFs */
+  if (sim->npsf==1)
+    {
+    if (sim->psfdft[order])
+      return sim->psfdft[order];
+    nindex = 1;
+    index[0] = 0;
+    }
+  else
+/*-- Prepare the indices of the PSFs involved in the local interpolation */
+    nindex = pos_to_indices(sim, x, y, index, weight);
+
+  width = height = 1<<order;
+
+  mask = NULL;
+  for (p=0; p<nindex; p++)
+    {
+    ind = index[p]*(PSF_NORDER+1) + order;
+#ifdef USE_THREADS
+    QPTHREAD_MUTEX_LOCK(&dftmutex[p]);
+#endif
+    if (sim->psfdft[ind])
+      {
+#ifdef USE_THREADS
+      QPTHREAD_MUTEX_UNLOCK(&dftmutex[p]);
+#endif
+      continue;
+      }
+    if (!mask)
+      {
+      psfwidth = sim->psfsize[0];
+      psfheight = sim->psfsize[1];
+      psfnpix = psfwidth*psfheight;
+      cpwidth = (width>psfwidth)?psfwidth:width;
+      hcpwidth = cpwidth>>1;
+      cpwidth = hcpwidth<<1;
+      offset = width - cpwidth;
+      cpheight = (height>psfheight)?psfheight:height;
+      hcpheight = cpheight>>1;
+      cpheight = hcpheight<<1;
+      QFFTWMALLOC(mask, PIXTYPE, width*height);
+      }
+
+    memset(mask, 0, width*height*sizeof(PIXTYPE));
+    psf = sim->psf + psfnpix*index[p];
 /*-- Frame and descramble the PSF data */
     psft = psf + (psfheight/2)*psfwidth + psfwidth/2;
     maskt = mask;
@@ -715,40 +863,61 @@ void	makedft(simstruct *sim, int order)
 
     maskt = mask;
     dy = 0.0;
-    for (y=hcpheight; y--; dy+=1.0)
+    for (iy=hcpheight; iy--; dy+=1.0)
       {
       dx = 0.0;
-      for (x=hcpwidth; x--; dx+=1.0, maskt++)
+      for (ix=hcpwidth; ix--; dx+=1.0, maskt++)
         if ((r2=dx*dx+dy*dy)>rmin2)
           *maskt *= (r2>rmax2)?0.0:exp((2*rmin*sqrt(r2)-r2-rmin2)*invrsig2);
       dx = -hcpwidth;
       maskt += offset;
-      for (x=hcpwidth; x--; dx+=1.0, maskt++)
+      for (ix=hcpwidth; ix--; dx+=1.0, maskt++)
         if ((r2=dx*dx+dy*dy)>rmin2)
           *maskt *= (r2>rmax2)?0.0:exp((2*rmin*sqrt(r2)-r2-rmin2)*invrsig2);
       }
     dy = -hcpheight;
     maskt += width*(height-cpheight);
-    for (y=hcpheight; y--; dy+=1.0)
+    for (iy=hcpheight; iy--; dy+=1.0)
       {
       dx = 0.0;
-      for (x=hcpwidth; x--; dx+=1.0, maskt++)
+      for (ix=hcpwidth; ix--; dx+=1.0, maskt++)
         if ((r2=dx*dx+dy*dy)>rmin2)
           *maskt *= (r2>rmax2)?0.0:exp((2*rmin*sqrt(r2)-r2-rmin2)*invrsig2);
       dx = -hcpwidth;
       maskt += offset;
-      for (x=hcpwidth; x--; dx+=1.0, maskt++)
+      for (ix=hcpwidth; ix--; dx+=1.0, maskt++)
         if ((r2=dx*dx+dy*dy)>rmin2)
           *maskt *= (r2>rmax2)?0.0:exp((2*rmin*sqrt(r2)-r2-rmin2)*invrsig2);
       }
 
-/* Finally move to Fourier space */
-    sim->psfdft[order] = fft_rtf(mask, width,height);
+/*-- Move to Fourier space */
+    sim->psfdft[ind] = fft_rtf(mask, width,height);
+
+#ifdef USE_THREADS
+    QPTHREAD_MUTEX_UNLOCK(&dftmutex[p]);
+#endif
     }
 
   free(mask);
 
-  return;
+  if (sim->npsf>1)
+    {
+/*-- Do the interpolation in Fourier space (thanks to FT linearity) */
+    npix = (((width>>1) + 1)<< 1) * height;
+    QFFTWCALLOC(dft, float, npix);
+    for (p=0; p<nindex; p++)
+      {
+      pix = dft;
+      pixs = sim->psfdft[index[p]*(PSF_NORDER+1) + order];
+      fac = weight[p];
+      for (i=npix; i--;)
+        *(pix++) += fac**(pixs++);
+      }
+    }
+  else
+    dft = sim->psfdft[order];
+
+  return dft;
   }
 
 
@@ -759,13 +928,20 @@ Free allocated memory for the PSF.
 void    freepsf(simstruct *sim)
 
   {
-   int	i;
+   int	p;
 
   free(sim->psf);
-  for (i=0; i<PSF_NORDER; i++)
+  for (p=0; p<(PSF_NORDER+1)*sim->npsf; p++)
     {
-    QFFTWFREE(sim->psfdft[i]);
+    QFFTWFREE(sim->psfdft[p]);
     }
+  free(sim->psfdft);
+
+#ifdef USE_THREADS
+  for (p=0; p<sim->npsf; p++)
+    QPTHREAD_MUTEX_DESTROY(&dftmutex[p]);
+  free(dftmutex);
+#endif
 
   return;
   }
@@ -784,7 +960,7 @@ void	readpsf(simstruct *sim)
 		sum;
    char		lstr[MAXCHAR],
 		*filename,*rfilename, *str, *str2;
-   int		i, ext, nbpix;
+   int		i,p, ext, nbpix;
 
   filename = sim->psfname;
   if ((str = strrchr(filename, '[')))
@@ -821,6 +997,17 @@ void	readpsf(simstruct *sim)
     error(EXIT_FAILURE, "*Error*: no 2D FITS data in ", filename);
   sim->psfsize[0] = tab->naxisn[0];
   sim->psfsize[1] = tab->naxisn[1];
+  nbpix = sim->psfsize[0]*sim->psfsize[1];
+  if (tab->naxis>2)
+    {
+    sim->psfsize[2] = tab->naxisn[2];
+    sim->psfsize[3] = tab->naxis>3? tab->naxisn[3] : 1;
+    sim->psfsize[4] = tab->naxis>4? tab->naxisn[4] : 1;
+    sim->npsf = sim->psfsize[2]*sim->psfsize[3]; /* No lambda axis for now */
+    }
+  else
+    sim->npsf = sim->psfsize[2] = sim->psfsize[3] = sim->psfsize[4] = 1;
+  QCALLOC(sim->psfdft, PIXTYPE *, sim->npsf*(PSF_NORDER+1));
   sim->psfc[0] = (sim->psfsize[0]-1.0)/2.0;
   sim->psfc[1] = (sim->psfsize[1]-1.0)/2.0;
   sprintf(lstr,"Loading %s", rfilename);
@@ -829,17 +1016,26 @@ void	readpsf(simstruct *sim)
   tab->bodybuf = NULL;
   free_cat(&cat, 1);
 
-/* Normalize the PSF */
-  NFPRINTF(OUTPUT, "Normalizing PSF...");
-  nbpix = sim->psfsize[0]*sim->psfsize[0];
-  pix = sim->psf;
-  dsum = 0.0;
-  for (i=nbpix; i--;)
-    dsum += *(pix++);
-  sum = (PIXTYPE) (dsum / (sim->psfoversamp*sim->psfoversamp));
-  pix = sim->psf;
-  for (i=nbpix; i--;)
-    *(pix++) /= sum;
+/* Normalize the PSF(s) */
+  NFPRINTF(OUTPUT, "Normalizing the PSF...");
+  for (p=0; p<sim->npsf; p++)
+    {
+    pix = sim->psf+p*nbpix;
+    dsum = 0.0;
+    for (i=nbpix; i--;)
+      dsum += *(pix++);
+    sum = (PIXTYPE) (dsum / (sim->psfoversamp*sim->psfoversamp));
+    pix = sim->psf+p*nbpix;
+    for (i=nbpix; i--;)
+      *(pix++) /= sum;
+    }
+#ifdef USE_THREADS
+  QMALLOC(dftmutex, pthread_mutex_t, sim->npsf);
+  for (p=0; p<sim->npsf; p++)
+    QPTHREAD_MUTEX_INIT(&dftmutex[p], NULL);
+#endif
 
   return;
   }
+
+

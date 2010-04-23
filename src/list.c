@@ -9,7 +9,7 @@
 *
 *       Contents:       Handling of lists of simulated objects.
 *
-*       Last modify:    01/09/2008
+*       Last modify:    23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -42,7 +42,6 @@ static int		pthread_nextobj(int objindex, char *str, int nproc);
 
 static pthread_t	*thread;
 static pthread_mutex_t	objmutex, imagemutex;
-extern pthread_mutex_t	dftmutex;
 static pthread_cond_t	*objcond;
 
 static simstruct	*pthread_sim;
@@ -414,7 +413,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2007
+VERSION	23/04/2010
  ***/
 static void	pthread_readlist(simstruct *sim)
   {
@@ -436,7 +435,6 @@ static void	pthread_readlist(simstruct *sim)
     }
   QPTHREAD_MUTEX_INIT(&objmutex, NULL);
   QPTHREAD_MUTEX_INIT(&imagemutex, NULL);
-  QPTHREAD_MUTEX_INIT(&dftmutex, NULL);
   QMALLOC(proc, int, nproc);
   QMALLOC(thread, pthread_t, nproc);
   QPTHREAD_ATTR_INIT(&pthread_attr);
@@ -465,7 +463,6 @@ static void	pthread_readlist(simstruct *sim)
 /* Clean up multi-threading stuff */
   QPTHREAD_MUTEX_DESTROY(&objmutex);
   QPTHREAD_MUTEX_DESTROY(&imagemutex);
-  QPTHREAD_MUTEX_DESTROY(&dftmutex);
   QPTHREAD_ATTR_DESTROY(&pthread_attr);
   for (o=0; o<pthread_nobj; o++)
     {

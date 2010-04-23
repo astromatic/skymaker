@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the writing of the image(s).
 *
-*	Last modify:	01/04/2009
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -243,7 +243,7 @@ void	writeima(simstruct *sim)
   if (!(pstr=getenv("USERNAME")))       /* Cygwin,... */
     if ((pstr=getenv("LOGNAME")))       /* Linux,... */
       {
-      addkeywordto_head(tab, "AUTHOR  ", "Who it comes from");
+      addkeywordto_head(tab, "AUTHOR  ", "Whom it comes from");
       fitswrite(tab->headbuf, "AUTHOR  ",pstr, H_STRING, T_STRING);
       }
 #endif
@@ -254,11 +254,11 @@ void	writeima(simstruct *sim)
       fitswrite(tab->headbuf, "ORIGIN  ", str, H_STRING, T_STRING);
       }
 /*--- Obs dates */
-    addkeywordto_head(tab, "DATE-OBS", "Where it was started");
+    addkeywordto_head(tab, "DATE-OBS", "When it was started");
     fitswrite(tab->headbuf, "DATE-OBS", prefs.stime_start, H_STRING, T_STRING);
 /*--- Reference */
     addkeywordto_head(tab, "REFERENC", "Software web page");
-    fitswrite(tab->headbuf, "REFERENC", "http://astromatic.iap.fr/software/skymaker",
+    fitswrite(tab->headbuf, "REFERENC", "http://astromatic.net/software/skymaker",
 		H_STRING, T_STRING);
 
     for (headkey=headparam;*(headkey->name); headkey++)

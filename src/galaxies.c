@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines for creating galaxy fields.
 *
-*	Last modify:	19/03/2008
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,6 @@
 #endif
 
 #ifdef USE_THREADS
-pthread_mutex_t		dftmutex;
 extern pthread_mutex_t	fftmutex;
 #endif
 
@@ -53,13 +52,13 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/03/2008
+VERSION	23/04/2010
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
   {
    char		str[MAXCHAR];
-   PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt;
+   PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt, *psfdft;
    double	osamp, dratio, bsize,size,
 		bflux,flux, dx,dy, beq, dscale,expo;
    int		i, subwidth,subheight, suborder,
@@ -149,28 +148,15 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   nsub = subwidth*subheight;
   memnsub = (((subwidth>>1) + 1)<< 1) * subheight;/* Provide margin for FFTW */
 
-/* Check that PSF DFTs already exist at that mask size */
-#ifdef USE_THREADS
-  QPTHREAD_MUTEX_LOCK(&dftmutex);
-#endif
-  if (!sim->psfdft[suborder])
-    makedft(sim, suborder);
-#ifdef USE_THREADS
-  QPTHREAD_MUTEX_UNLOCK(&dftmutex);
-#endif
+/* Compute (or retrieve) PSF DFT at this position */
+  psfdft = interp_dft(sim, suborder, obj->x, obj->y);
 
   sub = NULL;			/* To avoid gcc -Wall warnings */
   flux = 0.0;			/* idem */
 /* Bulge component */
   if (obj->bulge_ratio)
     {
-#ifdef USE_THREADS
-    QPTHREAD_MUTEX_LOCK(&fftmutex);
-#endif
     QFFTWMALLOC(bsub, PIXTYPE, memnsub);
-#ifdef USE_THREADS
-    QPTHREAD_MUTEX_UNLOCK(&fftmutex);
-#endif
     memset(bsub, 0, memnsub*sizeof(PIXTYPE));
     flux = bflux = add_devauc(bsub, (double)(subwidth/2),(double)(subheight/2),
 		subwidth, subheight,
@@ -187,13 +173,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 /* Disk component */
   if (dratio>0.001) 
     {
-#ifdef USE_THREADS
-    QPTHREAD_MUTEX_LOCK(&fftmutex);
-#endif
     QFFTWMALLOC(dsub, PIXTYPE, memnsub);
-#ifdef USE_THREADS
-    QPTHREAD_MUTEX_UNLOCK(&fftmutex);
-#endif
     memset(dsub, 0, memnsub*sizeof(PIXTYPE));
     flux = add_expo(dsub, (double)(subwidth/2),(double)(subheight/2),
 		subwidth, subheight,
@@ -215,7 +195,9 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
 		subwidth, subheight);
 /* Convolve with the oversampled PSF */
-  fft_conv(sub, sim->psfdft[suborder], subwidth,subheight);
+  fft_conv(sub, psfdft, subwidth,subheight);
+  if (sim->npsf>1)
+    free(psfdft);
   dx = (obj->x + sim->margin[0])/sim->mscan[0];
   dy = (obj->y + sim->margin[1])/sim->mscan[1];
   dx -= (double)(obj->subx = (int)(dx+0.49999));
@@ -242,14 +224,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 
   obj->subfactor = obj->flux/flux;
 
-#ifdef USE_THREADS
-  QPTHREAD_MUTEX_LOCK(&fftmutex);
-#endif
   QFFTWFREE(bsub);
   QFFTWFREE(dsub);
-#ifdef USE_THREADS
-  QPTHREAD_MUTEX_UNLOCK(&fftmutex);
-#endif
 
   return;
   }

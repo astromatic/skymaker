@@ -1,12 +1,12 @@
 # configure.in for SkyMaker
-# (C) E.Bertin 1995-2009
+# (C) E.Bertin 1995-2010
 # Process this file with autoconf to produce a configure script.
 # First, disable the annoying config.cache
 define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([skymaker],[3.4.0],[bertin@iap.fr])
+AC_INIT([skymaker],[3.5.0],[bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS([config.h])

@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for simul.c.
 *
-*	Last modify:	19/03/2008
+*	Last modify:	22/04/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -79,9 +79,9 @@ typedef struct
   double	psfhalosb;		/* SB at 1' for a 0-mag star */
   double	psfoversamp;		/* Oversampling of the PSF */
   int		npsf;			/* Number of PSF components */
-  PIXTYPE	*psf;			/* Pointer to the PSF pixel map */
-  PIXTYPE	*psfdft[PSF_NORDER+1];	/* Pointers to DFTs of the PSF */
-  int		psfsize[2];		/* Dimensions of the PSF */
+  PIXTYPE	*psf;			/* Pointer to the PSF pixel map(s) */
+  PIXTYPE	**psfdft;		/* Pointers to DFTs of the PSF */
+  int		psfsize[4];		/* Dimensions of the PSF */
   int		npsfsize;		/* Number of arguments */
   int		psfc[2];		/* Coordinates of the PSF center */
   int		psfnarms;		/* Number of spider arms */

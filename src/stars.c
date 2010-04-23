@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines for creating star fields.
 *
-*	Last modify:	19/03/2008
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -28,6 +28,7 @@
 #include "image.h"
 #include "list.h"
 #include "prefs.h"
+#include "psf.h"
 #include "random.h"
 #include "simul.h"
 #include "stars.h"
@@ -160,12 +161,12 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/03/2008
+VERSION	23/04/2010
  ***/
 void	make_star(simstruct *sim, objstruct *obj)
 
   {
-   PIXTYPE	*subt;
+   PIXTYPE	*subt, *psf;
    double	dx,dy,flux, osamp;
    int		i, nsub2, nsubo;
 
@@ -191,8 +192,11 @@ void	make_star(simstruct *sim, objstruct *obj)
     {
     QREALLOC(obj->subimage, PIXTYPE, nsub2);
     }
-  resample_image(sim->psf, sim->psfsize[0], sim->psfsize[1], obj,
+  psf = interp_psf(sim, obj->x, obj->y);
+  resample_image(psf, sim->psfsize[0], sim->psfsize[1], obj,
 	-dx*osamp, -dy*osamp, osamp);
+  if (sim->npsf>1)
+    free(psf);
   flux = 0.0;
   for (i=nsub2,subt=obj->subimage; i--;)
     flux += (double)*(subt++);

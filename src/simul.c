@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions related to simulation handling.
 *
-*	Last modify:	15/04/2009
+*	Last modify:	22/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,7 +36,7 @@ INPUT   -.
 OUTPUT  Pointer to an allocated and filled sim structure.
 NOTES   Global prefs variables are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/04/2009
+VERSION 22/04/2010
 */
 simstruct	*sim_init(void)
   {
@@ -179,7 +179,6 @@ simstruct	*sim_init(void)
 		+sim->psfd80qua22*sim->psfd80qua22/(1.8*1.8));
 
 /* Temporary fix */
-  sim->npsf = 1;
   if (sim->imatype==GRID || sim->imatype==GRID_NONOISE)
     {
     sim->gridstep = prefs.grid_size;
