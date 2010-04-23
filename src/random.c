@@ -9,7 +9,7 @@
 *
 *       Contents:       functions returning random numbers.
 *
-*       Last modify:    23/08/2006
+*       Last modify:    23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -28,6 +28,13 @@
 
 #ifndef	THREADS_NMAX
 #define	THREAD_NMAX 16
+#endif
+
+#ifdef	LGAMMA
+#define	LOGGAMMA	lgamma
+#else
+#define	LOGGAMMA	gammln
+static double		gammln();
 #endif
 
 #ifdef USE_THREADS
@@ -161,11 +168,10 @@ INPUT   Mean of the Poisson distribution,
 OUTPUT  A double containing the integer (!) variable with Poisson deviate.
 NOTES   I am still searching for a faster algorithm!!
 AUTHOR  E. Bertin (IAP)
-VERSION 23/08/2006
+VERSION 23/04/2010
 */
 double	random_poisson(double xm, int p)
   {
-   double		gammln();
    double		sq,alxm,g,oldm,em,t,y;
 
   sq = alxm = g = 0.0;
@@ -192,7 +198,7 @@ double	random_poisson(double xm, int p)
       oldm=xm;
       sq=sqrt(2.0*xm);
       alxm=log(xm);
-      g=xm*alxm-gammln(xm+1.0);
+      g=xm*alxm-LOGGAMMA(xm+1.0);
       }
     do
       {
@@ -202,7 +208,7 @@ double	random_poisson(double xm, int p)
         em=sq*y+xm;
         } while (em < 0.0);
       em=floor(em);
-      t=0.9*(1.0+y*y)*exp(em*alxm-gammln(em+1.0)-g);
+      t=0.9*(1.0+y*y)*exp(em*alxm-LOGGAMMA(em+1.0)-g);
       } while (random_double(p) > t);
     }
 

@@ -9,7 +9,7 @@
 *
 *	Contents:	Parsing of the command line.
 *
-*	Last modify:	17/11/2006
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,6 +40,7 @@ int	main(int argc, char *argv[])
 
   {
    char		**argkey, **argval;
+   double	tdiff, nobj;
    int		a, narg, opt,opt2;
 
   if (argc<1)
@@ -114,7 +115,10 @@ int	main(int argc, char *argv[])
   endprefs();
 
   NFPRINTF(OUTPUT, "");
-  NPRINTF(OUTPUT, "> All done (in %d s)\n", prefs.time_diff);
+  tdiff = prefs.time_diff>0.0? prefs.time_diff : 0.001;
+  nobj = (double)prefs.nobj/tdiff;
+  NPRINTF(OUTPUT, "> All done (in %.1f s: %.1f source%s/s)\n",
+        prefs.time_diff, nobj, nobj>1.0? "s":"");
 
   exit(EXIT_SUCCESS);
   }
