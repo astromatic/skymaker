@@ -89,7 +89,7 @@ AC_FUNC_MMAP
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS([atexit getenv memcpy memmove memset munmap strstr sysconf sincos])
+AC_CHECK_FUNCS([atexit getenv memcpy memmove memset munmap strstr sysconf sincos lgamma])
 
 # Provide special options for FFTW
 AC_ARG_WITH(fftw,

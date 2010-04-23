@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for prefs.c.
 *
-*	Last modify:	01/04/2009
+*	Last modify:	23/04/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -93,14 +93,15 @@ typedef struct
 /*------ Grid parameters */
   int		grid_size;		/* Grid size (pixels) in GRID mode */
 /* Misc */
-  enum {QUIET, NORM, LOG, FULL} verbose_type;   /* display type */
-  enum {NONE, ASTROMATIC}  xml_type;               /* XML output type */
-  char          xml_name[MAXCHAR];              /* XML file name */
-  char          sdate_start[12];                /* SCAMP start date */
-  char          stime_start[12];                /* SCAMP start time */
-  char          sdate_end[12];                  /* SCAMP end date */
-  char          stime_end[12];                  /* SCAMP end time */
-  int           time_diff;                      /* Execution time */
+  enum {QUIET, NORM, LOG, FULL} verbose_type;	/* display type */
+  enum {NONE, ASTROMATIC}  xml_type;		/* XML output type */
+  char		xml_name[MAXCHAR];		/* XML file name */
+  char 		sdate_start[12];		/* SkyMaker start date */
+  char		stime_start[12];		/* SkyMaker start time */
+  char		sdate_end[12];			/* SkyMaker end date */
+  char		stime_end[12];			/* SkyMaker end time */
+  double	time_diff; 			/* Execution time */
+  int		nobj;				/* Number of sources added */
         }	prefstruct;
 
 prefstruct	prefs;

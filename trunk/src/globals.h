@@ -9,7 +9,7 @@
 *
 *	Contents:	global declarations.
 *
-*	Last modify:	20/09/2005
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -19,4 +19,6 @@
 /*----------------------- miscellaneous variables ---------------------------*/
 
 /*------------------------------- functions ---------------------------------*/
-extern  void	makeit(void);
+extern void	makeit(void);
+extern double	counter_seconds(void);
+

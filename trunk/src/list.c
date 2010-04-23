@@ -124,6 +124,8 @@ void    readlist(simstruct *sim)
 /*-- Add the object to the output list */
     writeobj(sim, &obj);
     }
+
+  prefs.nreadlist = i;
   sim->gridindex = gridindex;
 #endif
 
@@ -205,7 +207,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	11/08/2006
+VERSION	23/04/2010
  ***/
 void    writeobj(simstruct *sim, objstruct *obj)
   {
@@ -226,6 +228,7 @@ void    writeobj(simstruct *sim, objstruct *obj)
     sprintf(str, "%d", obj->type);
     error(EXIT_FAILURE, "*Error*: Unknown object type in input list: ", str);
     }
+  prefs.nobj++;
 
   return;
   }
