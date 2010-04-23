@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c
 *
-*	Last modify:	21/09/2005
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -19,11 +19,20 @@
 #endif
 
 /*---------------------------- Internal constants ---------------------------*/
-/*--------------------------- structure definitions -------------------------*/
+#define	PSF_INTERPW	2		/* Footprint of PSF interpolant */
+#define	PSF_NINTERP	(PSF_INTERPW*PSF_INTERPW)	/* Interpolant area */
+
+/*-------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
 extern void	freepsf(simstruct *sim),
 		makeaureole(simstruct *sim),
-		makedft(simstruct *sim, int order),
 		makepsf(simstruct *sim),
 		readpsf(simstruct *sim);
+
+extern PIXTYPE	*interp_psf(simstruct *sim, double x, double y),
+		*interp_dft(simstruct *sim, int order, double x, double y);
+
+extern int	pos_to_indices(simstruct *sim, double x, double y,
+			int *index, PIXTYPE *weight);
+
