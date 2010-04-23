@@ -9,7 +9,7 @@
 *
 *	Contents:	Function related to image manipulations.
 *
-*	Last modify:	07/04/2008
+*	Last modify:	23/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -35,10 +35,6 @@
 #include "list.h"
 #ifdef USE_THREADS
 #include "threads.h"
-#endif
-
-#ifdef USE_THREADS
-pthread_mutex_t addimagemutex;
 #endif
 
 static void	make_kernel(double pos, double *kernel, interpenum interptype);
@@ -460,18 +456,12 @@ int     add_image(PIXTYPE *pix1, int w1, int h1, PIXTYPE *pix2, int w2, int h2,
 
   dw1 = w1-w;
 /* Add the right pixels to the destination */
-#ifdef USE_THREADS
-  QPTHREAD_MUTEX_LOCK(&addimagemutex);
-#endif
   for (y=ymin; y<ymax; y++, pix1 += dw1)
     {
     pix = pix2+y*w2+xmin;
     for (x=w; x--;)
       *(pix++) += amplitude**(pix1++);
     }
-#ifdef USE_THREADS
-  QPTHREAD_MUTEX_UNLOCK(&addimagemutex);
-#endif
 
    return RETURN_OK;
   }
