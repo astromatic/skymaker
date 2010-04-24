@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for simul.c.
 *
-*	Last modify:	22/04/2010
+*	Last modify:	24/04/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -81,7 +81,7 @@ typedef struct
   int		npsf;			/* Number of PSF components */
   PIXTYPE	*psf;			/* Pointer to the PSF pixel map(s) */
   PIXTYPE	**psfdft;		/* Pointers to DFTs of the PSF */
-  int		psfsize[4];		/* Dimensions of the PSF */
+  int		psfsize[5];		/* Dimensions of the PSF */
   int		npsfsize;		/* Number of arguments */
   int		psfc[2];		/* Coordinates of the PSF center */
   int		psfnarms;		/* Number of spider arms */
