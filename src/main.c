@@ -115,6 +115,7 @@ int	main(int argc, char *argv[])
   endprefs();
 
   NFPRINTF(OUTPUT, "");
+  QPRINTF(OUTPUT, "%d sources added\n", prefs.nobj);
   tdiff = prefs.time_diff>0.0? prefs.time_diff : 0.001;
   nobj = (double)prefs.nobj/tdiff;
   NPRINTF(OUTPUT, "> All done (in %.1f s: %.1f source%s/s)\n",
