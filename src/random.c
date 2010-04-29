@@ -9,7 +9,7 @@
 *
 *       Contents:       functions returning random numbers.
 *
-*       Last modify:    23/04/2010
+*       Last modify:    29/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,7 +30,7 @@
 #define	THREAD_NMAX 16
 #endif
 
-#ifdef	LGAMMA
+#ifdef	HAVE_LGAMMA
 #define	LOGGAMMA	lgamma
 #else
 #define	LOGGAMMA	gammln
