@@ -9,7 +9,7 @@
 *
 *       Contents:       Handling of lists of simulated objects.
 *
-*       Last modify:    23/04/2010
+*       Last modify:    30/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -62,7 +62,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2007
+VERSION	30/04/2010
  ***/
 void    readlist(simstruct *sim)
 
@@ -125,7 +125,6 @@ void    readlist(simstruct *sim)
     writeobj(sim, &obj);
     }
 
-  prefs.nreadlist = i;
   sim->gridindex = gridindex;
 #endif
 
