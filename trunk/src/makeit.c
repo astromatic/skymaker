@@ -9,7 +9,7 @@
 *
 *       Contents:       Main program.
 *
-*       Last modify:    23/04/2010
+*       Last modify:    30/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -68,6 +68,7 @@ void    makeit()
     readpsf(simul);
   else
     makepsf(simul);
+  center_psf(simul);
   QCALLOC(simul->image, PIXTYPE, simul->fimasize[0]*simul->fimasize[1]);
   openoutlist(simul);
   makestarfield(simul);

@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines for creating galaxy fields.
 *
-*	Last modify:	23/04/2010
+*	Last modify:	30/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -52,7 +52,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/04/2010
+VERSION	30/04/2010
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
@@ -198,8 +198,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   fft_conv(sub, psfdft, subwidth,subheight);
   if (sim->npsf>1)
     free(psfdft);
-  dx = (obj->x + sim->margin[0])/sim->mscan[0];
-  dy = (obj->y + sim->margin[1])/sim->mscan[1];
+  dx = (obj->x + sim->margin[0] - sim->dpsfc[0])/sim->mscan[0];
+  dy = (obj->y + sim->margin[1] - sim->dpsfc[1])/sim->mscan[1];
   dx -= (double)(obj->subx = (int)(dx+0.49999));
   dy -= (double)(obj->suby = (int)(dy+0.49999));
 /* Truncate again */

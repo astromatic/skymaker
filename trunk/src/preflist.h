@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	15/04/2009
+*	Last modify:	30/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -66,6 +66,8 @@ pkeystruct key[] =
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PIXEL_SIZE", P_FLOATLIST, &prefs.pixscale, 0,0, 1e-12,1e12,
    {""}, 1, 2, &prefs.npixscale},
+  {"PSFCENTER_TYPE", P_KEY, &prefs.psfcentertype, 0,0, 0.0,0.0,
+	{"UPPERHALF", "LOWERHALF", "HALF", "CENTROID", "PEAK",""}},
   {"PSF_OVERSAMP", P_FLOAT, &prefs.psfoversamp, 0,0, 0.01, 100.0},
   {"PSF_MAPSIZE", P_INTLIST, prefs.psfsize, 1, 8192, 0.0,0.0,
    {""}, 1, 2, &prefs.npsfsize},
@@ -136,6 +138,7 @@ char *default_prefs[] =
 " ",
 "PSF_TYPE        INTERNAL        # INTERNAL or FILE",
 "PSF_NAME        psf.fits        # Name of the FITS image containing the PSF",
+"*PSFCENTER_TYPE  UPPERHALF       # UPPERHALF, LOWERHALF, HALF, CENTROID or PEAK",
 "SEEING_TYPE     LONG_EXPOSURE   # (NONE, LONG_EXPOSURE or SHORT_EXPOSURE)",
 "SEEING_FWHM     0.7             # FWHM of seeing in arcsec (incl. motion)",
 "AUREOLE_RADIUS  200             # Range covered by aureole (pix) 0=no aureole",
