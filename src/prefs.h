@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for prefs.c.
 *
-*	Last modify:	23/04/2010
+*	Last modify:	30/04/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -54,6 +54,7 @@ typedef struct
   char		psfname[MAXCHAR];	/* PSF file name */
   double	seeing;			/* FWHM of the PSF (in arcsec) */
   seeingtypenum	psfseeingtype;		/* Seeing type */
+  centertypenum	psfcentertype;		/* PSF centering type */
   double	psfhalosb;		/* SB at 1' for a 0-mag star */
   double	psfoversamp;		/* Oversampling of the PSF */
   int		psfsize[2];		/* Dimensions of the PSF */

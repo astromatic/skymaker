@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines for creating star fields.
 *
-*	Last modify:	23/04/2010
+*	Last modify:	30/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -161,7 +161,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/04/2010
+VERSION	30/04/2010
  ***/
 void	make_star(simstruct *sim, objstruct *obj)
 
@@ -176,8 +176,8 @@ void	make_star(simstruct *sim, objstruct *obj)
   else
     obj->flux = (float)(flux = DEXP(0.4*(sim->magzero2-obj->mag)));
   osamp = sim->psfoversamp;
-  dx = (obj->x + sim->margin[0])/sim->mscan[0];
-  dy = (obj->y + sim->margin[1])/sim->mscan[1];
+  dx = (obj->x + sim->margin[0]-sim->dpsfc[0])/sim->mscan[0];
+  dy = (obj->y + sim->margin[1]-sim->dpsfc[1])/sim->mscan[1];
   dx -= (double)(obj->subx = (int)(dx+0.49999));
   dy -= (double)(obj->suby = (int)(dy+0.49999));
 /* Resample to lower resolution */

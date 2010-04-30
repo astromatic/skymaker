@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c
 *
-*	Last modify:	23/04/2010
+*	Last modify:	30/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -25,7 +25,8 @@
 /*-------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
-extern void	freepsf(simstruct *sim),
+extern void	center_psf(simstruct *sim),
+		freepsf(simstruct *sim),
 		makeaureole(simstruct *sim),
 		makepsf(simstruct *sim),
 		readpsf(simstruct *sim);

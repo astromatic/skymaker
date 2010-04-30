@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines dealing with the PSF.
 *
-*	Last modify:	23/04/2010
+*	Last modify:	30/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -75,8 +75,8 @@ void	makepsf(simstruct *sim)
 /* Subpixel size in the pupil plane (in m) */
   fscale[0] = fsize[0]/psfsize[0];
   fscale[1] = fsize[1]/psfsize[1];
-  xc = (int)(xcf = psfsize[0]/2.0);
-  yc = (int)(ycf = psfsize[1]/2.0);
+  xc = psfsize[0]/2;
+  yc = psfsize[1]/2;
 
 /* Reduced scale for computing phase factor: it includes fwidth/D, which
    is 1/(fu), where f is the spatial frequency D/lambda and u the subpixel size
@@ -563,8 +563,6 @@ void	makepsf(simstruct *sim)
   sim->psfsize[1] = psfh2;
   sim->npsf = sim->psfsize[2] = sim->psfsize[3] = sim->psfsize[4] = 1;
   QCALLOC(sim->psfdft, PIXTYPE *, sim->npsf*(PSF_NORDER+1));
-  sim->psfc[0] = xcf - osampm1/2.0;
-  sim->psfc[1] = ycf - osampm1/2.0;
 
 #ifdef USE_THREADS
   QMALLOC(dftmutex, pthread_mutex_t, sim->npsf);
@@ -592,6 +590,89 @@ void	makepsf(simstruct *sim)
     NFPRINTF(OUTPUT, "All done");
     QPRINTF(OUTPUT, "\n");
     exit(EXIT_SUCCESS);
+    }
+
+  return;
+  }
+
+
+/******************************** center_psf *********************************/
+/*
+Compute the PSF center.
+*/
+void    center_psf(simstruct *sim)
+  {
+   double	dx,dy, dxmax,dymax, flux;
+   PIXTYPE	*pix,
+		val, max;
+   int		p, ix,iy, ixmax,iymax, nbpix;
+
+  switch(prefs.psfcentertype)
+    {
+    case CENTER_UPPERHALF:
+      sim->dpsfc[0] = sim->dpsfc[1] = 0.0;
+      break;
+    case CENTER_LOWERHALF:
+      sim->dpsfc[0] = (sim->psfsize[0]%2)? 0.0 : -1.0/sim->psfoversamp;
+      sim->dpsfc[1] = (sim->psfsize[1]%2)? 0.0 : -1.0/sim->psfoversamp;
+      break;
+    case CENTER_HALF:
+      sim->dpsfc[0] = (sim->psfsize[0]%2)? 0.0 : -0.5/sim->psfoversamp;
+      sim->dpsfc[1] = (sim->psfsize[1]%2)? 0.0 : -0.5/sim->psfoversamp;
+      break;
+    case CENTER_CENTROID:
+      dxmax = dymax = 0.0;
+      nbpix = sim->psfsize[0]*sim->psfsize[1];
+      for (p=0; p<sim->npsf; p++)
+        {
+        pix = sim->psf+p*nbpix;
+        dx = dy = flux = 0.0;
+        for (iy=0; iy<sim->psfsize[1]; iy++)
+          for (ix=0; ix<sim->psfsize[0]; ix++)
+            {
+            val = *(pix++);
+            dx += ix*val;
+            dy += iy*val;
+            flux += val;
+            }
+        if (flux > 0.0)
+          {
+          dxmax += dx / flux;
+          dymax += dy / flux;
+          }
+        else
+          {
+          dxmax = sim->psfsize[0]/2;
+          dymax = sim->psfsize[1]/2;
+          }
+        }
+      sim->dpsfc[0] = (dxmax/sim->npsf - (sim->psfsize[0]/2))/sim->psfoversamp;
+      sim->dpsfc[1] = (dymax/sim->npsf - (sim->psfsize[1]/2))/sim->psfoversamp;
+      break;
+    case CENTER_PEAK:
+      dxmax = dymax = 0.0;
+      nbpix = sim->psfsize[0]*sim->psfsize[1];
+      for (p=0; p<sim->npsf; p++)
+        {
+        pix = sim->psf+p*nbpix;
+        max = -BIG;
+        for (iy=0; iy<sim->psfsize[1]; iy++)
+          for (ix=0; ix<sim->psfsize[0]; ix++)
+            if ((val=*(pix++))>max)
+              {
+              max = val;
+              ixmax = ix;
+              iymax = iy;
+              }
+        dxmax += ixmax;
+        dymax += iymax;
+        }
+      sim->dpsfc[0] = (dxmax/sim->npsf - (sim->psfsize[0]/2))/sim->psfoversamp;
+      sim->dpsfc[1] = (dymax/sim->npsf - (sim->psfsize[1]/2))/sim->psfoversamp;
+      break;
+    default:
+      error(EXIT_FAILURE, "*Internal Error*: no such PSFCENTER_TYPE option in ",
+		"centerpsf()");
     }
 
   return;
@@ -1008,8 +1089,6 @@ void	readpsf(simstruct *sim)
   else
     sim->npsf = sim->psfsize[2] = sim->psfsize[3] = sim->psfsize[4] = 1;
   QCALLOC(sim->psfdft, PIXTYPE *, sim->npsf*(PSF_NORDER+1));
-  sim->psfc[0] = (sim->psfsize[0]-1.0)/2.0;
-  sim->psfc[1] = (sim->psfsize[1]-1.0)/2.0;
   sprintf(lstr,"Loading %s", rfilename);
   NFPRINTF(OUTPUT, lstr);
   sim->psf = alloc_body(tab, NULL);
