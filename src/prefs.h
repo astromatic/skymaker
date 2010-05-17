@@ -9,10 +9,14 @@
 *
 *	Contents:	Include for prefs.c.
 *
-*	Last modify:	30/04/2010
+*	Last modify:	07/05/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+#ifndef _PSF_H_
+#include "psf.h"
+#endif
 
 #ifndef _SIMUL_H_
 #include "simul.h"
@@ -64,16 +68,38 @@ typedef struct
   double	psfdm2;			/* Diam. of the 2nd mir. support (m) */
   double	psfarmw;		/* Thickness of the spider arms (m)*/
   double	psfarmang;		/* Pos. angle of spider arms (deg) */
-  double	psfd80defoc;		/* FWHM induced by defocus (arcsec) */
-  double	psfd80spher;		/* Spherical d80% diameter (arcsec) */
-  double	psfd80comax;		/* X-coma d80% diameter (arcsec) */
-  double	psfd80comay;		/* Y-coma d80% diameter (arcsec) */
-  double	psfd80ast00;		/* 0 deg. astigmatism d80% (arcsec) */
-  double	psfd80ast45;		/* 45 deg. astigmatism d80% (arcsec) */
-  double	psfd80tri00;		/* 0 deg. triangular d80% (arcsec) */
-  double	psfd80tri30;		/* 30 deg. triangular d80% (arcsec) */
-  double	psfd80qua00;		/* 0 deg. quadratic d80% (arcsec) */
-  double	psfd80qua22;		/* 22.5 deg. quadratic d80% (arcsec) */
+  double	psfd80defoc[PSF_NVARORDER];/* FWHM induced by defocus (arcsec)*/
+  int		npsfd80defoc;		/* Number of arguments */
+  double	psfdefocc[2];		/* PSF defocus center */
+  int		npsfdefocc;		/* Number of arguments */
+  double	psfd80spher[PSF_NVARORDER];/* Spherical d80% diameter (arcsec)*/
+  int		npsfd80spher;		/* Number of arguments */
+  double	psfspherc[2];		/* PSF spherical aber. center */
+  int		npsfspherc;		/* Number of arguments */
+  double	psfd80comax[PSF_NVARORDER];/* X-coma d80% diameter (arcsec) */
+  int		npsfd80comax;		/* Number of arguments */
+  double	psfd80comay[PSF_NVARORDER];/* Y-coma d80% diameter (arcsec) */
+  int		npsfd80comay;		/* Number of arguments */
+  double	psfcomac[2];		/* PSF coma center */
+  int		npsfcomac;		/* Number of arguments */
+  double	psfd80ast00[PSF_NVARORDER];/* 0 deg. astigmatism d80% (arcsec)*/
+  int		npsfd80ast00;		/* Number of arguments */
+  double	psfd80ast45[PSF_NVARORDER];/* 45 deg astigmatism d80% (arcsec)*/
+  int		npsfd80ast45;		/* Number of arguments */
+  double	psfastc[2];		/* PSF astigmatism center */
+  int		npsfastc;		/* Number of arguments */
+  double	psfd80tri00[PSF_NVARORDER];/* 0 deg. triangular d80% (arcsec) */
+  int		npsfd80tri00;		/* Number of arguments */
+  double	psfd80tri30[PSF_NVARORDER];/* 30 deg. triangular d80% (arcsec)*/
+  int		npsfd80tri30;		/* Number of arguments */
+  double	psftric[2];		/* PSF triangular aber center */
+  int		npsftric;		/* Number of arguments */
+  double	psfd80qua00[PSF_NVARORDER];/* 0 deg. quadratic d80% (arcsec) */
+  int		npsfd80qua00;		/* Number of arguments */
+  double	psfd80qua22[PSF_NVARORDER];/* 22.5 deg quadratic d80% (arcsec)*/
+  int		npsfd80qua22;		/* Number of arguments */
+  double	psfquac[2];		/* PSF quadratic aberration center */
+  int		npsfquac;		/* Number of arguments */
   tracktypenum	psftracktype;		/* Tracking type */
   double	psftrackmaj;		/* Maximum RMS tracking error (") */
   double	psftrackmin;		/* Minimum RMS tracking error (") */

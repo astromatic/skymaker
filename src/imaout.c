@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the writing of the image(s).
 *
-*	Last modify:	23/04/2010
+*	Last modify:	07/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -208,10 +208,12 @@ void	writeima(simstruct *sim)
   tab = cat->tab;
   tab->bitpix = BP_FLOAT;
   tab->bytepix = 4;
-  tab->naxis = 2;
-  QCALLOC(tab->naxisn, int, 2);
+  tab->naxis = sim->imasize[2]>1? (sim->imasize[3]>1? 4 : 3): 2;
+  QCALLOC(tab->naxisn, int, 4);
   tab->naxisn[0] = sim->imasize[0];
   tab->naxisn[1] = sim->imasize[1];
+  tab->naxisn[2] = sim->imasize[2];
+  tab->naxisn[3] = sim->imasize[3];
   update_head(tab);
 
   addkeywordto_head(tab, "COMMENT ",
@@ -273,7 +275,8 @@ void	writeima(simstruct *sim)
       }
     }
   tab->bodybuf = (void *)sim->image;
-  tab->tabsize = tab->naxisn[0]*tab->naxisn[1]*tab->bytepix;
+  tab->tabsize = tab->naxisn[0]*tab->naxisn[1]*tab->naxisn[2]*tab->naxisn[3]
+		*tab->bytepix;
   save_cat(cat, sim->filename);
   tab->bodybuf = NULL;
   free_cat(&cat, 1);

@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines dealing with the PSF.
 *
-*	Last modify:	30/04/2010
+*	Last modify:	17/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -31,6 +31,7 @@
 #include "fft.h"
 #include "image.h"
 #include "imaout.h"
+#include "poly.h"
 #include "prefs.h"
 #include "psf.h"
 #include "simul.h"
@@ -48,18 +49,25 @@ Create the PSF pixmap of the system Atmosphere+Optics+Target.
 */
 void	makepsf(simstruct *sim)
   {
-   PIXTYPE	*bmp,*bmp2, *pix,*pix2;
+   polystruct	*polydefoc,*polyspher,*polycomax,*polycomay,
+		*polyast00,*polyast45,*polytri00,*polytri30,
+		*polyqua00,*polyqua22;
+   char		str[64];
+   PIXTYPE	*bmp,*bmp2, *pix,*pix2, *bmpc,
+		invnorm;
    double	pixscale[2], fsize[2], fscale[2], redscale[2],step[2],pstep[2],
+ 		psfc[2],psfct[2],
 		*carms, *carmst,
-		redscale2, redscalem, xcf,ycf, r, r1,r2,h2, theta,ct,st, dx,dy,
-		sig2, motfact, ft, phi, 
-                phidefoc, phispher, phicomax, phicomay, phiast00, phiast45,
-                phitri00, phitri30, phiqua00, phiqua22,
-		grey, smallest, step2, rmax, norm, dsum,
+                phidefoc,phispher,phicomax,phicomay,phiast00,phiast45,
+                phitri00,phitri30,phiqua00,phiqua22,
+		redscale2, redscalem, xcf,ycf, r, r1,r2,h2, theta,ct,st,
+		dx,dy, dr2, sig2, motfact, ft, phi, 
+		grey, smallest, step2, rmax, norm, dsum, pupilnorm,
 		a2,b2, cxx,cyy,cxy, bandpass, rmax2, rsig,invrsig2, rmin,rmin2;
-   float	*fbmp, *fbmpt;
-   int		psfsize[2], hpsfsize[2], nstep[2],
-		i,p, psfwm1, psfw2,psfh2,
+   float	*fbmp, *fbmpt,
+		invnbpix;
+   int		psfsize[4], hpsfsize[2], nstep[2],group[2],
+		i,o,p, psfwm1, psfw2,psfh2, dim,
 		nbpix, nbpix2, x,y, x2,y2, x22,y22, xc,yc, osamp,osampm1,
 		bstep, narms,dx0,dy0,r0, mask, sx,sy, trackflag;
 
@@ -69,7 +77,9 @@ void	makepsf(simstruct *sim)
   osamp = (int)(sim->psfoversamp+0.5);
   pixscale[0] = sim->pixscale[0]/osamp;
   pixscale[1] = sim->pixscale[1]/osamp;
-  nbpix = (psfsize[0]=sim->psfsize[0])*(psfsize[1]=sim->psfsize[1]);
+  psfsize[0]=sim->psfsize[0];
+  psfsize[1]=sim->psfsize[1];
+  nbpix = psfsize[0]*psfsize[1];
   fsize[0] = (sim->lambdaeq*MICRON)/(pixscale[0]*ARCSEC);
   fsize[1] = (sim->lambdaeq*MICRON)/(pixscale[1]*ARCSEC);
 /* Subpixel size in the pupil plane (in m) */
@@ -116,26 +126,54 @@ void	makepsf(simstruct *sim)
    phidefoc   = PI*sim->psfdefocfwhm*ARCSEC*fwscale*fwscale
 	       /(sim->psfdm1*sim->lambdaeq*MICRON);
 */
-  phidefoc = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80defoc*ARCSEC
-             *0.279*redscale2;
-  phispher = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80spher*ARCSEC
-             *0.179*redscale2*redscale2;
-  phicomax = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80comax*ARCSEC
-             *0.534*redscale2*redscalem;
-  phicomay = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80comay*ARCSEC
-             *0.534*redscale2*redscalem;
-  phiast00 = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80ast00*ARCSEC
-             *0.279*redscale2;
-  phiast45 = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80ast45*ARCSEC
-             *0.279*redscale2;
-  phitri00 = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80tri00*ARCSEC
-             *0.208*redscale2*redscalem;
-  phitri30 = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80tri30*ARCSEC
-             *0.208*redscale2*redscalem;
-  phiqua00 = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80qua00*ARCSEC
-             *0.172*redscale2*redscale2;
-  phiqua22 = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*sim->psfd80qua22*ARCSEC
-             *0.172*redscale2*redscale2;
+  group[0] = group[1] = 1;
+  dim = 1;
+  polydefoc = poly_init(group, 2, &dim, 1);
+  polyspher = poly_init(group, 2, &dim, 1);
+  polycomax = poly_init(group, 2, &dim, 1);
+  polycomay = poly_init(group, 2, &dim, 1);
+  polyast00 = poly_init(group, 2, &dim, 1);
+  polyast45 = poly_init(group, 2, &dim, 1);
+  polytri00 = poly_init(group, 2, &dim, 1);
+  polytri30 = poly_init(group, 2, &dim, 1);
+  polyqua00 = poly_init(group, 2, &dim, 1);
+  polyqua22 = poly_init(group, 2, &dim, 1);
+  pupilnorm = PI*sim->psfdm1/(sim->lambdaeq*MICRON)*ARCSEC;
+  sim->npsf = 1;
+  for (o=0; o<PSF_NVARORDER; o++)
+    {
+    polydefoc->coeff[o]=pupilnorm*sim->psfd80defoc[o]*0.279*redscale2;
+    polyspher->coeff[o]=pupilnorm*sim->psfd80spher[o]*0.179*redscale2*redscale2;
+    polycomax->coeff[o]=pupilnorm*sim->psfd80comax[o]*0.534*redscale2*redscalem;
+    polycomay->coeff[o]=pupilnorm*sim->psfd80comay[o]*0.534*redscale2*redscalem;
+    polyast00->coeff[o]=pupilnorm*sim->psfd80ast00[o]*0.279*redscale2;
+    polyast45->coeff[o]=pupilnorm*sim->psfd80ast45[o]*0.279*redscale2;
+    polytri00->coeff[o]=pupilnorm*sim->psfd80tri00[o]*0.208*redscale2*redscalem;
+    polytri30->coeff[o]=pupilnorm*sim->psfd80tri30[o]*0.208*redscale2*redscalem;
+    polyqua00->coeff[o]=pupilnorm*sim->psfd80qua00[o]*0.172*redscale2*redscale2;
+    polyqua22->coeff[o]=pupilnorm*sim->psfd80qua22[o]*0.172*redscale2*redscale2;
+    if (o
+	&& (fabs(sim->psfd80defoc[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80spher[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80comax[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80comay[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80ast00[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80ast45[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80tri00[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80tri30[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80qua00[o]) > PSF_VARTHRESH
+	|| fabs(sim->psfd80qua22[o]) > PSF_VARTHRESH))
+      sim->npsf = PSF_NVARSNAP*PSF_NVARSNAP;
+    }
+
+  if (sim->npsf>1)
+    {
+    psfsize[2] = sim->psfsize[2] = PSF_NVARSNAP;
+    psfsize[3] = sim->psfsize[3] = PSF_NVARSNAP;
+    }
+  else
+    psfsize[2] = sim->psfsize[2] = psfsize[3] = sim->psfsize[3] = 1;
+
   fprintf(OUTPUT, "Pupil range: %.1f-%.1fmm / Subsampling: %dX / "
 		"ro=%.1fcm / motion=%.2f'' rms\n",
 	fscale[0]/MM, fsize[0]/MM, nstep[0], sim->ro/CM, sim->psfmotion);
@@ -160,9 +198,6 @@ void	makepsf(simstruct *sim)
   r2 *= r2;
   h2 = sim->psfarmw*MM/fscale[0]/2;
 
-  NFPRINTF(OUTPUT, "Creating the pupil mask...");
-/* Allocate memory */
-  QFFTWMALLOC(fbmp, float, nbpix*2);
   if (narms)
     QCALLOC(carms, double, narms*2)
   else
@@ -174,423 +209,525 @@ void	makepsf(simstruct *sim)
     *(carmst++) = sin(theta);
     *(carmst++) = cos(theta);
     }
-/* Create the aperture mask */
-  fbmpt = fbmp;
-  for (y=0; y<psfsize[1]; y++)
+
+  fft_init(prefs.nthreads);
+
+  osampm1 = osamp-1;
+  psfw2 = psfsize[0]-osampm1;
+  psfh2 = psfsize[1]-osampm1;
+  nbpix2 = psfw2*psfh2;
+  psfwm1 = psfw2 - 1;
+
+  for (p=0; p<sim->npsf; p++)
     {
-    dy0 = y - hpsfsize[1] + pstep[0];
-    for (x=0; x<psfsize[0]; x++)
+    if (sim->npsf>1)
       {
-      dx0 = x - hpsfsize[0] + pstep[1];
-      grey = 0.0;
-      for (dy=dy0,sy=0; sy<nstep[1]; sy++,dy+=step[1])
-        for (dx=dx0,sx=0; sx<nstep[0]; sx++,dx+=step[0])
-          {
-          r = dx*dx+dy*dy;
-/* Put light between central hole and border, except on spider arms */
-          if ((mask = r>=r2 && r<r1))
+      sprintf(str, "Computing PSF %5d/%-5d...", p+1, sim->npsf);
+      NFPRINTF(OUTPUT, str);
+      }
+    psfc[0] = (double)(p%PSF_NVARSNAP)/(PSF_NVARSNAP-1.0);
+    psfc[1] = (double)(p/PSF_NVARSNAP)/(PSF_NVARSNAP-1.0);
+    psfct[0] = psfc[0] - sim->psfdefocc[0];
+    psfct[1] = psfc[1] - sim->psfdefocc[1];
+    phidefoc = poly_func(polydefoc, psfct);
+    psfct[0] = psfc[0] - sim->psfspherc[0];
+    psfct[1] = psfc[1] - sim->psfspherc[1];
+    phispher = poly_func(polyspher, psfct);
+    psfct[0] = psfc[0] - sim->psfcomac[0];
+    psfct[1] = psfc[1] - sim->psfcomac[1];
+    phicomax = poly_func(polycomax, psfct);
+    phicomay = poly_func(polycomay, psfct);
+    psfct[0] = psfc[0] - sim->psfastc[0];
+    psfct[1] = psfc[1] - sim->psfastc[1];
+    phiast00 = poly_func(polyast00, psfct);
+    phiast45 = poly_func(polyast45, psfct);
+    psfct[0] = psfc[0] - sim->psftric[0];
+    psfct[1] = psfc[1] - sim->psftric[1];
+    phitri00 = poly_func(polytri00, psfct);
+    phitri30 = poly_func(polytri30, psfct);
+    psfct[0] = psfc[0] - sim->psfquac[0];
+    psfct[1] = psfc[1] - sim->psfquac[1];
+    phiqua00 = poly_func(polyqua00, psfct);
+    phiqua22 = poly_func(polyqua22, psfct);
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "Creating the pupil mask...");
+/*-- Allocate memory */
+    QFFTWMALLOC(fbmp, float, nbpix*2);
+/*-- Create the aperture mask */
+    fbmpt = fbmp;
+    for (y=0; y<psfsize[1]; y++)
+      {
+      dy0 = y - hpsfsize[1] + pstep[0];
+      for (x=0; x<psfsize[0]; x++)
+        {
+        dx0 = x - hpsfsize[0] + pstep[1];
+        grey = 0.0;
+        for (dy=dy0,sy=0; sy<nstep[1]; sy++,dy+=step[1])
+          for (dx=dx0,sx=0; sx<nstep[0]; sx++,dx+=step[0])
             {
-            carmst = carms;
-            for (i=0; i<narms; i++)
+            r = dx*dx+dy*dy;
+/*---------- Put light between central hole and border, except on spider arms */
+            if ((mask = r>=r2 && r<r1))
               {
-              st = *(carmst++);
-              ct = *(carmst++);
-              r = st*dx-ct*dy;
-              if (st<0.0)
-                r = -r;
-              if (r>-h2 && r<h2 && ct*dx+st*dy>0.0)
-                mask = 0;
+              carmst = carms;
+              for (i=0; i<narms; i++)
+                {
+                st = *(carmst++);
+                ct = *(carmst++);
+                r = st*dx-ct*dy;
+                if (st<0.0)
+                  r = -r;
+                if (r>-h2 && r<h2 && ct*dx+st*dy>0.0)
+                  mask = 0;
+                }
               }
+            if (mask)
+              grey += step2;
             }
-          if (mask)
-            grey += step2;
-          }
-      r0 = dx0*dx0+dy0*dy0;
-/* Original formula (EB): note that r0 is a square
-      phi = phidefoc*r0;
+        r0 = dx0*dx0+dy0*dy0;
+/*-- Original formula (EB): note that r0 is a square
+        phi = phidefoc*r0;
 */
-      phi = phidefoc*r0 + phispher*r0*r0 + (phicomax*dx0+phicomay*dy0)*r0
+        phi = phidefoc*r0 + phispher*r0*r0 + (phicomax*dx0+phicomay*dy0)*r0
 	+ phiast00*(dx0*dx0-dy0*dy0)+phiast45*2.*dx0*dy0
 	+ phitri00*dx0*(dx0*dx0-3.*dy0*dy0)+phitri30*dy0*(3.*dx0*dx0-dy0*dy0)
 	+ phiqua00*(dx0*dx0*dx0*dx0+dy0*dy0*dy0*dy0-6.*dx0*dx0*dy0*dy0)
 	+ phiqua22*4.*dx0*dy0*(dx0*dx0-dy0*dy0);
-
-      *(fbmpt++) = grey*cos(phi);	/* real part */
-      *(fbmpt++) = grey*sin(phi);	/* imaginary part */
+        *(fbmpt++) = grey*cos(phi);	/* real part */
+        *(fbmpt++) = grey*sin(phi);	/* imaginary part */
+        }
       }
-    }
 
-  free(carms);
-
-/* Save the image of the pupil ("no-return" option!) */
-  if  (sim->imatype == PUPIL_REAL
+/*-- Save the image of the pupil ("no-return" option!) */
+    if  (sim->imatype == PUPIL_REAL
 	|| sim->imatype == PUPIL_IMAGINARY
 	|| sim->imatype == PUPIL_MODULUS
 	|| sim->imatype == PUPIL_PHASE)
-    {
-    QMALLOC(bmp, float, nbpix);
-    pix = bmp;
-    fbmpt = fbmp;
-    switch(sim->imatype)
       {
-      case PUPIL_REAL:
-        for (i=0; i<nbpix; i++,fbmpt+=2)
-          *(pix++) = *fbmpt;
-        break;
-      case PUPIL_IMAGINARY:
-        fbmpt++;
-        for (i=0; i<nbpix; i++,fbmpt+=2)
-          *(pix++) = *fbmpt;
-        break;
-      case PUPIL_MODULUS:
-        for (i=0; i<nbpix; i++,fbmpt++)
-          {
-          *pix = *fbmpt**fbmpt;
+      if (!p)
+        QMALLOC(bmpc, float, nbpix*sim->npsf);
+      pix = bmpc+p*nbpix;
+      fbmpt = fbmp;
+      switch(sim->imatype)
+        {
+        case PUPIL_REAL:
+          for (i=nbpix; i--; fbmpt+=2)
+            *(pix++) = *fbmpt;
+          break;
+        case PUPIL_IMAGINARY:
           fbmpt++;
-          *pix = sqrt(*pix+*fbmpt**fbmpt);
-          pix++;
-          }
-        break;
-      case PUPIL_PHASE:
-        for (i=0; i<nbpix; i++,fbmpt+=2)
-          {
-          *(pix++) = atan2(*(fbmpt+1), *fbmpt?*fbmpt:1e-6)/DEG;
-          }
-        break;
-      default:
-        error(EXIT_FAILURE, "*Internal Error*: no such imatype in ",
+          for (i=nbpix; i--; fbmpt+=2)
+            *(pix++) = *fbmpt;
+          break;
+        case PUPIL_MODULUS:
+          for (i=nbpix; i--; fbmpt++)
+            {
+            *pix = *fbmpt**fbmpt;
+            fbmpt++;
+            *pix = sqrt(*pix+*fbmpt**fbmpt);
+            pix++;
+            }
+          break;
+        case PUPIL_PHASE:
+          for (i=nbpix; i--; fbmpt+=2)
+            *(pix++) = atan2(*(fbmpt+1), *fbmpt?*fbmpt:1e-6)/DEG;
+          break;
+        default:
+          error(EXIT_FAILURE, "*Internal Error*: no such imatype in ",
 		"makepsf()" );
+        }
+      QFFTWFREE(fbmp);
+      continue;
       }
-    sim->image = bmp;
-    sim->imasize[0] = psfsize[0];
-    sim->imasize[1] = psfsize[1];
-    NFPRINTF(OUTPUT, "Writing image...");
-    writeima(sim);
-    NFPRINTF(OUTPUT, "Freeing memory...");
-    QFFTWFREE(bmp);
-    NFPRINTF(OUTPUT, "All done");
-    QPRINTF(OUTPUT, "\n");
-    exit(EXIT_SUCCESS);
-    }
 
-/* Let's Fourier transform to get the amplitude field */
+/*-- Let's Fourier transform to get the amplitude field */
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "1st FFT...");
+    fft_ctf(fbmp, psfsize[0], psfsize[1], FFTW_FORWARD);
 
-  NFPRINTF(OUTPUT, "1st FFT...");
-  fft_init(prefs.nthreads);
-  fft_ctf(fbmp, psfsize[0], psfsize[1], FFTW_FORWARD);
+/*-- Now convert to Intensity */
 
-/* Now convert to Intensity */
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "Converting to intensity...");
+    fbmpt = fbmp+1;
+    invnbpix = 1.0/(float)nbpix;
+    for (i=nbpix; i--;)
+      {
+      ft = *fbmpt;
+      *(fbmpt--) = 0.0;
+      *fbmpt = (*fbmpt * *fbmpt + ft*ft)*invnbpix;
+      fbmpt += 3;
+      }
 
-  NFPRINTF(OUTPUT, "Converting to intensity...");
-  fbmpt = fbmp+1;
-  for (i=0; i<nbpix; i++)
-    {
-    ft = *fbmpt;
-    *(fbmpt--) = 0.0;
-    *fbmpt = (*fbmpt * *fbmpt + ft*ft)/nbpix;
-    fbmpt += 3;
-    }
+/*-- Go back to frequency domain */
 
-/* Go back to frequency domain */
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "2nd FFT...");
+    fft_ctf(fbmp, psfsize[0], psfsize[1], FFTW_BACKWARD);
 
-  NFPRINTF(OUTPUT, "2nd FFT...");
-  fft_ctf(fbmp, psfsize[0], psfsize[1], FFTW_BACKWARD);
+/*-- Save the MTF of the pupil ("no-return" option!) */
+    if  (sim->imatype == PUPIL_MTF)
+      {
+       PIXTYPE	invdsum;
+      if (sim->npsf==1)
+        NFPRINTF(OUTPUT, "Descrambling pixels...");
+      if (!p)
+        QMALLOC(bmpc, float, nbpix*sim->npsf);
+      pix = bmpc+p*nbpix;
+      dsum = 0.0;
+      for (y=0; y<psfsize[1]; y++)
+        {
+        y2 = y-yc;
+        if (y2<0)
+          y2 += psfsize[1];
+        y2 *= psfsize[0];
+        for (x=0; x<psfsize[0]; x++)
+          {
+          x2 = x-xc;
+          if (x2<0)
+            x2 += psfsize[0];
+          dsum += *(pix++) = *(fbmp+2*(x2+y2));
+          }
+        }
+      pix = bmpc+p*nbpix;
+      invdsum = 1.0/(PIXTYPE)dsum;
+      for (i=nbpix; i--;)
+        *(pix++) *= invdsum;
+      QFFTWFREE(fbmp);
+      continue;
+      }
 
-/* Save the MTF of the pupil ("no-return" option!) */
-  if  (sim->imatype == PUPIL_MTF)
-    {
-    NFPRINTF(OUTPUT, "Descrambling pixels...");
+/*-- Preparing tracking parameters */
+    sig2 = sim->ro/fscale[0];
+    sig2 *= sig2;
+    motfact = fscale[0]*fscale[1]/(sim->psfdm1*sim->psfdm1);
+    rmax = 1.0/motfact;
+    ct=st=a2=b2=cxx=cyy=cxy = 0.0;	/* To avoid gcc -Wall warnings */
+    if (sim->psftracktype!=NO_TRACKERR && (sim->psftrackmaj || sim->psftrackmin))
+      {
+      trackflag = 1;
+      a2 = 2*PI*sim->psftrackmaj/(psfsize[0]*pixscale[0]);
+      b2 = 2*PI*sim->psftrackmin/(psfsize[0]*pixscale[0]);
+      ct = cos(sim->psftrackang*DEG);
+      st = sin(sim->psftrackang*DEG);
+      switch(sim->psftracktype)
+        {
+        case JITTER:
+          a2 *= a2;
+          b2 *= b2;
+          cxx = ct*ct*a2+st*st*b2;
+          cyy = st*st*a2+ct*ct*b2;
+          cxy = 2*ct*st*(a2-b2);
+          break;
+        case DRIFT:
+          a2 /= 2.0;
+          b2 *= b2;
+          break;
+        default:
+          error(EXIT_FAILURE, "*Internal ERROR*: Track-Error Type Unknown",
+                        " in makepsf()");
+          break;
+        }
+      }
+    else
+      trackflag = 0;
+
+/*-- Convolve by seeing */
+    if (sim->psfseeingtype != NO_SEEING)
+      {
+      if (sim->npsf==1)
+        NFPRINTF(OUTPUT, "Convolving by seeing...");
+      fbmpt = fbmp;
+      for (y=0; y<psfsize[1]; y++)
+        {
+        y2 = y<hpsfsize[1]?y:y-psfsize[1];
+        y22 = y2*y2;
+        for (x=0; x<psfsize[0]; x++)
+          {
+          x2 = x<hpsfsize[0]?x:x-psfsize[0];
+          x22 = x2*x2;
+          r = x22+y22;
+          if (sim->psfseeingtype == SHORT_EXPOSURE)
+            bandpass = r<rmax? exp(-3.4419*pow(r/sig2,5./6.)
+		*(1-pow(motfact*r,1./6.))) : 0.0;
+          else
+            bandpass = exp(-3.4419*pow(r/sig2,5./6.));
+          *(fbmpt++) *= bandpass;
+          *(fbmpt++) *= bandpass;
+          }
+        }
+      }
+
+/*-- Convolve by tracking errors */
+    if (trackflag)
+      {
+      if (sim->npsf==1)
+        NFPRINTF(OUTPUT, "Convolving by tracking errors...");
+      fbmpt = fbmp;
+      for (y=0; y<psfsize[1]; y++)
+        {
+        y2 = y<hpsfsize[1]?y:y-psfsize[1];
+        y22 = y2*y2;
+        for (x=0; x<psfsize[0]; x++)
+          {
+          x2 = x<hpsfsize[0]?x:x-psfsize[0];
+          x22 = x2*x2;
+          if (sim->psftracktype == JITTER)
+            bandpass = exp(-(cxx*x22+cyy*y22+cxy*x2*y2)/2);
+          else
+            {
+            r = a2*(ct*x2+st*y2);
+            bandpass = (r?sin(r)/r:1.0);
+            if (b2)
+              {
+              r = x22+y22;
+              bandpass *= exp(-b2*r/2);
+              }
+            }
+          *(fbmpt++) *= bandpass;
+          *(fbmpt++) *= bandpass;
+          }
+        }
+      }
+
+/*-- Get the normalization from zero-frequency Fourier component */
+    norm = *fbmp;
+
+/*-- Save the MTF of the PSF ("no-return" option!) */
+    if  (sim->imatype == PSF_MTF)
+      {
+      if (sim->npsf==1)
+        NFPRINTF(OUTPUT, "Descrambling pixels...");
+      if (!p)
+        QMALLOC(bmpc, float, nbpix*sim->npsf);
+      pix = bmpc+p*nbpix;
+      for (y=0; y<psfsize[1]; y++)
+        {
+        y2 = y-yc;
+        if (y2<0)
+          y2 += psfsize[1];
+        y2 *= psfsize[0];
+        for (x=0; x<psfsize[0]; x++)
+          {
+          x2 = x-xc;
+          if (x2<0)
+            x2 += psfsize[0];
+          *(pix++) = *(fbmp+2*(x2+y2));
+          }
+        }
+      pix = bmpc+p*nbpix;
+      invnorm = 1.0/(PIXTYPE)norm;;
+      for (i=nbpix; i--;)
+        *(pix++) *= invnorm;
+      QFFTWFREE(fbmp);
+      continue;
+      }
+
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "3rd FFT...");
+    fft_ctf(fbmp, psfsize[0], psfsize[1], FFTW_FORWARD);
+    norm *= (PIXTYPE)nbpix;
+    invnorm = 1.0/norm;
+
+/*-- Copy to the psf pixmap with the correct arrangement (and normalize) */
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "Descrambling pixels...");
     QMALLOC(bmp, float, nbpix);
     pix = bmp;
-    dsum = 0.0;
     for (y=0; y<psfsize[1]; y++)
       {
       y2 = y-yc;
+      y22 = y2*y2;
       if (y2<0)
         y2 += psfsize[1];
       y2 *= psfsize[0];
       for (x=0; x<psfsize[0]; x++)
         {
         x2 = x-xc;
+        x22 = x2*x2;
         if (x2<0)
           x2 += psfsize[0];
-        dsum += *(pix++) = *(fbmp+2*(x2+y2));
+        *(pix++) = *(fbmp+2*(x2+y2))*invnorm;
         }
       }
+
+    QFFTWFREE(fbmp);
+
+/*-- Truncate to a disk that has diameter = (box width - 2*PSF "radius")*/
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "Truncating...");
+
+    rmax = psfsize[0] - 1.0 - xc;
+    if (rmax > (r=xc))
+      rmax = r;
+    if (rmax > (r=psfsize[1]-1.0-yc))
+      rmax = r;
+    if (rmax > (r=yc))
+      rmax = r;
+    if (rmax<1.0)
+      rmax = 1.0;
+    rmax2 = rmax*rmax;
+    rsig = sqrt(sim->psfarea/PI)*osamp;
+    invrsig2 = 1/(2*rsig*rsig);
+    rmin = rmax - (3*rsig);	/* 3 sigma annulus (almost no aliasing) */
+    rmin2 = rmin*rmin;
     pix = bmp;
-    for (i=0; i<nbpix; i++)
+    dy = -yc;
+    for (y=psfsize[1]; y--; dy+=1.0)
+      {
+      dx = -xc;
+      for (x=psfsize[0]; x--; dx+=1.0, pix++)
+        if ((dr2=dx*dx+dy*dy)>rmin2)
+          *pix *= (dr2>rmax2)?0.0:exp((2*rmin*sqrt(dr2)-dr2-rmin2)*invrsig2);
+      }
+/*-- Save the full resolution image of the PSF ("no-return" option!) */
+    if  (sim->imatype == PSF_FULLRES)
+      {
+      if (!p)
+        QMALLOC(bmpc, float, nbpix*sim->npsf);
+      memcpy(bmpc+p*nbpix, bmp, nbpix*sizeof(float));
+      QFFTWFREE(bmp);
+      continue;
+      }
+
+/*-- Convolve by the pixel */
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "Convolving by detector pixel...");
+
+    bstep = psfsize[0]*osamp - 1;
+    if (!p)
+      {
+      QCALLOC(sim->psf, PIXTYPE, nbpix2*sim->npsf);
+      }
+    bmp2 = sim->psf + p*nbpix2;
+    pix2 = bmp2;
+    pix = bmp;
+    dsum = 0.0;
+    for (y=0; y<psfh2; y++, pix+=osampm1)
+      for (x=0; x<psfw2; x++)
+        {
+        for (y2=0; y2<osamp; y2++, pix+=psfwm1)
+          for (x2=0; x2<osamp; x2++)
+            *pix2 += (PIXTYPE)*(pix++);
+        dsum += *(pix2++);
+        pix -= bstep;
+        }
+
+    QFFTWFREE(bmp);
+/*-- Normalize the PSF */
+    if (sim->npsf==1)
+      NFPRINTF(OUTPUT, "Normalizing PSF...");
+    dsum /= osamp*osamp;
+    pix = bmp2;
+    for (i=0; i<nbpix2; i++)
       *(pix++) /= (PIXTYPE)dsum;
-    sim->image = bmp;
-    sim->imasize[0] = psfsize[0];
-    sim->imasize[1] = psfsize[1];
+    }
+
+  fft_end(prefs.nthreads);
+  poly_end(polydefoc);
+  poly_end(polyspher);
+  poly_end(polycomax);
+  poly_end(polycomay);
+  poly_end(polyast00);
+  poly_end(polyast45);
+  poly_end(polytri00);
+  poly_end(polytri30);
+  poly_end(polyqua00);
+  poly_end(polyqua22);
+
+/* Save the final resolution image of the PSF ("no-return" option!) */
+  if  (sim->imatype == PSF_FINALRES)
+    {
+    sim->image = sim->psf;
+    sim->imasize[0] = psfw2;
+    sim->imasize[1] = psfh2;
+    sim->imasize[2] = psfsize[2];
+    sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
     writeima(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
-    QFFTWFREE(bmp);
+    sim_end(sim);
+    NFPRINTF(OUTPUT, "All done");
+    QPRINTF(OUTPUT, "\n");
+    exit(EXIT_SUCCESS);
+    }
+  else if  (sim->imatype == PUPIL_REAL
+	|| sim->imatype == PUPIL_IMAGINARY
+	|| sim->imatype == PUPIL_MODULUS
+	|| sim->imatype == PUPIL_PHASE)
+    {
+    sim->image = bmpc;
+    sim->imasize[0] = psfsize[0];
+    sim->imasize[1] = psfsize[1];
+    sim->imasize[2] = psfsize[2];
+    sim->imasize[3] = psfsize[3];
+    NFPRINTF(OUTPUT, "Writing image...");
+    writeima(sim);
+    NFPRINTF(OUTPUT, "Freeing memory...");
+    sim_end(sim);
+    NFPRINTF(OUTPUT, "All done");
+    QPRINTF(OUTPUT, "\n");
+    exit(EXIT_SUCCESS);
+    }
+  else if (sim->imatype == PUPIL_MTF)
+    {
+    sim->image = bmpc;
+    sim->imasize[0] = psfsize[0];
+    sim->imasize[1] = psfsize[1];
+    sim->imasize[2] = psfsize[2];
+    sim->imasize[3] = psfsize[3];
+    NFPRINTF(OUTPUT, "Writing image...");
+    writeima(sim);
+    NFPRINTF(OUTPUT, "Freeing memory...");
+    sim_end(sim);
     fft_end(prefs.nthreads);
     NFPRINTF(OUTPUT, "All done");
     NPRINTF(OUTPUT, "\n");
     exit(EXIT_SUCCESS);
     }
-
-/* Preparing tracking parameters */
-  sig2 = sim->ro/fscale[0];
-  sig2 *= sig2;
-  motfact = fscale[0]*fscale[1]/(sim->psfdm1*sim->psfdm1);
-  rmax = 1.0/motfact;
-  ct=st=a2=b2=cxx=cyy=cxy = 0.0;	/* To avoid gcc -Wall warnings */
-  if (sim->psftracktype!=NO_TRACKERR && (sim->psftrackmaj || sim->psftrackmin))
+  else if (sim->imatype == PSF_MTF)
     {
-    trackflag = 1;
-    a2 = 2*PI*sim->psftrackmaj/(psfsize[0]*pixscale[0]);
-    b2 = 2*PI*sim->psftrackmin/(psfsize[0]*pixscale[0]);
-    ct = cos(sim->psftrackang*DEG);
-    st = sin(sim->psftrackang*DEG);
-    switch(sim->psftracktype)
-      {
-      case JITTER:
-        a2 *= a2;
-        b2 *= b2;
-        cxx = ct*ct*a2+st*st*b2;
-        cyy = st*st*a2+ct*ct*b2;
-        cxy = 2*ct*st*(a2-b2);
-        break;
-      case DRIFT:
-        a2 /= 2.0;
-        b2 *= b2;
-        break;
-      default:
-        error(EXIT_FAILURE, "*Internal ERROR*: Track-Error Type Unknown",
-                        " in makepsf()");
-        break;
-      }
-    }
-  else
-    trackflag = 0;
-
-/* Convolve by seeing */
-  if (sim->psfseeingtype != NO_SEEING)
-    {
-    NFPRINTF(OUTPUT, "Convolving by seeing...");
-    fbmpt = fbmp;
-    for (y=0; y<psfsize[1]; y++)
-      {
-      y2 = y<hpsfsize[1]?y:y-psfsize[1];
-      y22 = y2*y2;
-      for (x=0; x<psfsize[0]; x++)
-        {
-        x2 = x<hpsfsize[0]?x:x-psfsize[0];
-        x22 = x2*x2;
-        r = x22+y22;
-        if (sim->psfseeingtype == SHORT_EXPOSURE)
-          bandpass = r<rmax? exp(-3.4419*pow(r/sig2,5./6.)
-		*(1-pow(motfact*r,1./6.))) : 0.0;
-        else
-          bandpass = exp(-3.4419*pow(r/sig2,5./6.));
-        *(fbmpt++) *= bandpass;
-        *(fbmpt++) *= bandpass;
-        }
-      }
-    }
-
-/* Convolve by tracking errors */
-  if (trackflag)
-    {
-    NFPRINTF(OUTPUT, "Convolving by tracking errors...");
-    fbmpt = fbmp;
-    for (y=0; y<psfsize[1]; y++)
-      {
-      y2 = y<hpsfsize[1]?y:y-psfsize[1];
-      y22 = y2*y2;
-      for (x=0; x<psfsize[0]; x++)
-        {
-        x2 = x<hpsfsize[0]?x:x-psfsize[0];
-        x22 = x2*x2;
-        if (sim->psftracktype == JITTER)
-          bandpass = exp(-(cxx*x22+cyy*y22+cxy*x2*y2)/2);
-        else
-          {
-          r = a2*(ct*x2+st*y2);
-          bandpass = (r?sin(r)/r:1.0);
-          if (b2)
-            {
-            r = x22+y22;
-            bandpass *= exp(-b2*r/2);
-            }
-          }
-        *(fbmpt++) *= bandpass;
-        *(fbmpt++) *= bandpass;
-        }
-      }
-    }
-
-/* Get the normalization from zero-frequency Fourier component */
-  norm = *fbmp;
-
-/* Save the MTF of the PSF ("no-return" option!) */
-  if  (sim->imatype == PSF_MTF)
-    {
-    NFPRINTF(OUTPUT, "Descrambling pixels...");
-    QMALLOC(bmp, float, nbpix);
-    pix = bmp;
-    for (y=0; y<psfsize[1]; y++)
-      {
-      y2 = y-yc;
-      if (y2<0)
-        y2 += psfsize[1];
-      y2 *= psfsize[0];
-      for (x=0; x<psfsize[0]; x++)
-        {
-        x2 = x-xc;
-        if (x2<0)
-          x2 += psfsize[0];
-        *(pix++) = *(fbmp+2*(x2+y2));
-        }
-      }
-    pix = bmp;
-    for (i=0; i<nbpix; i++)
-      *(pix++) /= (PIXTYPE)norm;
-    sim->image = bmp;
+    sim->image = bmpc;
     sim->imasize[0] = psfsize[0];
     sim->imasize[1] = psfsize[1];
+    sim->imasize[2] = psfsize[2];
+    sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
     writeima(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
-    QFFTWFREE(bmp);
+    sim_end(sim);
     fft_end(prefs.nthreads);
     NFPRINTF(OUTPUT, "All done");
     QPRINTF(OUTPUT, "\n");
     exit(EXIT_SUCCESS);
     }
-
-  NFPRINTF(OUTPUT, "3rd FFT...");
-  fft_ctf(fbmp, psfsize[0], psfsize[1], FFTW_FORWARD);
-  fft_end(prefs.nthreads);
-  norm *= (PIXTYPE)nbpix;
-
-/* Copy to the psf pixmap with the correct arrangement (and normalize) */
-  NFPRINTF(OUTPUT, "Descrambling pixels...");
-  QMALLOC(bmp, float, nbpix);
-  pix = bmp;
-  for (y=0; y<psfsize[1]; y++)
+  else if (sim->imatype == PSF_FULLRES)
     {
-    y2 = y-yc;
-    y22 = y2*y2;
-    if (y2<0)
-      y2 += psfsize[1];
-    y2 *= psfsize[0];
-    for (x=0; x<psfsize[0]; x++, pix++)
-      {
-      x2 = x-xc;
-      x22 = x2*x2;
-      if (x2<0)
-        x2 += psfsize[0];
-      *pix = *(fbmp+2*(x2+y2))/norm;
-      }
-    }
-
-  free(fbmp);
-
-/* Truncate to a disk that has diameter = (box width - 2*PSF "radius")*/
-  NFPRINTF(OUTPUT, "Truncating...");
-  rmax = psfsize[0] - 1.0 - xc;
-  if (rmax > (r=xc))
-    rmax = r;
-  if (rmax > (r=psfsize[1]-1.0-yc))
-    rmax = r;
-  if (rmax > (r=yc))
-    rmax = r;
-  if (rmax<1.0)
-    rmax = 1.0;
-  rmax2 = rmax*rmax;
-  rsig = sqrt(sim->psfarea/PI)*osamp;
-  invrsig2 = 1/(2*rsig*rsig);
-  rmin = rmax - (3*rsig);	/* 3 sigma annulus (almost no aliasing) */
-  rmin2 = rmin*rmin;
-
-  pix = bmp;
-  dy = -yc;
-  for (y=psfsize[1]; y--; dy+=1.0)
-    {
-    dx = -xc;
-    for (x=psfsize[0]; x--; dx+=1.0, pix++)
-      if ((r2=dx*dx+dy*dy)>rmin2)
-        *pix *= (r2>rmax2)?0.0:exp((2*rmin*sqrt(r2)-r2-rmin2)*invrsig2);
-    }
-
-/* Save the full resolution image of the PSF ("no-return" option!) */
-  if  (sim->imatype == PSF_FULLRES)
-    {
-    sim->image = bmp;
+    sim->image = bmpc;
     sim->imasize[0] = psfsize[0];
     sim->imasize[1] = psfsize[1];
+    sim->imasize[2] = psfsize[2];
+    sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
     writeima(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
-    QFFTWFREE(bmp);
+    sim_end(sim);
     NFPRINTF(OUTPUT, "All done");
     QPRINTF(OUTPUT, "\n");
     exit(EXIT_SUCCESS);
     }
 
-  osampm1 = osamp-1;
-  nbpix2 = (psfw2=psfsize[0]-osampm1)*(psfh2=psfsize[1]-osampm1);
-  QCALLOC(bmp2, PIXTYPE, nbpix2);
-
-/* Convolve by the pixel */
-  NFPRINTF(OUTPUT, "Convolving by detector pixel...");
-
-  bstep = psfsize[0]*osamp - 1;
-  psfwm1 = psfw2 - 1;
-  pix = bmp;
-  pix2 = bmp2;
-  dsum = 0.0;
-  for (y=0; y<psfh2; y++, pix+=osampm1)
-    for (x=0; x<psfw2; x++)
-      {
-      for (y2=0; y2<osamp; y2++, pix+=psfwm1)
-        for (x2=0; x2<osamp; x2++)
-          *pix2 += (PIXTYPE)*(pix++);
-      dsum += *(pix2++);
-      pix -= bstep;
-      }
-
-  QFFTWFREE(bmp);
-
 /* Update PSF parameters in the simulation structure */
-  sim->psf=bmp2;
   sim->psfsize[0] = psfw2;
   sim->psfsize[1] = psfh2;
-  sim->npsf = sim->psfsize[2] = sim->psfsize[3] = sim->psfsize[4] = 1;
+
   QCALLOC(sim->psfdft, PIXTYPE *, sim->npsf*(PSF_NORDER+1));
 
 #ifdef USE_THREADS
-  QMALLOC(dftmutex, pthread_mutex_t, sim->npsf);
-  for (p=0; p<sim->npsf; p++)
-    QPTHREAD_MUTEX_INIT(&dftmutex[p], NULL);
+    QMALLOC(dftmutex, pthread_mutex_t, sim->npsf);
+    for (p=0; p<sim->npsf; p++)
+      QPTHREAD_MUTEX_INIT(&dftmutex[p], NULL);
 #endif
-
-/* Normalize the PSF */
-  NFPRINTF(OUTPUT, "Normalizing PSF...");
-  dsum /= osamp*osamp;
-  pix = bmp2;
-  for (i=0; i<nbpix2; i++)
-    *(pix++) /= (PIXTYPE)dsum;
-
-/* Save the final resolution image of the PSF ("no-return" option!) */
-  if  (sim->imatype == PSF_FINALRES)
-    {
-    sim->image = bmp2;
-    sim->imasize[0] = psfw2;
-    sim->imasize[1] = psfh2;
-    NFPRINTF(OUTPUT, "Writing image...");
-    writeima(sim);
-    NFPRINTF(OUTPUT, "Freeing memory...");
-    free(bmp2);
-    NFPRINTF(OUTPUT, "All done");
-    QPRINTF(OUTPUT, "\n");
-    exit(EXIT_SUCCESS);
-    }
 
   return;
   }
@@ -1019,9 +1156,12 @@ void    freepsf(simstruct *sim)
   free(sim->psfdft);
 
 #ifdef USE_THREADS
-  for (p=0; p<sim->npsf; p++)
-    QPTHREAD_MUTEX_DESTROY(&dftmutex[p]);
-  free(dftmutex);
+  if (dftmutex)
+    {
+    for (p=0; p<sim->npsf; p++)
+      QPTHREAD_MUTEX_DESTROY(&dftmutex[p]);
+    free(dftmutex);
+    }
 #endif
 
   return;
