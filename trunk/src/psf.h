@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c
 *
-*	Last modify:	30/04/2010
+*	Last modify:	06/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -19,9 +19,6 @@
 #endif
 
 /*---------------------------- Internal constants ---------------------------*/
-#define	PSF_INTERPW	2		/* Footprint of PSF interpolant */
-#define	PSF_NINTERP	(PSF_INTERPW*PSF_INTERPW)	/* Interpolant area */
-
 /*-------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/

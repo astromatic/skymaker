@@ -49,7 +49,7 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_sky_OBJECTS = alterimage.$(OBJEXT) fft.$(OBJEXT) galaxies.$(OBJEXT) \
 	image.$(OBJEXT) imaout.$(OBJEXT) list.$(OBJEXT) main.$(OBJEXT) \
-	makeit.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) \
+	makeit.$(OBJEXT) poly.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) \
 	random.$(OBJEXT) simul.$(OBJEXT) stars.$(OBJEXT)
 sky_OBJECTS = $(am_sky_OBJECTS)
 sky_DEPENDENCIES = $(top_builddir)/src/fits/libfits.a
@@ -201,13 +201,13 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # Program Makefile for SkyMaker
-# Copyright (C) 1995-2005 Emmanuel Bertin.
+# Copyright (C) 1995-2010 Emmanuel Bertin.
 SUBDIRS = fits
 sky_SOURCES = alterimage.c fft.c galaxies.c image.c imaout.c list.c main.c \
-		  makeit.c prefs.c psf.c random.c simul.c stars.c \
+		  makeit.c poly.c prefs.c psf.c random.c simul.c stars.c \
 		  alterimage.h define.h fft.h galaxies.h globals.h image.h \
-		  imaout.h key.h list.h preflist.h prefs.h psf.h random.h \
-		  simul.h stars.h threads.h types.h
+		  imaout.h key.h list.h poly.h preflist.h prefs.h psf.h \
+		  random.h simul.h stars.h threads.h types.h
 
 sky_LDADD = $(top_builddir)/src/fits/libfits.a
 DATE = `date +"%Y-%m-%d"`
@@ -290,6 +290,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/makeit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poly.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/random.Po@am__quote@

@@ -71,8 +71,8 @@ void    makeit()
   center_psf(simul);
   QCALLOC(simul->image, PIXTYPE, simul->fimasize[0]*simul->fimasize[1]);
   openoutlist(simul);
-  makestarfield(simul);
   readlist(simul);
+  makestarfield(simul);
   closeoutlist(simul);
   freepsf(simul);
   if (simul->aurange)

@@ -9,17 +9,26 @@
 *
 *	Contents:	Include for simul.c.
 *
-*	Last modify:	30/04/2010
+*	Last modify:	17/05/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+#ifndef _SIMUL_H_
+#define _SIMUL_H_
 
 #ifndef _FITSCAT_H_
 #include "fits/fitscat.h"
 #endif
 
-#ifndef _SIMUL_H_
-#define _SIMUL_H_
+/*----------------------------- Internal constants --------------------------*/
+#define	PSF_INTERPW	2		/* Footprint of PSF interpolant */
+#define	PSF_NINTERP	(PSF_INTERPW*PSF_INTERPW)	/* Interpolant area */
+#define	PSF_NVARSNAP	11		/* Number of PSF snapshots per axis */
+#define	PSF_NVARORDER	3		/* Number of PSF variation orders (-1)*/
+#define	PSF_VARTHRESH	1e-9		/* Aberration significance threshold */
+
+#define	QUANT_ACCURACY	1.0   /* flux quantization in units of noise RMS */
 
 /*------------------------------ Type definitions ---------------------------*/
 
@@ -36,10 +45,6 @@ typedef enum	{CENTER_UPPERHALF, CENTER_LOWERHALF, CENTER_HALF,
 
 typedef enum	{NO_TRACKERR, DRIFT, JITTER}	tracktypenum;
 
-/*----------------------------- Internal constants --------------------------*/
-
-#define	QUANT_ACCURACY	1.0   /* flux quantization in units of noise RMS */
-
 /*------------------------------- preferences -------------------------------*/
 typedef struct
   {
@@ -52,7 +57,7 @@ typedef struct
   FILE		*outlistfile;		/* Output list file */
   PIXTYPE	*image;			/* Pointer to the image pixel map */
   imatypenum	imatype;		/* Image type */
-  int		imasize[2];		/* Dimension of the image */
+  int		imasize[4];		/* Dimension of the image */
   int		nimasize;		/* Number of arguments */
   int		fimasize[2];		/* Dimension of the FULL pixmap */
   int		margin[2];		/* Margin around the actual image */
@@ -92,16 +97,22 @@ typedef struct
   double	psfdm2;			/* Diam. of the 2nd mir. support (m) */
   double	psfarmw;		/* Thickness of the spider arms (m)*/
   double	psfarmang;		/* Pos. angle of spider arms (deg) */
-  double	psfd80defoc;		/* FWHM induced by defocus (arcsec) */
-  double	psfd80spher;		/* Spherical d80% diameter (arcsec) */
-  double	psfd80comax;		/* X-coma d80% diameter (arcsec) */
-  double	psfd80comay;		/* Y-coma d80% diameter (arcsec) */
-  double	psfd80ast00;		/* 0 deg. astigmatism d80% (arcsec) */
-  double	psfd80ast45;		/* 45 deg. astigmatism d80% (arcsec) */
-  double	psfd80tri00;		/* 0 deg. triangular d80% (arcsec) */
-  double	psfd80tri30;		/* 30 deg. triangular d80% (arcsec) */
-  double	psfd80qua00;		/* 0 deg. quadratic d80% (arcsec) */
-  double	psfd80qua22;		/* 22.5 deg. quadratic d80% (arcsec) */
+  double	psfd80defoc[PSF_NVARORDER];/* FWHM induced by defocus (arcsec)*/
+  double	psfdefocc[2];		/* Defocalisation center coords */
+  double	psfd80spher[PSF_NVARORDER];/* Spherical d80% diameter (arcsec)*/
+  double	psfspherc[2];		/* Spherical aberr. center coords */
+  double	psfd80comax[PSF_NVARORDER];/* X-coma d80% diameter (arcsec) */
+  double	psfd80comay[PSF_NVARORDER];/* Y-coma d80% diameter (arcsec) */
+  double	psfcomac[2];		/* Coma center coords */
+  double	psfd80ast00[PSF_NVARORDER];/* 0 deg. astigmatism d80% (arcsec)*/
+  double	psfd80ast45[PSF_NVARORDER];/* 45 deg astigmatism d80% (arcsec)*/
+  double	psfastc[2];		/* Astigmatism center coords */
+  double	psfd80tri00[PSF_NVARORDER];/* 0 deg. triangular d80% (arcsec) */
+  double	psfd80tri30[PSF_NVARORDER];/* 30 deg. triangular d80% (arcsec)*/
+  double	psftric[2];		/* Triangular aberr center coords */
+  double	psfd80qua00[PSF_NVARORDER];/* 0 deg. quadratic d80% (arcsec) */
+  double	psfd80qua22[PSF_NVARORDER];/* 22.5 deg quadratic d80% (arcsec)*/
+  double	psfquac[2];		/* Quadratic aberr center coords */
   tracktypenum	psftracktype;		/* Tracking type */
   double	psftrackmaj;		/* Maximum RMS tracking error (") */
   double	psftrackmin;		/* Minimum RMS tracking error (") */

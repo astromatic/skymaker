@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions related to simulation handling.
 *
-*	Last modify:	22/04/2010
+*	Last modify:	17/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,13 +36,13 @@ INPUT   -.
 OUTPUT  Pointer to an allocated and filled sim structure.
 NOTES   Global prefs variables are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 22/04/2010
+VERSION 17/05/2010
 */
 simstruct	*sim_init(void)
   {
    simstruct	*sim;
    double	motfact[2];
-   int		i,nmscan2, nx,ny,xoffset,yoffset;
+   int		i,o, nx,ny,xoffset,yoffset;
 
   QCALLOC(sim, simstruct, 1);
   strcpy(sim->filename, prefs.filename);
@@ -52,8 +52,10 @@ simstruct	*sim_init(void)
   sim->imatype = prefs.imatype;
   sim->imasize[0] = prefs.imasize[0];
   sim->imasize[1] = prefs.imasize[1];
+  sim->imasize[2] = sim->imasize[3] = 1;
   sim->mscan[0] = prefs.mscan[0];
   sim->mscan[1] = prefs.mscan[1];
+  sim->nmscan = sim->mscan[0]*sim->mscan[1];
   sim->pixscale[0] = prefs.pixscale[0];
   sim->pixscale[1] = prefs.pixscale[1];
   sim->lambdaeq = prefs.lambdaeq;
@@ -77,15 +79,28 @@ simstruct	*sim_init(void)
   sim->psfdm2 = prefs.psfdm2;
   sim->psfarmw = prefs.psfarmw;
   sim->psfarmang = prefs.psfarmang;
-  sim->psfd80defoc = prefs.psfd80defoc;
-  sim->psfd80spher = prefs.psfd80spher;
-  sim->psfd80comax = prefs.psfd80comax;
-  sim->psfd80comay = prefs.psfd80comay;
-  sim->psfd80ast00 = prefs.psfd80ast00;
-  sim->psfd80ast45 = prefs.psfd80ast45;
-  sim->psfd80tri00 = prefs.psfd80tri00;
-  sim->psfd80tri30 = prefs.psfd80tri30;
-  sim->psfd80qua00 = prefs.psfd80qua22;
+  for (o=0; o<PSF_NVARORDER; o++)
+    {
+    sim->psfd80defoc[o] = prefs.psfd80defoc[o];
+    sim->psfd80spher[o] = prefs.psfd80spher[o];
+    sim->psfd80comax[o] = prefs.psfd80comax[o];
+    sim->psfd80comay[o] = prefs.psfd80comay[o];
+    sim->psfd80ast00[o] = prefs.psfd80ast00[o];
+    sim->psfd80ast45[o] = prefs.psfd80ast45[o];
+    sim->psfd80tri00[o] = prefs.psfd80tri00[o];
+    sim->psfd80tri30[o] = prefs.psfd80tri30[o];
+    sim->psfd80qua00[o] = prefs.psfd80qua22[o];
+    }
+  for (i=0; i<2; i++)
+    {
+    sim->psfdefocc[i] = prefs.psfdefocc[i];
+    sim->psfspherc[i] = prefs.psfspherc[i];
+    sim->psfcomac[i] = prefs.psfcomac[i];
+    sim->psfastc[i] = prefs.psfastc[i];
+    sim->psftric[i] = prefs.psftric[i];
+    sim->psftric[i] = prefs.psftric[i];
+    sim->psfquac[i] = prefs.psfquac[i];
+    }
   sim->psftracktype = prefs.psftracktype;
   sim->psftrackmaj = prefs.psftrackmaj;
   sim->psftrackmin = prefs.psftrackmin;
@@ -123,12 +138,11 @@ simstruct	*sim_init(void)
     sim->psfmotion = 0.41207*pow(sim->lambdaeq*MICRON/sim->psfdm1, 0.166667)
 		*pow(sim->lambdaeq*MICRON/sim->ro, 0.833333)/ARCSEC;
     init_random(sim->psfmotionseed);
-    nmscan2 = sim->mscan[0]*sim->mscan[1];
-    QMALLOC(sim->psfmot[0], double, nmscan2);
-    QMALLOC(sim->psfmot[1], double, nmscan2);
+    QMALLOC(sim->psfmot[0], double, sim->nmscan);
+    QMALLOC(sim->psfmot[1], double, sim->nmscan);
     motfact[0] = sim->psfmotion/sim->pixscale[0]/sim->mscan[0];
     motfact[1] = sim->psfmotion/sim->pixscale[1]/sim->mscan[1];
-    for (i=0; i<nmscan2; i++)
+    for (i=0; i<sim->nmscan; i++)
       {
       sim->psfmot[0][i] = random_gauss(motfact[0], 0);
       sim->psfmot[1][i] = random_gauss(motfact[1], 0);
@@ -167,16 +181,16 @@ simstruct	*sim_init(void)
 			*sim->lambdaeq*sim->lambdaeq/(sim->psfdm1*sim->psfdm1)
 		+sim->seeing*sim->seeing/(2.35*2.35)
 		+sim->psftrackmaj*sim->psftrackmaj
-		+sim->psfd80defoc*sim->psfd80defoc/(1.8*1.8)
-		+sim->psfd80spher*sim->psfd80spher/(1.8*1.8)
-		+sim->psfd80comax*sim->psfd80comax/(1.8*1.8)
-		+sim->psfd80comay*sim->psfd80comay/(1.8*1.8)
-		+sim->psfd80ast00*sim->psfd80ast00/(1.8*1.8)
-		+sim->psfd80ast45*sim->psfd80ast45/(1.8*1.8)
-		+sim->psfd80tri00*sim->psfd80tri00/(1.8*1.8)
-		+sim->psfd80tri30*sim->psfd80tri30/(1.8*1.8)
-		+sim->psfd80qua00*sim->psfd80qua00/(1.8*1.8)
-		+sim->psfd80qua22*sim->psfd80qua22/(1.8*1.8));
+		+sim->psfd80defoc[0]*sim->psfd80defoc[0]/(1.8*1.8)
+		+sim->psfd80spher[0]*sim->psfd80spher[0]/(1.8*1.8)
+		+sim->psfd80comax[0]*sim->psfd80comax[0]/(1.8*1.8)
+		+sim->psfd80comay[0]*sim->psfd80comay[0]/(1.8*1.8)
+		+sim->psfd80ast00[0]*sim->psfd80ast00[0]/(1.8*1.8)
+		+sim->psfd80ast45[0]*sim->psfd80ast45[0]/(1.8*1.8)
+		+sim->psfd80tri00[0]*sim->psfd80tri00[0]/(1.8*1.8)
+		+sim->psfd80tri30[0]*sim->psfd80tri30[0]/(1.8*1.8)
+		+sim->psfd80qua00[0]*sim->psfd80qua00[0]/(1.8*1.8)
+		+sim->psfd80qua22[0]*sim->psfd80qua22[0]/(1.8*1.8));
 
 /* Temporary fix */
   if (sim->imatype==GRID || sim->imatype==GRID_NONOISE)
