@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for simul.c.
 *
-*	Last modify:	17/05/2010
+*	Last modify:	18/05/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -41,7 +41,8 @@ typedef enum	{PSF_INTERNAL, PSF_FILE} psftypenum;
 typedef enum	{NO_SEEING, LONG_EXPOSURE, SHORT_EXPOSURE} seeingtypenum;
 
 typedef enum	{CENTER_UPPERHALF, CENTER_LOWERHALF, CENTER_HALF,
-		CENTER_CENTROID, CENTER_PEAK}	centertypenum;
+		CENTER_CENTROID, CENTER_CENTROID_COMMON,
+		CENTER_PEAK}	centertypenum;
 
 typedef enum	{NO_TRACKERR, DRIFT, JITTER}	tracktypenum;
 
@@ -91,7 +92,7 @@ typedef struct
   PIXTYPE	**psfdft;		/* Pointers to DFTs of the PSF */
   int		psfsize[5];		/* Dimensions of the PSF */
   int		npsfsize;		/* Number of arguments */
-  double	dpsfc[2];		/* Relative PSF center coordinates*/
+  double	*psfdpos[2];		/* Relative PSF center coordinates*/
   int		psfnarms;		/* Number of spider arms */
   double	psfdm1;			/* Diameter of the primary mirror (m)*/
   double	psfdm2;			/* Diam. of the 2nd mir. support (m) */

@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c
 *
-*	Last modify:	06/05/2010
+*	Last modify:	18/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -28,9 +28,10 @@ extern void	center_psf(simstruct *sim),
 		makepsf(simstruct *sim),
 		readpsf(simstruct *sim);
 
-extern PIXTYPE	*interp_psf(simstruct *sim, double x, double y),
-		*interp_dft(simstruct *sim, int order, double x, double y);
+extern PIXTYPE	*interp_psf(simstruct *sim, double *pos, double *dpos),
+		*interp_dft(simstruct *sim, int order, double *pos,
+			double *dpos);
 
-extern int	pos_to_indices(simstruct *sim, double x, double y,
+extern int	pos_to_indices(simstruct *sim, double *pos,
 			int *index, PIXTYPE *weight);
 

@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines dealing with the PSF.
 *
-*	Last modify:	17/05/2010
+*	Last modify:	18/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -729,6 +729,9 @@ void	makepsf(simstruct *sim)
       QPTHREAD_MUTEX_INIT(&dftmutex[p], NULL);
 #endif
 
+  QCALLOC(sim->psfdpos[0], double, sim->npsf);
+  QCALLOC(sim->psfdpos[1], double, sim->npsf);
+
   return;
   }
 
@@ -747,17 +750,56 @@ void    center_psf(simstruct *sim)
   switch(prefs.psfcentertype)
     {
     case CENTER_UPPERHALF:
-      sim->dpsfc[0] = sim->dpsfc[1] = 0.0;
+      for (p=0; p<sim->npsf; p++)
+        sim->psfdpos[p][0] = sim->psfdpos[p][1] = 0.0;
       break;
     case CENTER_LOWERHALF:
-      sim->dpsfc[0] = (sim->psfsize[0]%2)? 0.0 : -1.0/sim->psfoversamp;
-      sim->dpsfc[1] = (sim->psfsize[1]%2)? 0.0 : -1.0/sim->psfoversamp;
+      dx = (sim->psfsize[0]%2)? 0.0 : -1.0/sim->psfoversamp;
+      dy = (sim->psfsize[1]%2)? 0.0 : -1.0/sim->psfoversamp;
+      for (p=0; p<sim->npsf; p++)
+        {
+        sim->psfdpos[0][p] = dx;
+        sim->psfdpos[1][p] = dy;
+        }
       break;
     case CENTER_HALF:
-      sim->dpsfc[0] = (sim->psfsize[0]%2)? 0.0 : -0.5/sim->psfoversamp;
-      sim->dpsfc[1] = (sim->psfsize[1]%2)? 0.0 : -0.5/sim->psfoversamp;
+      dx = (sim->psfsize[0]%2)? 0.0 : -0.5/sim->psfoversamp;
+      dy = (sim->psfsize[1]%2)? 0.0 : -0.5/sim->psfoversamp;
+      for (p=0; p<sim->npsf; p++)
+        {
+        sim->psfdpos[0][p] = dx;
+        sim->psfdpos[1][p] = dy;
+        }
       break;
     case CENTER_CENTROID:
+      nbpix = sim->psfsize[0]*sim->psfsize[1];
+      for (p=0; p<sim->npsf; p++)
+        {
+        pix = sim->psf+p*nbpix;
+        dx = dy = flux = 0.0;
+        for (iy=0; iy<sim->psfsize[1]; iy++)
+          for (ix=0; ix<sim->psfsize[0]; ix++)
+            {
+            val = *(pix++);
+            dx += ix*val;
+            dy += iy*val;
+            flux += val;
+            }
+        if (flux > 0.0)
+          {
+          dxmax = dx / flux;
+          dymax = dy / flux;
+          }
+        else
+          {
+          dxmax = sim->psfsize[0]/2;
+          dymax = sim->psfsize[1]/2;
+          }
+        sim->psfdpos[0][p] = (dxmax - (sim->psfsize[0]/2))/sim->psfoversamp;
+        sim->psfdpos[1][p] = (dymax - (sim->psfsize[1]/2))/sim->psfoversamp;
+        }
+      break;
+    case CENTER_CENTROID_COMMON:
       dxmax = dymax = 0.0;
       nbpix = sim->psfsize[0]*sim->psfsize[1];
       for (p=0; p<sim->npsf; p++)
@@ -783,11 +825,15 @@ void    center_psf(simstruct *sim)
           dymax = sim->psfsize[1]/2;
           }
         }
-      sim->dpsfc[0] = (dxmax/sim->npsf - (sim->psfsize[0]/2))/sim->psfoversamp;
-      sim->dpsfc[1] = (dymax/sim->npsf - (sim->psfsize[1]/2))/sim->psfoversamp;
+      dx = (dxmax/sim->npsf - (sim->psfsize[0]/2))/sim->psfoversamp;
+      dy = (dymax/sim->npsf - (sim->psfsize[1]/2))/sim->psfoversamp;
+      for (p=0; p<sim->npsf; p++)
+        {
+        sim->psfdpos[0][p] = dx;
+        sim->psfdpos[1][p] = dy;
+        }
       break;
     case CENTER_PEAK:
-      dxmax = dymax = 0.0;
       nbpix = sim->psfsize[0]*sim->psfsize[1];
       for (p=0; p<sim->npsf; p++)
         {
@@ -801,11 +847,11 @@ void    center_psf(simstruct *sim)
               ixmax = ix;
               iymax = iy;
               }
-        dxmax += ixmax;
-        dymax += iymax;
+        dxmax = ixmax;
+        dymax = iymax;
+        sim->psfdpos[0][p] = (dxmax - (sim->psfsize[0]/2))/sim->psfoversamp;
+        sim->psfdpos[1][p] = (dymax - (sim->psfsize[1]/2))/sim->psfoversamp;
         }
-      sim->dpsfc[0] = (dxmax/sim->npsf - (sim->psfsize[0]/2))/sim->psfoversamp;
-      sim->dpsfc[1] = (dymax/sim->npsf - (sim->psfsize[1]/2))/sim->psfoversamp;
       break;
     default:
       error(EXIT_FAILURE, "*Internal Error*: no such PSFCENTER_TYPE option in ",
@@ -877,33 +923,33 @@ void	makeaureole(simstruct *sim)
 
 
 /****** pos_to_indices *******************************************************
-PROTO	int pos_to_indices(simstruct *sim, double x, double y,
-			int *index, PIXTYPE *weight)
+PROTO	int pos_to_indices(simstruct *sim, double *pos,
+		int *index, PIXTYPE *weight)
 PURPOSE	Returns vectors of indices and weights related to a PSF position.
 INPUT	Pointer to the sim structure,
+	pointer to the position vector,
 	pointer to the index array (output),
 	pointer to the weight array (output).
 OUTPUT	number of indices/weights.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/04/2010
+VERSION	18/05/2010
  ***/
-int	pos_to_indices(simstruct *sim, double x, double y,
-		int *index, PIXTYPE *weight)
+int	pos_to_indices(simstruct *sim, double *pos, int *index, PIXTYPE *weight)
 
   {
    double	dx,dy;
    int		ix,iy, step;
 
 /* We'll use a simple interpolation scheme for now */
-  dx = (sim->psfsize[2]-1) * x / (sim->imasize[0]-1);
+  dx = (sim->psfsize[2]-1) * pos[0] / (sim->imasize[0]-1);
   ix = (int)dx;
   if (ix >= sim->psfsize[2]-2)
     ix = sim->psfsize[2]-2;
   else if (ix<0)
     ix = 0;
   dx -= ix;
-  dy = (sim->psfsize[3]-1) * y / (sim->imasize[1]-1);
+  dy = (sim->psfsize[3]-1) * pos[1] / (sim->imasize[1]-1);
   iy = (int)dy;
   if (iy >= sim->psfsize[3]-2)
     iy = sim->psfsize[3]-2;
@@ -932,36 +978,45 @@ int	pos_to_indices(simstruct *sim, double x, double y,
 
 
 /****** interp_psf **********************************************************
-PROTO	PIXTYPE	*interp_psf(simstruct *sim, double x, double y)
+PROTO	PIXTYPE	*interp_psf(simstruct *sim, double *pos, double *dpos)
 PURPOSE	Interpolate a variable PSF model at the current position.
 INPUT	Pointer to the sim structure,
-	x coordinate,
+	pointer to the coordinate vector,
+	pointer the local shift vector (data set in output).
 	y coordinate.
 OUTPUT	Pointer to the interpolated PSF array.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/04/2010
+VERSION	18/05/2010
  ***/
-PIXTYPE	*interp_psf(simstruct *sim, double x, double y)
+PIXTYPE	*interp_psf(simstruct *sim, double *pos, double *dpos)
 
   {
    PIXTYPE	weight[PSF_NINTERP],
 		*psf, *pix, *pixs,
 		fac;
    int		index[PSF_NINTERP],
-		i,p, nindex, npix;
+		i,p,q, nindex, npix;
 
    if (sim->npsf==1)
+     {
+     dpos[0] = sim->psfdpos[0][0];
+     dpos[1] = sim->psfdpos[1][0];
      return sim->psf;
+     }
 
-   nindex = pos_to_indices(sim, x, y, index, weight);
+   nindex = pos_to_indices(sim, pos, index, weight);
    npix = sim->psfsize[0]*sim->psfsize[1];
    QCALLOC(psf, PIXTYPE, npix);
+   dpos[0] = dpos[1] = 0.0;
    for (p=0; p<nindex; p++)
     {
-    pix = psf;
-    pixs = sim->psf + index[p]*npix;
     fac = weight[p];
+    q = index[p];
+    dpos[0] += fac*sim->psfdpos[0][q];
+    dpos[1] += fac*sim->psfdpos[1][q];
+    pix = psf;
+    pixs = sim->psf + q*npix;
     for (i=npix; i--;)
       *(pix++) += fac**(pixs++);
     }
@@ -971,18 +1026,19 @@ PIXTYPE	*interp_psf(simstruct *sim, double x, double y)
 
 
 /****** interp_dft **********************************************************
-PROTO	PIXTYPE	*interp_dft(simstruct *sim, int order, double x, double y)
+PROTO	PIXTYPE	*interp_dft(simstruct *sim, int order, double *pos,
+		double *dpos)
 PURPOSE	Interpolate a variable PSF model DFT at the current position.
 INPUT	Pointer to the sim structure,
 	image resizing order,
-	x coordinate,
-	y coordinate.
+	pointer to the coordinate vector,
+	pointer to the local shift vector (data set in output).
 OUTPUT	Pointer to the interpolated PSF DFT array.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/04/2010
+VERSION	18/05/2010
  ***/
-PIXTYPE	*interp_dft(simstruct *sim, int order, double x, double y)
+PIXTYPE	*interp_dft(simstruct *sim, int order, double *pos, double *dpos)
   {
    PIXTYPE	weight[PSF_NINTERP],
 		*mask,*maskt, *psf,*psft, *dft, *pix,*pixs,
@@ -991,11 +1047,13 @@ PIXTYPE	*interp_dft(simstruct *sim, int order, double x, double y)
    int		index[PSF_NINTERP],
 		width,height,npix,offset, psfwidth,psfheight,psfnpix,
 		cpwidth, cpheight,hcpwidth,hcpheight,
-		i,j,p, ix,iy, nindex, ind;
+		i,j,p,q, ix,iy, nindex, ind;
 
 /* Shortcut for constant PSFs */
   if (sim->npsf==1)
     {
+    dpos[0] = sim->psfdpos[0][0];
+    dpos[1] = sim->psfdpos[1][0];
     if (sim->psfdft[order])
       return sim->psfdft[order];
     nindex = 1;
@@ -1003,7 +1061,7 @@ PIXTYPE	*interp_dft(simstruct *sim, int order, double x, double y)
     }
   else
 /*-- Prepare the indices of the PSFs involved in the local interpolation */
-    nindex = pos_to_indices(sim, x, y, index, weight);
+    nindex = pos_to_indices(sim, pos, index, weight);
 
   width = height = 1<<order;
 
@@ -1123,11 +1181,15 @@ PIXTYPE	*interp_dft(simstruct *sim, int order, double x, double y)
 /*-- Do the interpolation in Fourier space (thanks to FT linearity) */
     npix = (((width>>1) + 1)<< 1) * height;
     QFFTWCALLOC(dft, float, npix);
+    dpos[0] = dpos[1] = 0.0;
     for (p=0; p<nindex; p++)
       {
-      pix = dft;
-      pixs = sim->psfdft[index[p]*(PSF_NORDER+1) + order];
       fac = weight[p];
+      q = index[p];
+      dpos[0] += fac*sim->psfdpos[0][q];
+      dpos[1] += fac*sim->psfdpos[1][q];
+      pix = dft;
+      pixs = sim->psfdft[q*(PSF_NORDER+1) + order];
       for (i=npix; i--;)
         *(pix++) += fac**(pixs++);
       }
@@ -1163,6 +1225,8 @@ void    freepsf(simstruct *sim)
     free(dftmutex);
     }
 #endif
+  free(sim->psfdpos[0]);
+  free(sim->psfdpos[1]);
 
   return;
   }
@@ -1253,6 +1317,9 @@ void	readpsf(simstruct *sim)
   for (p=0; p<sim->npsf; p++)
     QPTHREAD_MUTEX_INIT(&dftmutex[p], NULL);
 #endif
+
+  QCALLOC(sim->psfdpos[0], double, sim->npsf);
+  QCALLOC(sim->psfdpos[1], double, sim->npsf);
 
   return;
   }

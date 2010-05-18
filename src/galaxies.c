@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines for creating galaxy fields.
 *
-*	Last modify:	30/04/2010
+*	Last modify:	18/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -52,14 +52,15 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	30/04/2010
+VERSION	18/05/2010
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
   {
    char		str[MAXCHAR];
    PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt, *psfdft;
-   double	osamp, dratio, bsize,size,
+   double	dpos[2],
+		osamp, dratio, bsize,size,
 		bflux,flux, dx,dy, beq, dscale,expo;
    int		i, subwidth,subheight, suborder,
 		nsub,nsub2,nsubo,memnsub;
@@ -85,7 +86,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       {
       NFPRINTF(OUTPUT, "");
       sprintf(str, "Bulge radius too small for galaxy at (%.1f,%.1f): ",
-	obj->x+1.0, obj->y+1.0);
+	obj->pos[0]+1.0, obj->pos[1]+1.0);
       warning(str, "skipped");
       return;
       }
@@ -103,7 +104,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       {
       NFPRINTF(OUTPUT, "");
       sprintf(str, "Disk scale too small for galaxy at (%.1f,%.1f): ",
-	obj->x+1.0,obj->y+1.0);
+	obj->pos[0]+1.0,obj->pos[1]+1.0);
       warning(str, "skipped");
       return;
       }
@@ -111,7 +112,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       {
       NFPRINTF(OUTPUT, "");
       sprintf(str, "Disk A/R too small for galaxy at (%.1f,%.1f): ",
-	obj->x+1.0, obj->y+1.0);
+	obj->pos[0]+1.0, obj->pos[1]+1.0);
       warning(str, "skipped");
       return;
       }
@@ -141,7 +142,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 /*
   sprintf(str,
 	"Adding %dx%d galaxy at position (%.1f,%.1f) with magnitude %.2f",
-	subwidth, subheight, obj->x+1.0,obj->y+1.0,obj->mag);
+	subwidth, subheight, obj->pos[0]+1.0,obj->pos[1]+1.0,obj->mag);
 
   NFPRINTF(OUTPUT, str);
 */
@@ -149,7 +150,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   memnsub = (((subwidth>>1) + 1)<< 1) * subheight;/* Provide margin for FFTW */
 
 /* Compute (or retrieve) PSF DFT at this position */
-  psfdft = interp_dft(sim, suborder, obj->x, obj->y);
+  psfdft = interp_dft(sim, suborder, obj->pos, dpos);
 
   sub = NULL;			/* To avoid gcc -Wall warnings */
   flux = 0.0;			/* idem */
@@ -198,10 +199,10 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   fft_conv(sub, psfdft, subwidth,subheight);
   if (sim->npsf>1)
     free(psfdft);
-  dx = (obj->x + sim->margin[0] - sim->dpsfc[0])/sim->mscan[0];
-  dy = (obj->y + sim->margin[1] - sim->dpsfc[1])/sim->mscan[1];
-  dx -= (double)(obj->subx = (int)(dx+0.49999));
-  dy -= (double)(obj->suby = (int)(dy+0.49999));
+  dx = (obj->pos[0] + sim->margin[0] - dpos[0])/sim->mscan[0];
+  dy = (obj->pos[1] + sim->margin[1] - dpos[1])/sim->mscan[1];
+  dx -= (double)(obj->subpos[0] = (int)(dx+0.49999));
+  dy -= (double)(obj->subpos[1] = (int)(dy+0.49999));
 /* Truncate again */
   trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
 		subwidth, subheight);
