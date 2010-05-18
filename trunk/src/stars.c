@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines for creating star fields.
 *
-*	Last modify:	30/04/2010
+*	Last modify:	18/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -121,8 +121,8 @@ void	makestarfield(simstruct *sim)
       }
     if (!gridflag)
       {
-      obj.x = xrange*random_double(0)-sim->margin[0];
-      obj.y = yrange*random_double(0)-sim->margin[1];
+      obj.pos[0] = xrange*random_double(0)-sim->margin[0];
+      obj.pos[1] = yrange*random_double(0)-sim->margin[1];
       }
     obj.mag = sim->maglim[1] + log10(random_double(0)+EPS_RANDFLUX)
 		/ sim->scountslope;
@@ -130,14 +130,14 @@ void	makestarfield(simstruct *sim)
       {
       if (gridflag)
         {
-        obj.x = gridindex%sim->ngrid[0] + sim->gridoffset[0]+random_double(0)-0.5;
-        obj.y = gridindex/sim->ngrid[0] + sim->gridoffset[1]+random_double(0)-0.5;
+        obj.pos[0] = gridindex%sim->ngrid[0] + sim->gridoffset[0]+random_double(0)-0.5;
+        obj.pos[1] = gridindex/sim->ngrid[0] + sim->gridoffset[1]+random_double(0)-0.5;
         gridindex++;
         }
       make_star(sim, &obj);
       add_image(obj.subimage, obj.subsize[0], obj.subsize[1],
 	sim->image, sim->fimasize[0], sim->fimasize[1],
-	obj.subx, obj.suby, (float)obj.subfactor);
+	obj.subpos[0], obj.subpos[1], (float)obj.subfactor);
        obj.flux = 0.0;
       writeobj(sim, &obj);
       }
@@ -161,25 +161,27 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	30/04/2010
+VERSION	18/05/2010
  ***/
 void	make_star(simstruct *sim, objstruct *obj)
 
   {
    PIXTYPE	*subt, *psf;
-   double	dx,dy,flux, osamp;
+   double	dpos[2],
+		dx,dy,flux, osamp;
    int		i, nsub2, nsubo;
 
+  psf = interp_psf(sim, obj->pos, dpos);
 /* Convert magnitude to linear units */ 
   if (obj->flux)
     flux = (float)obj->flux;
   else
     obj->flux = (float)(flux = DEXP(0.4*(sim->magzero2-obj->mag)));
   osamp = sim->psfoversamp;
-  dx = (obj->x + sim->margin[0]-sim->dpsfc[0])/sim->mscan[0];
-  dy = (obj->y + sim->margin[1]-sim->dpsfc[1])/sim->mscan[1];
-  dx -= (double)(obj->subx = (int)(dx+0.49999));
-  dy -= (double)(obj->suby = (int)(dy+0.49999));
+  dx = (obj->pos[0] + sim->margin[0]-dpos[0])/sim->mscan[0];
+  dy = (obj->pos[1] + sim->margin[1]-dpos[1])/sim->mscan[1];
+  dx -= (double)(obj->subpos[0] = (int)(dx+0.49999));
+  dy -= (double)(obj->subpos[1] = (int)(dy+0.49999));
 /* Resample to lower resolution */
   nsubo = obj->subsize[0]*obj->subsize[1];
   obj->subsize[0] = obj->subsize[1] = (int)(sim->psfsize[0]/osamp+1.0);
@@ -192,7 +194,6 @@ void	make_star(simstruct *sim, objstruct *obj)
     {
     QREALLOC(obj->subimage, PIXTYPE, nsub2);
     }
-  psf = interp_psf(sim, obj->x, obj->y);
   resample_image(psf, sim->psfsize[0], sim->psfsize[1], obj,
 	-dx*osamp, -dy*osamp, osamp);
   if (sim->npsf>1)
@@ -245,7 +246,7 @@ INPUT	Previous object index in list,
 OUTPUT	Next object index in list.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2007
+VERSION	18/05/2010
  ***/
 static int	pthread_nextobj(int obji, int proc)
   {
@@ -269,7 +270,7 @@ static int	pthread_nextobj(int obji, int proc)
         add_image(obj->subimage, obj->subsize[0], obj->subsize[1],
 		pthread_sim->image, pthread_sim->fimasize[0],
 		pthread_sim->fimasize[1],
-		obj->subx, obj->suby, (float)obj->subfactor);
+		obj->subpos[0], obj->subpos[1], (float)obj->subfactor);
         QPTHREAD_MUTEX_UNLOCK(&imagemutex);
 /*------ Add the object to the output list */
         obj->flux = 0.0;
@@ -305,16 +306,16 @@ static int	pthread_nextobj(int obji, int proc)
       {
       if (pthread_gridflag)
         {
-        obj->x = (pthread_gridindex%pthread_ngridx)*pthread_gridstep
+        obj->pos[0] = (pthread_gridindex%pthread_ngridx)*pthread_gridstep
 		+ pthread_gridoffsetx + random_double(proc)-0.5;
-        obj->y = (pthread_gridindex/pthread_ngridx)*pthread_gridstep
+        obj->pos[1] = (pthread_gridindex/pthread_ngridx)*pthread_gridstep
 		+ pthread_gridoffsety + random_double(proc)-0.5;
         pthread_gridindex++;
         }
       else
         {
-        obj->x = pthread_xrange*random_double(proc)-pthread_sim->margin[0];
-        obj->y = pthread_yrange*random_double(proc)-pthread_sim->margin[1];
+        obj->pos[0] = pthread_xrange*random_double(proc)-pthread_sim->margin[0];
+        obj->pos[1] = pthread_yrange*random_double(proc)-pthread_sim->margin[1];
         }
       }
     if (pthread_objqueue[obji])

@@ -9,7 +9,7 @@
 *
 *       Contents:       Handling of lists of simulated objects.
 *
-*       Last modify:    30/04/2010
+*       Last modify:    18/05/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -62,7 +62,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	30/04/2010
+VERSION	18/05/2010
  ***/
 void    readlist(simstruct *sim)
 
@@ -109,8 +109,8 @@ void    readlist(simstruct *sim)
       }
     if (gridflag)
       {
-      obj.x = gridindex%sim->ngrid[0] + sim->gridoffset[0]+random_double(0)-0.5;
-      obj.y = gridindex/sim->ngrid[0] + sim->gridoffset[1]+random_double(0)-0.5;
+      obj.pos[0] = gridindex%sim->ngrid[0] + sim->gridoffset[0]+random_double(0)-0.5;
+      obj.pos[1] = gridindex/sim->ngrid[0] + sim->gridoffset[1]+random_double(0)-0.5;
       gridindex++;
       }
     if (obj.type == 100)
@@ -120,7 +120,7 @@ void    readlist(simstruct *sim)
 /*-- Add the object to the image */
     add_image(obj.subimage, obj.subsize[0], obj.subsize[1],
 	sim->image, sim->fimasize[0], sim->fimasize[1],
-	obj.subx, obj.suby, (float)obj.subfactor);
+	obj.subpos[0], obj.subpos[1], (float)obj.subfactor);
 /*-- Add the object to the output list */
     writeobj(sim, &obj);
     }
@@ -145,7 +145,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/09/2007
+VERSION	18/05/2010
  ***/
 int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   {
@@ -165,11 +165,11 @@ int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
     return RETURN_ERROR;
   if (!gridflag)
-    obj->x  = atof(cptr) - 1.0;
+    obj->pos[0]  = atof(cptr) - 1.0;
   if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
     return RETURN_ERROR;
   if (!gridflag)
-    obj->y  = atof(cptr) - 1.0;
+    obj->pos[1]  = atof(cptr) - 1.0;
 
   if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
     return RETURN_ERROR;
@@ -206,7 +206,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/04/2010
+VERSION	18/05/2010
  ***/
 void    writeobj(simstruct *sim, objstruct *obj)
   {
@@ -215,11 +215,11 @@ void    writeobj(simstruct *sim, objstruct *obj)
  /*-- The format depends on object type */
   if (obj->type == 100)
     fprintf(sim->outlistfile, "%3d %10.3f %10.3f %8.4f\n",
-	obj->type, obj->x+1, obj->y+1, obj->mag);
+	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag);
   else if (obj->type == 200)
     fprintf(sim->outlistfile, "%3d %10.3f %10.3f %8.4f %5.3f %9.3f %5.3f "
 				"%+7.2f %9.3f %5.3f %+7.2f %8.5f\n",
-	obj->type, obj->x+1, obj->y+1, obj->mag,
+	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
 	obj->bulge_ratio, obj->bulge_req, obj->bulge_ar, obj->bulge_posang,
 	obj->disk_scale, obj->disk_ar, obj->disk_posang, obj->z);
   else
@@ -333,7 +333,7 @@ INPUT	Previous object index in list,
 OUTPUT	Next object index in list.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/09/2007
+VERSION	18/05/2010
  ***/
 static int	pthread_nextobj(int obji, char *str, int proc)
   {
@@ -357,7 +357,7 @@ static int	pthread_nextobj(int obji, char *str, int proc)
         add_image(obj->subimage, obj->subsize[0], obj->subsize[1],
 		pthread_sim->image, pthread_sim->fimasize[0],
 		pthread_sim->fimasize[1],
-		obj->subx, obj->suby, (float)obj->subfactor);
+		obj->subpos[0], obj->subpos[1], (float)obj->subfactor);
         QPTHREAD_MUTEX_UNLOCK(&imagemutex);
 /*------ Add the object to the output list */
         obj->flux = 0.0;
@@ -390,9 +390,11 @@ static int	pthread_nextobj(int obji, char *str, int proc)
     pthread_addobjflag[obji] = 1;
     if (pthread_gridflag)
       {
-      pthread_obj[obji].x = (pthread_gridindex%pthread_ngridx)*pthread_gridstep
+      pthread_obj[obji].pos[0] = (pthread_gridindex%pthread_ngridx)
+		* pthread_gridstep
 		+ pthread_gridoffsetx + random_double(proc)-0.5;
-      pthread_obj[obji].y = (pthread_gridindex/pthread_ngridx)*pthread_gridstep
+      pthread_obj[obji].pos[1] = (pthread_gridindex/pthread_ngridx)
+		* pthread_gridstep
 		+ pthread_gridoffsety + random_double(proc)-0.5;
       pthread_gridindex++;
       }

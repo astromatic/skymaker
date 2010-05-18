@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for list.c.
 *
-*	Last modify:	17/08/2006
+*	Last modify:	18/05/2010
 **
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,7 +29,7 @@
 typedef	struct
 	{
 	int	type;			/* Type */
-	double	x,y;			/* Position of the object center */
+	double	pos[2];			/* Position of the object center */
 	double	mag;			/* Catalog magnitude */
 	double	flux;			/* Instrumental flux */
 	double	bulge_ratio;		/* Bulge to total flux */
@@ -42,7 +42,7 @@ typedef	struct
 	double	z;			/* Galaxy redshift */
 	PIXTYPE	*subimage;		/* Sub-frame with the final object */
 	int	subsize[2];		/* Sub-frame dimensions */
-	int	subx,suby;		/* Sub-frame position in image */
+	int	subpos[2];		/* Sub-frame position in image */
 	double	subfactor;		/* Sub-frame amplitude factor */
 	double	*maskbuf;		/* Interpolation kernel buffer */
 	int	*nmaskbuf;		/* Interpolation kernel size */
