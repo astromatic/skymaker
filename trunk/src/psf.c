@@ -9,7 +9,7 @@
 *
 *	Contents:	Routines dealing with the PSF.
 *
-*	Last modify:	18/05/2010
+*	Last modify:	02/06/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -174,7 +174,7 @@ void	makepsf(simstruct *sim)
   else
     psfsize[2] = sim->psfsize[2] = psfsize[3] = sim->psfsize[3] = 1;
 
-  fprintf(OUTPUT, "Pupil range: %.1f-%.1fmm / Subsampling: %dX / "
+  QPRINTF(OUTPUT, "Pupil range: %.1f-%.1fmm / Subsampling: %dX / "
 		"ro=%.1fcm / motion=%.2f'' rms\n",
 	fscale[0]/MM, fsize[0]/MM, nstep[0], sim->ro/CM, sim->psfmotion);
   if ((sim->psfseeingtype!=LONG_EXPOSURE || fsize[0]<sim->psfdm1+sim->ro)
