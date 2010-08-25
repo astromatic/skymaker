@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the writing of the image(s).
 *
-*	Last modify:	07/05/2010
+*	Last modify:	25/08/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -44,11 +44,11 @@ headkeystruct	headparam[] = {
 	&prefs.gain, H_FLOAT, T_DOUBLE},
   {"WELLCAPA", "Full well capacity (e-)",
 	&prefs.wellcap, H_EXPO, T_DOUBLE},
-  {"SATLEV", "Saturation level (ADU)",
+  {"SATURATE", "Saturation level (ADU)",
 	&prefs.satlev, H_FLOAT, T_DOUBLE},
   {"RON", "Read-out noise (ADU)",
 	&prefs.ron, H_FLOAT, T_DOUBLE},
-  {"EXPOTIME", "Exposure time (s)",
+  {"EXPTIME", "Exposure time (s)",
 	&prefs.expotime, H_FLOAT, T_DOUBLE},
   {"MAGZERO", "Magnitude Zero-point (mag/s)",
 	&prefs.magzero, H_FLOAT, T_DOUBLE},
