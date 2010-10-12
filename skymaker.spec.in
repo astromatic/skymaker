@@ -1,3 +1,33 @@
+#
+#				skymaker.spec.in
+#
+# Process this file with autoconf to generate an RPM .spec packaging script.
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#	This file part of:	SkyMaker
+#
+#	Copyright:		(C) 2003-2010 IAP/CNRS/UPMC
+#
+#	Author:			Emmanuel Bertin (IAP)
+#
+#	License:		GNU General Public License
+#
+#	SkyMaker is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+# 	(at your option) any later version.
+#	SkyMaker is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#	You should have received a copy of the GNU General Public License
+#	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
+#
+#	Last modified:		12/10/2010
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %define name @PACKAGE_NAME@
 %define version @PACKAGE_VERSION@
 %define release 1
@@ -8,8 +38,8 @@ Name: %{name}
 Version: %{version}
 Release: %{release}
 Source0: ftp://ftp.iap.fr/pub/from_users/bertin/skymaker/%{name}-%{version}.tar.gz
-URL: http://astromatic.iap.fr/software/skymaker/
-License: CeCILL
+URL: http://astromatic.net/software/skymaker/
+License: GPL v3+
 Group: Sciences/Astronomy
 BuildRoot: %{_tmppath}/%{name}-buildroot
 BuildRequires: pkgconfig
@@ -40,10 +70,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYRIGHT HISTORY INSTALL README THANKS
+%doc AUTHORS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README THANKS
 /%{_bindir}/sky
 %{_mandir}/man1/sky.1*
 %{_mandir}/manx/sky.x*
+%{_datadir}/@PACKAGE_NAME@
 
 %changelog
 * @DATE2@ @PACKAGER@ <@PACKAGE_BUGREPORT@>

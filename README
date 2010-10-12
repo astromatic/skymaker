@@ -15,7 +15,7 @@ The general SYNTAX is similar to that of SExtractor:
   in this version.
 - Keyword parameters given in the command line override those from the
   configuration file.
-- If the list-file is given as unique argument, Skymaker searches for a
+- If the list-file is given as unique argument, SkyMaker searches for a
   default configuration file called ``sky.conf''.
 - SkyMaker creates 2 files in output: the image itself, and a catalog containing
   the objects it contains (with name toto.list if IMAGE_NAME was set to
@@ -42,7 +42,8 @@ The general SYNTAX is similar to that of SExtractor:
   around the image, and can significantly affect the computation time.
 
 Please report any bug or strange behaviour to the SkyMaker forum:
-http://terapix.iap.fr/forum/forumdisplay.php?fid=19
+http://astromatic.net/forum
 You may also post configuration-files describing your preferred instrument!
 
 						Emmanuel Bertin.
+

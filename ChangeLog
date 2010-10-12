@@ -1,26 +1,288 @@
-/*
-                                ChangeLog
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*
-*       Part of:        SkyMaker
-*
-*       Author:         E. BERTIN (IAP)
-*
-*       Contents:       log of changes made to the SkyMaker source
-*
-*       Last modify:    16/01/2007
-*
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+#
+#				ChangeLog
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#	This file part of:	SkyMaker
+#
+#	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
+#
+#	Author:			Emmanuel Bertin (IAP)
+#
+#	License:		GNU General Public License
+#
+#	SkyMaker is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+# 	(at your option) any later version.
+#	SkyMaker is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#	You should have received a copy of the GNU General Public License
+#	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
+#
+#	Last modified:		12/10/2010
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ------------------------------------------------------------------------
-r379 | bertin | 2007-01-16 21:35:04 +0100 (Tue, 16 Jan 2007) | 2 lines
+r64 | bertin | 2010-08-25 17:24:06 +0200 (Wed, 25 Aug 2010) | 2 lines
+
+Replaced SATLEV and EXPOTIME FITS header keywords with the more common SATURATE
+and EXPTIME, respectively.
+
+------------------------------------------------------------------------
+r63 | bertin | 2010-07-20 13:21:28 +0200 (Tue, 20 Jul 2010) | 2 lines
+
+Fixed TFORM error message in fitshead.c (thanks to S.Guieu).
+
+------------------------------------------------------------------------
+r62 | bertin | 2010-07-02 13:50:18 +0200 (Fri, 02 Jul 2010) | 3 lines
+
+Removed redundant update_tab() calls.
+Fixed fistpick() issue with slashes within strings (thanks to F.Schuller).
+
+------------------------------------------------------------------------
+r61 | bertin | 2010-06-02 17:46:51 +0200 (Wed, 02 Jun 2010) | 2 lines
+
+Fixed PSF info display not taking into account the VERBOSE_TYPE QUIET option.
+
+------------------------------------------------------------------------
+r60 | bertin | 2010-05-18 16:41:16 +0200 (Tue, 18 May 2010) | 2 lines
+
+Added PSFCENTER_TYPE CENTROID_COMMON option.
+
+------------------------------------------------------------------------
+r59 | bertin | 2010-05-17 18:54:58 +0200 (Mon, 17 May 2010) | 3 lines
+
+Added preliminary support for variable PSF generation.
+Pushed version number to 3.6.0.
+
+------------------------------------------------------------------------
+r58 | bertin | 2010-04-30 19:05:34 +0200 (Fri, 30 Apr 2010) | 2 lines
+
+Fixed compilation problem with configure --disable-threads option.
+
+------------------------------------------------------------------------
+r57 | bertin | 2010-04-30 18:51:51 +0200 (Fri, 30 Apr 2010) | 3 lines
+
+Added new PSFCENTER_TYPE configuration option (not yet fully tested).
+Pushed version number to 3.5.1.
+
+------------------------------------------------------------------------
+r56 | bertin | 2010-04-29 11:31:39 +0200 (Thu, 29 Apr 2010) | 2 lines
+
+Fixed detection issue with the lgamma() POSIX math function.
+
+------------------------------------------------------------------------
+r55 | bertin | 2010-04-24 11:31:11 +0200 (Sat, 24 Apr 2010) | 3 lines
+
+Fixed array overflow.
+Improved displayed info.
+
+------------------------------------------------------------------------
+r54 | bertin | 2010-04-24 01:03:11 +0200 (Sat, 24 Apr 2010) | 2 lines
+
+Improved information display.
+
+------------------------------------------------------------------------
+r53 | bertin | 2010-04-24 00:31:46 +0200 (Sat, 24 Apr 2010) | 2 lines
+
+Fixed multithreading issue with extra image mutex on MacOSX. 
+
+------------------------------------------------------------------------
+r52 | bertin | 2010-04-23 23:50:43 +0200 (Fri, 23 Apr 2010) | 3 lines
+
+Added support for 4D input PSF datacubes.
+Pushed version number to 3.5.0.
+
+------------------------------------------------------------------------
+r51 | bertin | 2010-01-22 17:04:33 +0100 (Fri, 22 Jan 2010) | 2 lines
+
+Added support for 64 bit binary table elements in FITS library (thanks to
+J.P. McFarland).
+
+------------------------------------------------------------------------
+r50 | bertin | 2009-11-18 17:49:47 +0100 (Wed, 18 Nov 2009) | 2 lines
+
+Fixed issue with FFTW configure for custom library paths.
+
+------------------------------------------------------------------------
+r49 | bertin | 2009-09-10 19:29:21 +0200 (Thu, 10 Sep 2009) | 6 lines
+
+Added --enable-auto-flags.
+Added --enable-best-link configure option.
+Added rpm-best option in Makefile.am.
+Cleaned up configure file.
+Pushed version number to 3.4.0.
+
+------------------------------------------------------------------------
+r48 | bertin | 2009-06-26 17:49:00 +0200 (Fri, 26 Jun 2009) | 4 lines
+
+Replaced configuration error with warning if FFTW is not multithreaded and
+multithreading has been activated (the default).
+Added autoconfig support for FFTW multithreaded versions combined in libfftw3.
+Version number pushed to 3.3.5.
+
+------------------------------------------------------------------------
+r47 | bertin | 2009-05-22 14:30:25 +0200 (Fri, 22 May 2009) | 3 lines
+
+Added filtering of non-numerical characters for floating-point FITS keywords
+(thanks to D.G. Bonfield for the suggestion).
+Included Chiara's MissFITS fix in fitspick().
+
+------------------------------------------------------------------------
+r46 | bertin | 2009-04-16 00:23:46 +0200 (Thu, 16 Apr 2009) | 3 lines
+
+Restored the possibility to have rectangular PSF maps with sizes non-power-of-2.
+Fixed FFT bug with rectangular pixel maps (thanks to T.Darnell).
+
+------------------------------------------------------------------------
+r44 | bertin | 2009-04-09 15:27:23 +0200 (Thu, 09 Apr 2009) | 1 line
+
+Fixed references to COPYRIGHT file.
+------------------------------------------------------------------------
+r43 | bertin | 2009-04-09 12:29:51 +0200 (Thu, 09 Apr 2009) | 1 line
+
+Pushed version number to 3.3.3.
+------------------------------------------------------------------------
+r42 | bertin | 2009-04-01 18:37:34 +0200 (Wed, 01 Apr 2009) | 2 lines
+
+Changed license.
+
+------------------------------------------------------------------------
+r41 | bertin | 2009-04-01 18:21:55 +0200 (Wed, 01 Apr 2009) | 3 lines
+
+Fixed icc 11 compilations options on x86-64 architecture.
+Cleaned up obsolete references.
+
+------------------------------------------------------------------------
+r39 | bertin | 2009-03-23 18:17:11 +0100 (Mon, 23 Mar 2009) | 2 lines
+
+Set License string to CeCILL in the .spec file.
+
+------------------------------------------------------------------------
+r38 | bertin | 2009-03-23 18:04:34 +0100 (Mon, 23 Mar 2009) | 3 lines
+
+Fixed rpm build issue on Fedora Core 10.
+Fixed display of max thread number in configure help.
+
+------------------------------------------------------------------------
+r37 | bertin | 2009-03-23 16:32:03 +0100 (Mon, 23 Mar 2009) | 4 lines
+
+Cleaned up Makefile.am RPM options.
+Updated icc compilation flags to 11.0 syntax.
+Pushed version number to 3.3.2.
+
+------------------------------------------------------------------------
+r35 | root | 2009-01-09 17:25:01 +0100 (Fri, 09 Jan 2009) | 1 line
+
+Changed trunk directory name
+------------------------------------------------------------------------
+r34 | bertin | 2008-10-15 18:00:43 +0200 (Wed, 15 Oct 2008) | 2 lines
+
+Added missing dist-hook to remove .svn repositories from archive.
+
+------------------------------------------------------------------------
+r33 | bertin | 2008-10-01 19:07:31 +0200 (Wed, 01 Oct 2008) | 2 lines
+
+Updated FITS library to the latest version.
+
+------------------------------------------------------------------------
+r32 | bertin | 2008-10-01 19:03:25 +0200 (Wed, 01 Oct 2008) | 6 lines
+
+Updated autotools scripts (thanks to Greg Daues for pointing this out).
+Updated compiler autoconfiguration script.
+Updated .spec RPM script.
+Added rpm-icc target.
+Version is now 3.3.1.
+
+------------------------------------------------------------------------
+r31 | bertin | 2008-09-01 17:23:30 +0200 (Mon, 01 Sep 2008) | 5 lines
+
+Redesigned completely configure and RPM scripts to support dynamic linking with
+FFTW by default (finally gave up on static linking).
+Fixed various issues with FFTW autoconfiguration script.
+The RPM archive code is now systematically multithreaded.
+Pushed version number to 3.3.0.
+
+------------------------------------------------------------------------
+r30 | bertin | 2008-08-26 16:45:14 +0200 (Tue, 26 Aug 2008) | 2 lines
+
+Fixed issue with detection of the threaded FFTW library.
+
+------------------------------------------------------------------------
+r29 | bertin | 2008-04-07 19:04:38 +0200 (Mon, 07 Apr 2008) | 4 lines
+
+Added sincos() polynomial trick to speed up image interpolation.
+Minor bug fixes in interpolation.
+Pushed version number to 3.2.1
+
+------------------------------------------------------------------------
+r28 | bertin | 2008-03-19 14:07:15 +0100 (Wed, 19 Mar 2008) | 3 lines
+
+Added support for non-integer, <1 PSF_OVERSAMP for external PSFs.
+Version number pushed to 3.2.1.
+
+------------------------------------------------------------------------
+r27 | bertin | 2007-09-28 17:06:22 +0200 (Fri, 28 Sep 2007) | 2 lines
+
+Fixed multithreading issue with the internal star simulation.
+
+------------------------------------------------------------------------
+r26 | bertin | 2007-09-28 14:36:57 +0200 (Fri, 28 Sep 2007) | 3 lines
+
+Fixed some bugs in GRID and GRID_NONOISE mode.
+Version number pushed to 3.2.0.
+
+------------------------------------------------------------------------
+r25 | bertin | 2007-09-27 20:55:35 +0200 (Thu, 27 Sep 2007) | 2 lines
+
+Added IMAGE_TYPE GRID and GRID_NONOISE options.
+
+------------------------------------------------------------------------
+r24 | bertin | 2007-07-17 14:02:59 +0200 (Tue, 17 Jul 2007) | 2 lines
+
+Fixed malloc problem in the configure.
+
+------------------------------------------------------------------------
+r23 | bertin | 2007-07-17 13:54:28 +0200 (Tue, 17 Jul 2007) | 2 lines
+
+Updated the FITS library to the latest version.
+
+------------------------------------------------------------------------
+r22 | bertin | 2007-06-23 17:12:26 +0200 (Sat, 23 Jun 2007) | 3 lines
+
+Fixed issue with quantization limit.
+Moved to LANCZOS3 interpolation.
+
+------------------------------------------------------------------------
+r21 | marmo | 2007-06-19 20:45:53 +0200 (Tue, 19 Jun 2007) | 1 line
+
+rpm building generalised.
+------------------------------------------------------------------------
+r20 | bertin | 2007-03-27 20:29:08 +0200 (Tue, 27 Mar 2007) | 2 lines
+
+Fixed flag issue in FFTW3 fftw_plan_dft_r2c_2d() calls.
+
+------------------------------------------------------------------------
+r19 | bertin | 2007-02-28 16:11:10 +0100 (Wed, 28 Feb 2007) | 2 lines
+
+Fixed defective filtering of bright stars in the multithreaded version.
+
+------------------------------------------------------------------------
+r18 | bertin | 2007-01-16 21:35:04 +0100 (Tue, 16 Jan 2007) | 2 lines
 
 Changed PSF_NORDER to 11 (max galaxy convolution mask size = 2048 pixels).
 
 ------------------------------------------------------------------------
-r377 | bertin | 2007-01-16 21:21:29 +0100 (Tue, 16 Jan 2007) | 5 lines
+r17 | bertin | 2007-01-16 21:23:55 +0100 (Tue, 16 Jan 2007) | 2 lines
+
+Added config/ subdir containing sample.list file.
+
+------------------------------------------------------------------------
+r16 | bertin | 2007-01-16 21:21:29 +0100 (Tue, 16 Jan 2007) | 5 lines
 
 Cleaned up old, unused FFT routines.
 Updated HISTORY, BUGS and README.
@@ -28,23 +290,23 @@ Added support for 32 and 64 builds compiled with icc.
 Pushed version number to 3.1.
 
 ------------------------------------------------------------------------
-r376 | bertin | 2007-01-15 22:02:07 +0100 (Mon, 15 Jan 2007) | 2 lines
+r15 | bertin | 2007-01-15 22:02:07 +0100 (Mon, 15 Jan 2007) | 2 lines
 
 Fixed missing libfftw3f_threads link.
 
 ------------------------------------------------------------------------
-r375 | bertin | 2007-01-15 21:38:42 +0100 (Mon, 15 Jan 2007) | 2 lines
+r14 | bertin | 2007-01-15 21:38:42 +0100 (Mon, 15 Jan 2007) | 2 lines
 
 Fixed mutex bug with galaxy lists.
 
 ------------------------------------------------------------------------
-r366 | bertin | 2006-11-17 17:41:54 +0100 (Fri, 17 Nov 2006) | 3 lines
+r13 | bertin | 2006-11-17 17:41:54 +0100 (Fri, 17 Nov 2006) | 3 lines
 
 Fixed (again) the galaxy disk boundary problem.
 Fixed help options and syntax.
 
 ------------------------------------------------------------------------
-r343 | bertin | 2006-09-23 22:54:54 +0200 (Sat, 23 Sep 2006) | 5 lines
+r12 | bertin | 2006-09-23 22:54:54 +0200 (Sat, 23 Sep 2006) | 5 lines
 
 Made image resampling routine more flexible.
 Changed default resampling to bilinear (instead of Lanczos3).
@@ -52,23 +314,23 @@ Fixed frame scaling bug for disks (thanks to Celine Delleluche).
 Lowered quantization limit to 1 in IMAGE_TYPE IMAGE_NONOISE mode.
 
 ------------------------------------------------------------------------
-r334 | bertin | 2006-09-17 20:20:18 +0200 (Sun, 17 Sep 2006) | 2 lines
+r11 | bertin | 2006-09-17 20:20:18 +0200 (Sun, 17 Sep 2006) | 2 lines
 
 Fixed compilation issue with random_poisson().
 
 ------------------------------------------------------------------------
-r332 | bertin | 2006-08-21 22:15:59 +0200 (Mon, 21 Aug 2006) | 2 lines
+r10 | bertin | 2006-08-21 22:15:59 +0200 (Mon, 21 Aug 2006) | 2 lines
 
 Fixed default number of threads.
 
 ------------------------------------------------------------------------
-r331 | bertin | 2006-08-21 10:38:05 +0200 (Mon, 21 Aug 2006) | 3 lines
+r9 | bertin | 2006-08-21 10:38:05 +0200 (Mon, 21 Aug 2006) | 3 lines
 
 Fixed missing "noise" mutex.
 Fixed flux issue with aureoles.
 
 ------------------------------------------------------------------------
-r330 | bertin | 2006-08-17 21:58:08 +0200 (Thu, 17 Aug 2006) | 7 lines
+r8 | bertin | 2006-08-17 21:58:08 +0200 (Thu, 17 Aug 2006) | 7 lines
 
 Parallelised FFT in aureole generation.
 Added noise parallelisation.
@@ -78,30 +340,39 @@ SkyMaker now fully parallelised.
 A flux amplitude bug problem remains in galaxy simulations.
 
 ------------------------------------------------------------------------
-r329 | bertin | 2006-08-17 18:03:24 +0200 (Thu, 17 Aug 2006) | 3 lines
+r7 | bertin | 2006-08-17 18:03:24 +0200 (Thu, 17 Aug 2006) | 3 lines
 
 Added support for multithreaded FFTW in PSF generation.
 Some further optimisations in image cosmetics routines.
 
 ------------------------------------------------------------------------
-r328 | bertin | 2006-08-16 21:21:42 +0200 (Wed, 16 Aug 2006) | 4 lines
+r6 | bertin | 2006-08-16 21:21:42 +0200 (Wed, 16 Aug 2006) | 4 lines
 
 Changed star image resampling routine (same as galaxies now). 
 Added multithreading to starfield generation.
 Changed memory handling for image buffers.
 
 ------------------------------------------------------------------------
-r326 | bertin | 2006-08-15 22:02:12 +0200 (Tue, 15 Aug 2006) | 4 lines
+r5 | bertin | 2006-08-15 22:02:12 +0200 (Tue, 15 Aug 2006) | 4 lines
 
 Added multithreaded list object image generation (not fully tested yet).
 Added automatic detection of the number of CPUs on BSD, HP/UX and IRIX systems.
 Updated the FITS library to the latest version.
 
 ------------------------------------------------------------------------
-r325 | bertin | 2006-08-10 19:22:05 +0200 (Thu, 10 Aug 2006) | 2 lines
+r4 | bertin | 2006-08-10 19:22:05 +0200 (Thu, 10 Aug 2006) | 2 lines
 
 Merged with official version 3.0.3.
 
+------------------------------------------------------------------------
+r3 | baillard | 2006-07-18 13:55:03 +0200 (Tue, 18 Jul 2006) | 2 lines
+
+Move skymaker to public repository
+
+------------------------------------------------------------------------
+r2 | bertin | 2005-10-17 17:01:06 +0200 (Mon, 17 Oct 2005) | 1 line
+
+first SkyMaker import
 
 -------------------------------- old ChangeLog --------------------------------
 Who     When            Where(mostly)   What
