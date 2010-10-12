@@ -1,3 +1,6 @@
+May 2010: version 3.6
+	- support for variable PSFs added
+
 Jan 2007: version 3.1
         - fully parallelized
         - FFTs rely now on FFTW library.

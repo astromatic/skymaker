@@ -1,18 +1,32 @@
 /*
-                                  random.c
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+*				random.c
 *
-*       Part of:        a program that uses randomly generated numbers
+* Random number generators.
 *
-*       Author:         E.BERTIN (IAP)
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*       Contents:       functions returning random numbers.
+*	This file part of:	SkyMaker
 *
-*       Last modify:    29/04/2010
+*	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
 *
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+*	Author:			Emmanuel Bertin (IAP)
+*
+*	License:		GNU General Public License
+*
+*	SkyMaker is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+*	(at your option) any later version.
+*	SkyMaker is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*	GNU General Public License for more details.
+*	You should have received a copy of the GNU General Public License
+*	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
+*
+*	Last modified:		12/10/2010
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -134,12 +148,13 @@ void	init_random(int seed)
 
 /****i* gammln ***************************************************************
 PROTO   double gammln(double xx)
-PURPOSE Returns the log of the Gamma function (from Num. Recipes in C, p.168).
+PURPOSE Returns the log of the Gamma function (based on algorithm described in
+	Numerical Recipes in C, chap 6.1).
 INPUT   A double.
 OUTPUT  Log of the Gamma function.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 29/10/97
+VERSION 12/10/2010
 */
 static double	gammln(double xx)
 
@@ -161,8 +176,8 @@ static double	gammln(double xx)
 
 /****** random_poisson *******************************************************
 PROTO   double random_poisson(double xm, int p)
-PURPOSE Returns a random number with Poisson deviate (from Num. Recipes in C.,
-        p.222) centered on xm.
+PURPOSE Returns a random number with Poisson deviate (based on algorithm
+	described in Numerical Recipes in C, chap. 7) centered on xm.
 INPUT   Mean of the Poisson distribution,
 	process index (ignored for single threads).
 OUTPUT  A double containing the integer (!) variable with Poisson deviate.
