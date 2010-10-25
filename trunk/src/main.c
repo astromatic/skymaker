@@ -58,7 +58,7 @@ int	main(int argc, char *argv[])
   if (argc<1)
     {
     fprintf(OUTPUT, "\n         %s  version %s (%s)\n", BANNER,MYVERSION,DATE);
-    fprintf(OUTPUT, "\nby %s\n", AUTHORS);
+    fprintf(OUTPUT, "\nWritten by %s\n", AUTHORS);
     fprintf(OUTPUT, "Copyright %s\n", COPYRIGHT);
     fprintf(OUTPUT, "\nvisit %s\n", WEBSITE);
     fprintf(OUTPUT, "\n%s\n", DISCLAIMER);
