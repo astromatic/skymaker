@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		21/12/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -121,8 +121,10 @@ void    readlist(simstruct *sim)
       }
     if (gridflag)
       {
-      obj.pos[0] = gridindex%sim->ngrid[0] + sim->gridoffset[0]+random_double(0)-0.5;
-      obj.pos[1] = gridindex/sim->ngrid[0] + sim->gridoffset[1]+random_double(0)-0.5;
+      obj.pos[0] = gridindex%sim->ngrid[0] + sim->gridoffset[0]
+			+ random_double(0) - 0.5;
+      obj.pos[1] = gridindex/sim->ngrid[0] + sim->gridoffset[1]
+			+ random_double(0) - 0.5;
       gridindex++;
       }
     if (obj.type == 100)
@@ -157,7 +159,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	21/12/2010
  ***/
 int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   {
@@ -188,6 +190,7 @@ int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   obj->mag = atof(cptr);
   if (obj->type == 200)
     {
+    obj->bulge_sersicn = 4.0;
     obj->bulge_ratio = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
 	atof(cptr) : 1.0;
     obj->bulge_req = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
@@ -204,6 +207,31 @@ int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
 	atof(cptr) : random_double(proc)*360.0 - 180.0;
     obj->z = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
 	atof(cptr) : 0.0;
+    obj->hubble_type = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 0.0;
+    }
+  else if (obj->type == 210)
+    {
+    obj->bulge_ratio = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 1.0;
+    obj->bulge_sersicn = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 4.0;
+    obj->bulge_req = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 1.0;
+    obj->bulge_ar = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 1.0;
+    obj->bulge_posang = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : random_double(proc)*360.0 - 180.0;
+    obj->disk_scale = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 1.0;
+    obj->disk_ar = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 1.0;
+    obj->disk_posang = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : random_double(proc)*360.0 - 180.0;
+    obj->z = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 0.0;
+    obj->hubble_type = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
+	atof(cptr) : 0.0;
     }
 
   return RETURN_OK;
@@ -218,7 +246,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	21/12/2010
  ***/
 void    writeobj(simstruct *sim, objstruct *obj)
   {
@@ -230,10 +258,18 @@ void    writeobj(simstruct *sim, objstruct *obj)
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag);
   else if (obj->type == 200)
     fprintf(sim->outlistfile, "%3d %10.3f %10.3f %8.4f %5.3f %9.3f %5.3f "
-				"%+7.2f %9.3f %5.3f %+7.2f %8.5f\n",
+			"%+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %+5.2f\n",
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
 	obj->bulge_ratio, obj->bulge_req, obj->bulge_ar, obj->bulge_posang,
-	obj->disk_scale, obj->disk_ar, obj->disk_posang, obj->z);
+	obj->disk_scale, obj->disk_ar, obj->disk_posang, obj->z,
+	obj->hubble_type, obj->noiseqarea);
+  else if (obj->type == 210)
+    fprintf(sim->outlistfile, "%3d %10.3f %10.3f %8.4f %5.3f %9.3f %5.3f "
+			"%4.2f %+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f\n",
+	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
+	obj->bulge_sersicn, obj->bulge_ratio, obj->bulge_req, obj->bulge_ar,
+	obj->bulge_posang, obj->disk_scale, obj->disk_ar, obj->disk_posang,
+	obj->z, obj->hubble_type);
   else
     {
     sprintf(str, "%d", obj->type);

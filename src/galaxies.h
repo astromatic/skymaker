@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		01/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -35,19 +35,17 @@
 #endif
 
 /*---------------------------- Internal constants ---------------------------*/
-#define	VDKCUTRAD	5.0   /* van der Kruit disk truncation radius in r_h */
+#define	SERSIC_SMOOTHR	4.0	/* Profile smoothing radius (pixels) */
+#define	VDKCUTRAD	5.0	/* van der Kruit disk truncation radius in r_h*/
 
 /*--------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
 extern void	make_galaxy(simstruct *sim, objstruct *obj);
-extern double	add_devauc(PIXTYPE *pix, double xcenter, double ycenter,
-			int width, int height,
-			double flux, double req, double aspect, double posang),
-		add_expo(PIXTYPE *pix, double xcenter, double ycenter,
-			int width, int height,
-			double flux, double scale,
-			double aspect, double posang);
-	
+extern double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
+		double aspect, double posang, double n)
+;
+
 extern PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,
 			int width, int height);
+

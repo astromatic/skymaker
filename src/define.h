@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		01/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -98,7 +98,8 @@
 
 /*------------------------------- Other Macros -----------------------------*/
 
-#define	DEXP(x)	exp(2.30258509299*(x))	/* 10^x */
+#define	DEXP(x)		exp(2.30258509299*(x))		/* 10^x */
+#define	DEXPF(x)	expf(2.30258509299f*(x))	/* 10^x */
 
 #define QFREAD(ptr, size, afile, fname) \
 		if (fread(ptr, (size_t)(size), (size_t)1, afile)!=1) \

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		02/02/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -173,7 +173,7 @@ char *default_prefs[] =
 " ",
 "PSF_TYPE        INTERNAL        # INTERNAL or FILE",
 "PSF_NAME        psf.fits        # Name of the FITS image containing the PSF",
-"*PSFCENTER_TYPE  UPPERHALF       # UPPERHALF, LOWERHALF, HALF, CENTROID,"
+"*PSFCENTER_TYPE  UPPERHALF       # UPPERHALF, LOWERHALF, HALF, CENTROID,",
 "*                                # CENTROID_COMMON or PEAK",
 "SEEING_TYPE     LONG_EXPOSURE   # (NONE, LONG_EXPOSURE or SHORT_EXPOSURE)",
 "SEEING_FWHM     0.7             # FWHM of seeing in arcsec (incl. motion)",
