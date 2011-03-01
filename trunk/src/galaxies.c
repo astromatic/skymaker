@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		01/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -55,6 +55,8 @@
 extern pthread_mutex_t	fftmutex;
 #endif
 
+static double	gamm(double xx);
+
 /****** make_galaxy *******************************************************
 PROTO	void make_galaxy(simstruct *sim, objstruct *obj)
 PURPOSE	Generate a galaxy at a definite position in the image.
@@ -64,7 +66,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	01/03/2011
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
@@ -73,7 +75,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
    PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt, *psfdft;
    double	dpos[2],
 		osamp, dratio, bsize,size,
-		bflux,flux, dx,dy, beq, dscale,expo;
+		bflux,flux,flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
    int		i, subwidth,subheight, suborder,
 		nsub,nsub2,nsubo,memnsub;
 
@@ -102,9 +104,13 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       warning(str, "skipped");
       return;
       }
-    bsize = log(obj->bulge_ratio*obj->flux*94.480
-		/(obj->bulge_ar*beq*sim->minquant))/7.6693;
-    size = bsize = bsize>0.0 ? beq*pow(bsize, 4.0) : 0.0;
+    n = obj->bulge_sersicn;
+    bn = 2.0*n - 1.0/3.0 + 4.0/(405.0*n) + 46.0/(25515.0*n*n)
+	+ 131.0/(1148175*n*n*n);        /* Ciotti & Bertin 1999 */
+    ampfac = pow(bn, 2*n) / (PI * gamm(2*n+1));
+    bsize = log(obj->bulge_ratio*obj->flux*ampfac
+		/(obj->bulge_ar*beq*sim->minquant))/bn;
+    size = bsize = bsize>0.0 ? beq*pow(bsize, n) : 0.0;
     }
   else
     size = bsize = 0.0;
@@ -171,10 +177,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
     {
     QFFTWMALLOC(bsub, PIXTYPE, memnsub);
     memset(bsub, 0, memnsub*sizeof(PIXTYPE));
-    flux = bflux = add_devauc(bsub, (double)(subwidth/2),(double)(subheight/2),
-		subwidth, subheight,
-		1e6, osamp*beq, obj->bulge_ar, obj->bulge_posang)
-			/ obj->bulge_ratio;
+    flux = bflux = make_sersic(bsub, subwidth, subheight, osamp*beq,
+	obj->bulge_ar,obj->bulge_posang, n) / obj->bulge_ratio;
     sub = bsub;
     }
   else
@@ -188,9 +192,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
     {
     QFFTWMALLOC(dsub, PIXTYPE, memnsub);
     memset(dsub, 0, memnsub*sizeof(PIXTYPE));
-    flux = add_expo(dsub, (double)(subwidth/2),(double)(subheight/2),
-		subwidth, subheight,
-		1e6, osamp*dscale, obj->disk_ar, obj->disk_posang) / dratio;
+    flux = make_sersic(dsub, subwidth, subheight,  osamp*dscale*1.67835,
+		obj->disk_ar, obj->disk_posang, 1.0) / dratio;
     sub = dsub;
     }
   else
@@ -231,11 +234,16 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
     QREALLOC(obj->subimage, PIXTYPE, nsub2);
     }
   resample_image(sub, subwidth, subheight, obj, -dx*osamp, -dy*osamp, osamp);
-  flux = 0.0;
+  flux = flux2 = 0.0;
   for (i=nsub2,subt=obj->subimage; i--;)
-    flux += (double)*(subt++);
+    {
+    dval = (double)*(subt++);
+    flux += dval;
+    flux2 += dval*dval;
+    }
 
   obj->subfactor = obj->flux/flux;
+  obj->noiseqarea = flux*flux / flux2;
 
   QFFTWFREE(bsub);
   QFFTWFREE(dsub);
@@ -244,95 +252,176 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   }
 
 
-/********************************* add_devauc ********************************/
-/*
-Add a 2D de Vaucouleurs (exp(r**(-1/4))) profile to a vignet.
-*/
-double	add_devauc(PIXTYPE *pix, double xcenter, double ycenter,
-		int width, int height,
-		double flux, double req, double aspect, double posang)
+/****** make sersic **********************************************************
+PROTO	double make_sersic(PIXTYPE *pix, int width, int height, double reff,
+		double aspect, double posang, double n)
+PURPOSE	Rasterize an unnormalized 2D Sersic (exp(r**(-1/n))) model.
+INPUT	pointer to the raster,
+	raster width,
+	raster height,
+	model effective radius,
+	model aspect ratio,
+	model position angle,
+	Sersic index.
+OUTPUT	Total flux.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	01/03/2011
+ ***/
+double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
+		double aspect, double posang, double n)
 
   {
-   double	amp, cpos,spos, cxx,cyy,cxy,cxydy,cyydy2,
-		a2,b2,dx,dy, sum;
-   int		x,y;
+   double	ddx1[36],ddx2[36], cpos,spos, a2,b2, bn, sum;
+   float	k, invn,hinvn,krspinvn,ekrspinvn, krpinvn,dkrpinvn,
+		r,r2,dr, rs,rs2,
+		p1,p2,c0,c2,c3, x1c,x2c, x1,x10,x2, cxx,cyy,cxy,cxydy,cyydy2,
+		dx1c,dx2c,a11,a12,a21,a22, ang,angstep, dca,dsa, selem, val;
+   PIXTYPE	*pixt,*pixt2;
+   int		a,i, ix1,ix2, nx2,npix2, nang;
 
-  if (req == 0.0)
+/* No point source */
+  if (reff == 0.0)
     return 0.0;
 
 /* Preliminaries: compute the ellipse parameters */
-  a2 = 1/(req*req);
+  a2 = 1.0/(reff*reff);
   b2 = a2/(aspect*aspect);
-  amp = flux*94.480/(req*req);
   cpos = cos(posang*DEG);
   spos = sin(posang*DEG);
   cxx = cpos*cpos*a2 + spos*spos*b2;
   cyy = spos*spos*a2 + cpos*cpos*b2;
   cxy = 2*cpos*spos*(a2-b2);
 
-/* Compute and put the values */
-  dy = -ycenter;
-  sum = 0.0;
-  for (y=height; y--; dy += 1.0)
+/* Compute sharp/smooth transition radius */
+  rs = SERSIC_SMOOTHR/(reff*aspect);
+  if (rs<=0)
+    rs = 1.0;
+  rs2 = rs*rs;
+  if (n==1.0)
+    bn = 1.67835;
+  else if (n==4.0)
+    bn = 7.66924944;
+  else
+    bn = 2.0*n - 1.0/3.0 + 4.0/(405.0*n) + 46.0/(25515.0*n*n)
+		+ 131.0/(1148175*n*n*n);	/* Ciotti & Bertin 1999 */
+  invn = 1.0/n;
+  hinvn = 0.5/n;
+  k = -bn;
+/* Compute central polynomial terms */
+  krspinvn = (n==1.0)? k*rs : k*expf(logf(rs)*invn);
+  ekrspinvn = expf(krspinvn);
+  p2 = krspinvn*invn*invn;
+  p1 = krspinvn*p2;
+  c0 = (1+(1.0/6.0)*(p1+(1.0-5.0*n)*p2))*ekrspinvn;
+  c2 = (-1.0/2.0)*(p1+(1.0-3.0*n)*p2)/rs2*ekrspinvn;
+  c3 = (1.0/3.0)*(p1+(1.0-2.0*n)*p2)/(rs2*rs)*ekrspinvn;
+  x1c = (float)(width/2);
+  x2c = (float)(height/2);
+  nx2 = height/2 + 1;
+
+/* Compute the smooth part of the profile */
+  x10 = -x1c;
+  x2 = -x2c;
+  pixt = pix;
+  if (n==1.0)
+    for (ix2=nx2; ix2--; x2+=1.0)
+      {
+      x1 = x10;
+      cyydy2 = cyy*x2*x2;
+      cxydy = cxy*x2;
+      for (ix1=width; ix1--; x1+=1.0)
+        *(pixt++) = (r2=cyydy2 + (cxx*x1+cxydy)*x1) < rs2?
+		c0+r2*(c2+c3*sqrtf(r2)) : expf(-1.67835f*sqrtf(r2));
+      }
+  else
+    for (ix2=nx2; ix2--; x2+=1.0)
+      {
+      x1 = x10;
+      cyydy2 = cyy*x2*x2;
+      cxydy = cxy*x2;
+      for (ix1=width; ix1--; x1+=1.0)
+        *(pixt++) = (r2=cyydy2 + (cxx*x1+cxydy)*x1)<rs2?
+		c0+r2*(c2+c3*sqrtf(r2)) : expf(k*expf(logf(r2)*hinvn));
+      }
+/* Copy the symmetric part */
+  if ((npix2=(height-nx2)*width) > 0)
     {
-    cxydy = cxy*dy;
-    cyydy2 = cyy*dy*dy;
-    dx = -xcenter;
-    for (x=width; x--; dx += 1.0)
-      sum += (*(pix++) = (PIXTYPE)(amp*exp(-7.6693
-	*pow(cxx*dx*dx + cyydy2 + cxydy*dx, 0.125))));
+    pixt2 = pixt - width - 1;
+    if (!(width&1))
+      {
+      *(pixt++) = 0.0;
+      npix2--;
+      }
+    for (i=npix2; i--;)
+      *(pixt++) = *(pixt2--);
     }
+
+/* Compute the sharp part of the profile */
+  dx1c = x1c + 0.4999999;
+  dx2c = x2c + 0.4999999;
+  a11 = reff*cpos;
+  a12 = -reff*aspect*spos;
+  a21 = reff*spos;
+  a22 = reff*aspect*cpos;
+  nang = 72 / 2;	/* 72 angles; only half of them are computed*/
+  angstep = PI/nang;
+  ang = 0.0;
+  for (a=0; a<nang; a++)
+    {
+    sincosf(ang, &dca, &dsa);
+    ddx1[a] = a11*dca+a12*dsa;
+    ddx2[a] = a21*dca+a22*dsa;
+    ang += angstep;
+    }
+  r = DEXPF(-5.0);
+  dr = DEXPF(0.05);
+  selem = 0.5*angstep*(dr - 1.0/dr)*reff*reff*aspect;
+  krpinvn = k*DEXPF(-5.0*invn);
+  dkrpinvn = DEXPF(0.05*invn);
+  for (; r<rs; r *= dr)
+    {
+    r2 = r*r;
+    val = (expf(krpinvn) - (c0 + r2*(c2+c3*r)))*r2*selem;
+    for (a=0; a<nang; a++)
+      {
+      ix1 = (int)(dx1c + r*ddx1[a]);
+      ix2 = (int)(dx2c + r*ddx2[a]);
+      if (ix1>=0 && ix1<width && ix2>=0 && ix2<height)
+        pix[ix2*width+ix1] += val;
+      ix1 = (int)(dx1c - r*ddx1[a]);
+      ix2 = (int)(dx2c - r*ddx2[a]);
+      if (ix1>=0 && ix1<width && ix2>=0 && ix2<height)
+        pix[ix2*width+ix1] += val;
+      }
+    krpinvn *= dkrpinvn;
+    }
+
+/* Compute integral flux */
+  pixt = pix;
+  sum = 0.0;
+  for (i=width*height; i--;)
+    sum += *(pixt++);
 
   return sum;
   }
 
 
-/********************************** add_expo *********************************/
-/*
-Add a 2D exponential profile to a vignet.
-*/
-double	add_expo(PIXTYPE *pix, double xcenter, double ycenter,
-		int width, int height,
-		double flux, double scale, double aspect, double posang)
-
-  {
-   double	amp, cpos,spos, cxx,cyy,cxy,cxydy,cyydy2,
-		a2,b2,dx,dy, sum;
-   int		x,y;
-
-  if (scale == 0.0)
-    return 0.0;
-
-/* Preliminaries: compute the ellipse parameters */
-  a2 = 1/(scale*scale);
-  b2 = a2/(aspect*aspect);
-  amp = flux/(2*PI*scale*scale);
-  cpos = cos(posang*DEG);
-  spos = sin(posang*DEG);
-  cxx = cpos*cpos*a2 + spos*spos*b2;
-  cyy = spos*spos*a2 + cpos*cpos*b2;
-  cxy = 2*cpos*spos*(a2-b2);
-
-/* Compute and put the values */
-  dy = -ycenter;
-  sum = 0.0;
-  for (y=height; y--; dy += 1.0)
-    {
-    cxydy = cxy*dy;
-    cyydy2 = cyy*dy*dy;
-    dx = -xcenter;
-    for (x=width; x--; dx += 1.0)
-      sum += (*(pix++) = (PIXTYPE)(amp*exp(-sqrt(cxx*dx*dx+cyydy2+cxydy*dx))));
-    }
-
-  return sum;
-  }
-
-
-/********************************** trunc_prof *******************************/
-/*
-Truncate a 2D profile in a vignet.
-*/
+/****** trunc_prof **********************************************************
+PROTO	PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,
+		int width, int height)
+PURPOSE	Truncate a monotonously decreasing 2D model inside a raster using
+	thresholding.
+INPUT	pointer to the raster,
+	model center x coordinate,
+	model center y coordinate,
+	raster width,
+	raster height.
+OUTPUT	Computed threshold.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	01/03/2011
+ ***/
 PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,
 		int width, int height)
 
@@ -378,4 +467,31 @@ PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,
   return thresh;
   }
 
+
+/****i* gamm ***************************************************************
+PROTO   double gamm(double xx)
+PURPOSE Returns the Gamma function (based on algorithm described in
+	Numerical Recipes in C, chap 6.1).
+INPUT   A double.
+OUTPUT  Gamma function.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/12/2010
+*/
+static double	gamm(double xx)
+
+  {
+   double		x,tmp,ser;
+   static double	cof[6]={76.18009173,-86.50532033,24.01409822,
+			-1.231739516,0.120858003e-2,-0.536382e-5};
+   int			j;
+
+  tmp=(x=xx-1.0)+5.5;
+  tmp -= (x+0.5)*log(tmp);
+  ser=1.0;
+  for (j=0;j<6;j++)
+    ser += cof[j]/(x+=1.0);
+
+  return 2.50662827465*ser*exp(-tmp);
+  }
 

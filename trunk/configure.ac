@@ -5,7 +5,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -20,7 +20,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/10/2010
+#	Last modified:		01/03/2011
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([skymaker],[3.7.0],[bertin@iap.fr])
+AC_INIT([skymaker],[3.8.1],[bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS([config.h])

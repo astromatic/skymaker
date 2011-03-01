@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		02/02/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -40,7 +40,7 @@
 
 typedef	struct
 	{
-	int	type;			/* Type */
+	int	type;			/* Source type */
 	double	pos[2];			/* Position of the object center */
 	double	mag;			/* Catalog magnitude */
 	double	flux;			/* Instrumental flux */
@@ -48,10 +48,13 @@ typedef	struct
 	double	bulge_req;		/* Bulge equiv. radius */
 	double	bulge_posang;		/* Bulge position angle */
 	double	bulge_ar;		/* Bulge aspect ratio */
+	double	bulge_sersicn;		/* Bulge sersic index */
 	double	disk_scale;		/* Disk scale length */
 	double	disk_ar;		/* Disk aspect ratio */
 	double	disk_posang;		/* Disk position angle */
 	double	z;			/* Galaxy redshift */
+	float	hubble_type;		/* Hubble type */
+        float	noiseqarea;		/* Galaxy image noise equivalent area */
 	PIXTYPE	*subimage;		/* Sub-frame with the final object */
 	int	subsize[2];		/* Sub-frame dimensions */
 	int	subpos[2];		/* Sub-frame position in image */
