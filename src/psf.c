@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		06/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -628,7 +628,7 @@ void	makepsf(simstruct *sim)
     QFFTWFREE(bmp);
 /*-- Normalize the PSF */
     if (sim->npsf==1)
-      NFPRINTF(OUTPUT, "Normalizing PSF...");
+      NFPRINTF(OUTPUT, "Normalizing the PSF...");
     dsum /= osamp*osamp;
     pix = bmp2;
     for (i=0; i<nbpix2; i++)
@@ -763,7 +763,7 @@ void    center_psf(simstruct *sim)
     {
     case CENTER_UPPERHALF:
       for (p=0; p<sim->npsf; p++)
-        sim->psfdpos[p][0] = sim->psfdpos[p][1] = 0.0;
+        sim->psfdpos[0][p] = sim->psfdpos[1][p] = 0.0;
       break;
     case CENTER_LOWERHALF:
       dx = (sim->psfsize[0]%2)? 0.0 : -1.0/sim->psfoversamp;
@@ -1257,6 +1257,7 @@ void	readpsf(simstruct *sim)
 		sum;
    char		lstr[MAXCHAR],
 		*filename,*rfilename, *str, *str2;
+   size_t	size;
    int		i,p, ext, nbpix;
 
   filename = sim->psfname;
@@ -1304,11 +1305,13 @@ void	readpsf(simstruct *sim)
     }
   else
     sim->npsf = sim->psfsize[2] = sim->psfsize[3] = sim->psfsize[4] = 1;
+  size = nbpix*sim->npsf;
   QCALLOC(sim->psfdft, PIXTYPE *, sim->npsf*(PSF_NORDER+1));
   sprintf(lstr,"Loading %s", rfilename);
   NFPRINTF(OUTPUT, lstr);
-  sim->psf = alloc_body(tab, NULL);
-  tab->bodybuf = NULL;
+  QMALLOC(sim->psf, PIXTYPE, size);
+  QFSEEK(tab->cat->file, tab->bodypos, SEEK_SET, tab->cat->filename);
+  read_body(tab, sim->psf, size);
   free_cat(&cat, 1);
 
 /* Normalize the PSF(s) */
