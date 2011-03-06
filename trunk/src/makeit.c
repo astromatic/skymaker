@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		06/03/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -81,7 +81,7 @@ void    makeit()
   else
     makepsf(simul);
   center_psf(simul);
-  QCALLOC(simul->image, PIXTYPE, simul->fimasize[0]*simul->fimasize[1]);
+  QCALLOC(simul->image, PIXTYPE, (size_t)simul->fimasize[0]*simul->fimasize[1]);
   openoutlist(simul);
   readlist(simul);
   makestarfield(simul);
