@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		11/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -156,7 +156,7 @@ INPUT	Name of the ASCII file,
 OUTPUT	RETURN_OK if the file was found, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2004
+VERSION	11/03/2011
  ***/
 int	read_aschead(char *filename, int frameno, tabstruct *tab)
   {
@@ -182,6 +182,11 @@ int	read_aschead(char *filename, int frameno, tabstruct *tab)
       if (!wstrncmp(keyword, "SIMPLE  ", 8)
 	||!wstrncmp(keyword, "BITPIX  ", 8)
 	||!wstrncmp(keyword, "NAXIS   ", 8)
+	||!wstrncmp(keyword, "NAXIS1  ", 8)
+	||!wstrncmp(keyword, "NAXIS2  ", 8)
+	||!wstrncmp(keyword, "NAXIS3  ", 8)
+	||!wstrncmp(keyword, "NAXIS4  ", 8)
+	||!wstrncmp(keyword, "NAXIS5  ", 8)
 	||!wstrncmp(keyword, "BSCALE  ", 8)
 	||!wstrncmp(keyword, "BZERO   ", 8))
         continue;
