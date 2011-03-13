@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/02/2011
+*	Last modified:		12/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -86,7 +86,7 @@ pkeystruct key[] =
   {"MAG_ZEROPOINT", P_FLOAT, &prefs.magzero, 0,0, -100.0,100.0},
   {"MICROSCAN_NSTEP", P_INTLIST, prefs.mscan, 1,16, 0.0,0.0,
    {""}, 1,2, &prefs.nmscan},
-  {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
+  {"NTHREADS", P_INT, &prefs.nthreads, -THREADS_PREFMAX, THREADS_PREFMAX},
   {"PIXEL_SIZE", P_FLOATLIST, &prefs.pixscale, 0,0, 1e-12,1e12,
    {""}, 1, 2, &prefs.npixscale},
   {"PSFCENTER_TYPE", P_KEY, &prefs.psfcentertype, 0,0, 0.0,0.0,

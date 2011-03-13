@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		12/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -407,7 +407,7 @@ void	useprefs(void)
 
 /* Multithreading */
 #ifdef USE_THREADS
-  if (!prefs.nthreads)
+  if (prefs.nthreads<=0)
     {
 /*-- Get the number of processors for parallel builds */
 /*-- See, e.g. http://ndevilla.free.fr/threads */
@@ -433,12 +433,14 @@ void	useprefs(void)
 #endif
 
     if (nproc>0)
-      prefs.nthreads = nproc;
+       prefs.nthreads = ((prefs.nthreads) && nproc>(-prefs.nthreads))?
+			-prefs.nthreads
+			: nproc;
     else
       {
-      prefs.nthreads = 2;
-      warning("Cannot find the number of CPUs on this system:",
-	"NTHREADS defaulted to 2");
+      prefs.nthreads = prefs.nthreads? -prefs.nthreads : 2;
+      sprintf(str, "NTHREADS defaulted to %d", prefs.nthreads);
+      warning("Cannot find the number of CPUs on this system:", str);
       }
     }
 #ifndef HAVE_FFTWF_MP

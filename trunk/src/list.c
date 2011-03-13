@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/12/2010
+*	Last modified:		13/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -246,7 +246,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	21/12/2010
+VERSION	13/03/2011
  ***/
 void    writeobj(simstruct *sim, objstruct *obj)
   {
@@ -254,17 +254,17 @@ void    writeobj(simstruct *sim, objstruct *obj)
 
  /*-- The format depends on object type */
   if (obj->type == 100)
-    fprintf(sim->outlistfile, "%3d %10.3f %10.3f %8.4f\n",
+    fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f\n",
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag);
   else if (obj->type == 200)
-    fprintf(sim->outlistfile, "%3d %10.3f %10.3f %8.4f %5.3f %9.3f %5.3f "
+    fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
 			"%+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %+5.2f\n",
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
 	obj->bulge_ratio, obj->bulge_req, obj->bulge_ar, obj->bulge_posang,
 	obj->disk_scale, obj->disk_ar, obj->disk_posang, obj->z,
 	obj->hubble_type, obj->noiseqarea);
   else if (obj->type == 210)
-    fprintf(sim->outlistfile, "%3d %10.3f %10.3f %8.4f %5.3f %9.3f %5.3f "
+    fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
 			"%4.2f %+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f\n",
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
 	obj->bulge_sersicn, obj->bulge_ratio, obj->bulge_req, obj->bulge_ar,
