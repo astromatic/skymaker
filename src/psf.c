@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/03/2011
+*	Last modified:		15/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -99,6 +99,25 @@ void	makepsf(simstruct *sim)
   fscale[1] = fsize[1]/psfsize[1];
   xc = psfsize[0]/2;
   yc = psfsize[1]/2;
+
+/* A rough estimate of the PSF area (at 1 sigma), including all the */
+/* contributions */
+/* 1.8 ~ sqrt(2*ln(5)) */
+  sim->psfarea = PI*(
+		 1.22*1.22/(2.35*2.35)
+			*sim->lambdaeq*sim->lambdaeq/(sim->psfdm1*sim->psfdm1)
+		+sim->seeing*sim->seeing/(2.35*2.35)
+		+sim->psftrackmaj*sim->psftrackmaj
+		+sim->psfd80defoc[0]*sim->psfd80defoc[0]/(1.8*1.8)
+		+sim->psfd80spher[0]*sim->psfd80spher[0]/(1.8*1.8)
+		+sim->psfd80comax[0]*sim->psfd80comax[0]/(1.8*1.8)
+		+sim->psfd80comay[0]*sim->psfd80comay[0]/(1.8*1.8)
+		+sim->psfd80ast00[0]*sim->psfd80ast00[0]/(1.8*1.8)
+		+sim->psfd80ast45[0]*sim->psfd80ast45[0]/(1.8*1.8)
+		+sim->psfd80tri00[0]*sim->psfd80tri00[0]/(1.8*1.8)
+		+sim->psfd80tri30[0]*sim->psfd80tri30[0]/(1.8*1.8)
+		+sim->psfd80qua00[0]*sim->psfd80qua00[0]/(1.8*1.8)
+		+sim->psfd80qua22[0]*sim->psfd80qua22[0]/(1.8*1.8));
 
 /* Reduced scale for computing phase factor: it includes fwidth/D, which
    is 1/(fu), where f is the spatial frequency D/lambda and u the subpixel size
@@ -1254,11 +1273,11 @@ void	readpsf(simstruct *sim)
    tabstruct	*tab;
    double	dsum;
    PIXTYPE	*pix,
-		sum;
+		sum, val, max;
    char		lstr[MAXCHAR],
 		*filename,*rfilename, *str, *str2;
    size_t	size;
-   int		i,p, ext, nbpix;
+   int		i,p, ext, nbpix, area, areamax;
 
   filename = sim->psfname;
   if ((str = strrchr(filename, '[')))
@@ -1316,16 +1335,30 @@ void	readpsf(simstruct *sim)
 
 /* Normalize the PSF(s) */
   NFPRINTF(OUTPUT, "Normalizing the PSF...");
+  areamax = 0;
   for (p=0; p<sim->npsf; p++)
     {
     pix = sim->psf+p*nbpix;
     dsum = 0.0;
+    max = -BIG;
     for (i=nbpix; i--;)
-      dsum += *(pix++);
+      {
+      dsum += (val = *(pix++));
+      if (val>max)
+        max = val;
+      }
+    max *= exp(-0.5);
     sum = (PIXTYPE) (dsum / (sim->psfoversamp*sim->psfoversamp));
     pix = sim->psf+p*nbpix;
+    area = 0;
     for (i=nbpix; i--;)
+      {
+      if (*pix>max)
+        area++;
       *(pix++) /= sum;
+      }
+    if (areamax<area)
+      areamax = area;
     }
 #ifdef USE_THREADS
   QMALLOC(dftmutex, pthread_mutex_t, sim->npsf);
@@ -1335,6 +1368,10 @@ void	readpsf(simstruct *sim)
 
   QCALLOC(sim->psfdpos[0], double, sim->npsf);
   QCALLOC(sim->psfdpos[1], double, sim->npsf);
+
+/* Compute rough estimate of "1-sigma" area */
+  sim->psfarea = areamax * sim->pixscale[0]*sim->pixscale[1]
+	/ (sim->psfoversamp*sim->psfoversamp);
 
   return;
   }

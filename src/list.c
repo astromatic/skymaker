@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		13/03/2011
+*	Last modified:		15/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -246,7 +246,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	13/03/2011
+VERSION	15/03/2011
  ***/
 void    writeobj(simstruct *sim, objstruct *obj)
   {
@@ -258,18 +258,18 @@ void    writeobj(simstruct *sim, objstruct *obj)
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag);
   else if (obj->type == 200)
     fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
-			"%+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %+5.2f\n",
+			"%+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
 	obj->bulge_ratio, obj->bulge_req, obj->bulge_ar, obj->bulge_posang,
 	obj->disk_scale, obj->disk_ar, obj->disk_posang, obj->z,
 	obj->hubble_type, obj->noiseqarea);
   else if (obj->type == 210)
     fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
-			"%4.2f %+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f\n",
+			"%4.2f %+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
 	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
 	obj->bulge_sersicn, obj->bulge_ratio, obj->bulge_req, obj->bulge_ar,
 	obj->bulge_posang, obj->disk_scale, obj->disk_ar, obj->disk_posang,
-	obj->z, obj->hubble_type);
+	obj->z, obj->hubble_type, obj->noiseqarea);
   else
     {
     sprintf(str, "%d", obj->type);

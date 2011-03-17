@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		15/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -184,25 +184,6 @@ simstruct	*sim_init(void)
 				/(sim->mscan[0]*sim->mscan[1])));
   if (sim->minquant<QUANT_ACCURACY)
     sim->minquant = QUANT_ACCURACY;
-
-/* A rough estimate of the PSF area (at 1 sigma), including all the */
-/* contributions */
-/* 1.8 ~ sqrt(2*ln(5)) */
-  sim->psfarea = PI*(
-		 1.22*1.22/(2.35*2.35)
-			*sim->lambdaeq*sim->lambdaeq/(sim->psfdm1*sim->psfdm1)
-		+sim->seeing*sim->seeing/(2.35*2.35)
-		+sim->psftrackmaj*sim->psftrackmaj
-		+sim->psfd80defoc[0]*sim->psfd80defoc[0]/(1.8*1.8)
-		+sim->psfd80spher[0]*sim->psfd80spher[0]/(1.8*1.8)
-		+sim->psfd80comax[0]*sim->psfd80comax[0]/(1.8*1.8)
-		+sim->psfd80comay[0]*sim->psfd80comay[0]/(1.8*1.8)
-		+sim->psfd80ast00[0]*sim->psfd80ast00[0]/(1.8*1.8)
-		+sim->psfd80ast45[0]*sim->psfd80ast45[0]/(1.8*1.8)
-		+sim->psfd80tri00[0]*sim->psfd80tri00[0]/(1.8*1.8)
-		+sim->psfd80tri30[0]*sim->psfd80tri30[0]/(1.8*1.8)
-		+sim->psfd80qua00[0]*sim->psfd80qua00[0]/(1.8*1.8)
-		+sim->psfd80qua22[0]*sim->psfd80qua22[0]/(1.8*1.8));
 
 /* Temporary fix */
   if (sim->imatype==GRID || sim->imatype==GRID_NONOISE)
