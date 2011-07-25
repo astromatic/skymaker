@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		01/03/2011
+*	Last modified:		25/07/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -266,7 +266,7 @@ INPUT	pointer to the raster,
 OUTPUT	Total flux.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	01/03/2011
+VERSION	25/07/2011
  ***/
 double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
 		double aspect, double posang, double n)
@@ -369,9 +369,14 @@ double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
   ang = 0.0;
   for (a=0; a<nang; a++)
     {
-    sincosf(ang, &dca, &dsa);
-    ddx1[a] = a11*dca+a12*dsa;
-    ddx2[a] = a21*dca+a22*dsa;
+#ifdef HAVE_SINCOSF
+    sincosf(ang, &dsa, &dca);
+#else
+    dsa = sinf(ang);
+    dca = cosf(ang);
+#endif
+    ddx1[a] = a11*dsa+a12*dca;
+    ddx2[a] = a21*dsa+a22*dca;
     ang += angstep;
     }
   r = DEXPF(-5.0);
