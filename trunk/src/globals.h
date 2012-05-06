@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,13 +22,14 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		06/01/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #include "types.h"
 
 /*----------------------- miscellaneous variables ---------------------------*/
+char		gstr[MAXCHAR];
 
 /*------------------------------- functions ---------------------------------*/
 extern void	makeit(void);
