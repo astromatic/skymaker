@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/03/2011
+*	Last modified:		16/11/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -36,12 +36,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#define USE_CPUREDISPATCH 0
 #if defined(USE_THREADS) \
 && (defined(__APPLE__) || defined(FREEBSD) || defined(NETBSD))	/* BSD, Apple */
  #include <sys/types.h>
  #include <sys/sysctl.h>
 #elif defined(USE_THREADS) && defined(HAVE_MPCTL)		/* HP/UX */
  #include <sys/mpctl.h>
+#endif
+
+#if defined(__INTEL_COMPILER) && defined (USE_CPUREDISPATCH)
+ #include <cpuid.h>
 #endif
 
 #include "define.h"
@@ -397,6 +402,10 @@ void	useprefs(void)
 
   {
    char		str[MAXCHAR], *end;
+#if defined(__INTEL_COMPILER) && defined (USE_CPUREDISPATCH)
+   extern int	__intel_cpu_indicator;
+   unsigned int	eax, ebx, ecx, edx;
+#endif
    unsigned short       ashort=1;
 #ifdef USE_THREADS
    int                  nproc;
@@ -457,6 +466,29 @@ void	useprefs(void)
     warning("NTHREADS != 1 ignored: ",
 	"this build of " BANNER " is single-threaded");
     }
+#endif
+
+/* Override INTEL CPU detection routine to help performance on 3rd-party CPUs */
+#if defined(__INTEL_COMPILER) && defined (USE_CPUREDISPATCH)
+  __get_cpuid(1, &eax, &ebx, &ecx, &edx);
+  if (ecx&bit_AVX)
+    __intel_cpu_indicator = 0x20000;
+  else if (ecx&bit_SSE4_2)
+    __intel_cpu_indicator = 0x8000;
+  else if (ecx&bit_SSE4_1)
+    __intel_cpu_indicator = 0x2000;
+  else if (ecx&bit_SSSE3)
+    __intel_cpu_indicator = 0x1000;
+  else if (ecx&bit_SSE3)
+    __intel_cpu_indicator = 0x0800;
+  else if (edx&bit_SSE2)
+    __intel_cpu_indicator = 0x0200;
+  else if (edx&bit_SSE)
+    __intel_cpu_indicator = 0x0080;
+  else if (edx&bit_MMX)
+    __intel_cpu_indicator = 0x0008;
+  else
+    __intel_cpu_indicator = 0x0001;
 #endif
 
 /* Get rid of the original extension in the image name, if present */

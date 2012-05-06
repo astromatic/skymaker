@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/03/2011
+*	Last modified:		05/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <fftw3.h>
+#include FFTW_H
 
 #include "define.h"
 #include "globals.h"
