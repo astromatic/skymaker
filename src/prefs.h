@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,12 +22,16 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		24/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifndef _PSF_H_
 #include "psf.h"
+#endif
+
+#ifndef _LIST_H_
+#include "list.h"
 #endif
 
 #ifndef _SIMUL_H_
@@ -44,12 +48,14 @@
 /*------------------------------- preferences -------------------------------*/
 typedef struct
   {
-/* Image itself */
+/*------ Image itself */
   char		filename[MAXCHAR];	/* Image filename */
   char		headname[MAXCHAR];	/* Header filename */
   char		inlistname[MAXCHAR];	/* Input list filename */
   char		outlistname[MAXCHAR];	/* Output list filename */
   imatypenum	imatype;		/* Image type */
+/*------ Astrometry */
+  listcoordenum	listcoord_type;		/* Use World coordinates? */
   int		imasize[2];		/* Dimension of the image */
   int		nimasize;		/* Number of arguments */
   int		mscan[2];		/* Number of microscanning steps */

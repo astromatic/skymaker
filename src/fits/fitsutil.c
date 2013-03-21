@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic FITS/LDAC library
 *
-*	Copyright:		(C) 1995-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1995-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/10/2010
+*	Last modified:		20/11/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -194,7 +194,7 @@ OUTPUT	RETURN_OK if something was found, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP),
         E.R. Deul - Handling of NaN
-VERSION	02/07/2010
+VERSION	20/11/2012
  ***/
 int	fitspick(char *fitsline, char *keyword, void *ptr, h_type *htype,
 		t_type *ttype, char *comment)
@@ -216,8 +216,19 @@ int	fitspick(char *fitsline, char *keyword, void *ptr, h_type *htype,
 	&& strncmp(keyword, "HIERARCH", 8)
 	&& strncmp(keyword, "        ", 8))
       return RETURN_ERROR;
-    memcpy(comment, fitsline+9, 71);
-    comment[71] = 0;
+    fptr = fitsline+9;
+    lastspace = NULL;
+    for(i=71; i-- && (c=*(fptr++));)
+      if (c >= ' ')
+	{
+        *(comment++) = c;
+        if (c > ' ')
+          lastspace = comment;
+        }
+    if (lastspace)
+      *lastspace = '\0';
+    else
+      *comment = '\0';
     *htype = H_COMMENT;
     *ttype = T_STRING;
     return RETURN_OK;
@@ -323,7 +334,7 @@ INPUT	pointer to the FITS buffer,
 OUTPUT	RETURN_OK if the keyword was found, RETURN_ERROR otherwise.
 NOTES	The buffer MUST contain the ``END     '' keyword.
 AUTHOR	E. Bertin (IAP & Leiden observatory)
-VERSION	02/11/2009
+VERSION	13/06/2012
  ***/
 int	fitsread(char *fitsbuf, char *keyword, void *ptr, h_type htype,
 		t_type ttype)
@@ -347,7 +358,7 @@ int	fitsread(char *fitsbuf, char *keyword, void *ptr, h_type htype,
 			  sscanf(str+10, "    %hd", (short *)ptr);
 #ifdef HAVE_LONG_LONG_INT
 			else
-			  sscanf(str+10, "    %lld", (LONGLONG *)ptr);
+			  sscanf(str+10, "    %lld", (SLONGLONG *)ptr);
 #endif
 			break;
 
@@ -368,7 +379,7 @@ int	fitsread(char *fitsbuf, char *keyword, void *ptr, h_type htype,
 			  *(LONG *)ptr = ((int)s[0] == 'T') ? 1 : 0;
 #ifdef HAVE_LONG_LONG_INT
                         else
-			  *(LONGLONG *)ptr = ((int)s[0] == 'T') ? 1 : 0;
+			  *(SLONGLONG *)ptr = ((int)s[0] == 'T') ? 1 : 0;
 #endif
 			break;
 
@@ -460,7 +471,7 @@ OUTPUT	RETURN_OK if the keyword was found, RETURN_ERROR otherwise.
 NOTES	The buffer MUST contain the ``END     '' keyword.
 	The keyword must already exist in the buffer (use fitsadd()).
 AUTHOR	E. Bertin (IAP & Leiden observatory)
-VERSION	02/11/2009
+VERSION	13/06/2012
  ***/
 int	fitswrite(char *fitsbuf, char *keyword, void *ptr, h_type htype,
 		t_type ttype)
@@ -485,7 +496,7 @@ int	fitswrite(char *fitsbuf, char *keyword, void *ptr, h_type htype,
 			  sprintf(str, "%20d", *(short *)ptr);
 #ifdef HAVE_LONG_LONG_INT
 			else
-			  sprintf(str, "%20lld", *(LONGLONG *)ptr);
+			  sprintf(str, "%20lld", *(SLONGLONG *)ptr);
 #endif
 			break;
 

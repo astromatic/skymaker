@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2005-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2005-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		21/03/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -125,26 +125,27 @@ OUTPUT	-.
 NOTES	For data1 and fdata2, memory must be allocated for
 	size[0]* ... * 2*(size[naxis-1]/2+1) floats (padding required).
 AUTHOR	E. Bertin (IAP)
-VERSION	15/04/2009
+VERSION	21/03/2013
  ***/
 void    fft_conv(float *data1, float *fdata2, int width, int height)
   {
-   fftwf_plan	plan;
-   float	*fdata1,*fdata1p,*fdata2p,
-		real,imag, fac;
-   int		i, npix,npix2;
+   fftwf_plan		plan;
+   fftwf_complex	*fdata1;
+   float		*fdata1p,*fdata2p,
+			real,imag, fac;
+   int			i, npix,npix2;
 
 /* Convert axis indexing to that of FFTW */
   npix = width*height;
-  npix2 = (((width>>1) + 1)<< 1) * height;
+  npix2 = ((width>>1) + 1) * height;
 
 /* Forward FFT "in place" for data1 */
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_LOCK(&fftmutex);
 #endif
-  QFFTWMALLOC(fdata1, float, npix2);
+  QFFTWF_MALLOC(fdata1, fftwf_complex, npix2);
   plan = fftwf_plan_dft_r2c_2d(height, width, data1,
-        (fftwf_complex *)fdata1, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
+        fdata1, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
 #endif
@@ -160,7 +161,7 @@ void    fft_conv(float *data1, float *fdata2, int width, int height)
 
 /* Actual convolution (Fourier product) */
   fac = 1.0/npix;  
-  fdata1p = fdata1;
+  fdata1p = (float *)fdata1;
   fdata2p = fdata2;
   for (i=npix2/2; i--; fdata2p+=2)
     {
@@ -174,7 +175,7 @@ void    fft_conv(float *data1, float *fdata2, int width, int height)
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_LOCK(&fftmutex);
 #endif
-  plan = fftwf_plan_dft_c2r_2d(height, width, (fftwf_complex *)fdata1, 
+  plan = fftwf_plan_dft_c2r_2d(height, width, fdata1, 
         data1, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
@@ -187,7 +188,7 @@ void    fft_conv(float *data1, float *fdata2, int width, int height)
 #endif
   fftwf_destroy_plan(plan);
 /* Free the fdata1 scratch array */
-  QFFTWFREE(fdata1);
+  QFFTWF_FREE(fdata1);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
 #endif
@@ -205,24 +206,24 @@ INPUT	ptr to the image,
 OUTPUT	Pointer to the compressed, memory-allocated Fourier transform.
 NOTES	Input data may end up corrupted.
 AUTHOR	E. Bertin (IAP)
-VERSION	15/04/2009
+VERSION	21/03/2013
  ***/
 float	*fft_rtf(float *data, int width, int height)
   {
-   fftwf_plan   plan;
-   float	*fdata;
-   int		npix2;
+   fftwf_plan   	plan;
+   fftwf_complex	*fdata;
+   int			npix2;
 
 /* Convert axis indexing to that of FFTW */
-  npix2 = (((width>>1) + 1)<< 1) * height;
+  npix2 = ((width>>1) + 1) * height;
 
 /* Forward FFT "in place" for data1 */
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_LOCK(&fftmutex);
 #endif
-  QFFTWMALLOC(fdata, float, npix2);
+  QFFTWF_MALLOC(fdata, fftwf_complex, npix2);
   plan = fftwf_plan_dft_r2c_2d(height, width, data,
-        (fftwf_complex *)fdata, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
+        fdata, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
 #endif
@@ -237,7 +238,7 @@ float	*fft_rtf(float *data, int width, int height)
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
 #endif
 
-  return fdata;
+  return (float *)fdata;
   }
 
 

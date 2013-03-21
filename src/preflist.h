@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/03/2011
+*	Last modified:		24/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -79,6 +79,8 @@ pkeystruct key[] =
 	"GRID_NONOISE","GRID",""}},
   {"IMAGE_SIZE", P_INTLIST, prefs.imasize, 1, 100000, 0.0,0.0,
    {""}, 1, 2, &prefs.nimasize},
+  {"LISTCOORD_TYPE", P_KEY, &prefs.listcoord_type, 0,0, 0.0,0.0,
+   {"PIXEL","WORLD",""}},
   {"M1_DIAMETER", P_FLOAT, &prefs.psfdm1, 0,0, 0.0, 100.0},
   {"M2_DIAMETER", P_FLOAT, &prefs.psfdm2, 0,0, 0.0, 100.0},
   {"MAG_LIMITS", P_FLOATLIST, prefs.maglim, 0,0, -30.0, 50.0,
@@ -154,6 +156,7 @@ char *default_prefs[] =
 "                                # or GRID_NONOISE",
 "*GRID_SIZE       64              # Distance between objects in GRID mode",
 "IMAGE_HEADER    INTERNAL        # File name or INTERNAL",
+"LISTCOORD_TYPE  PIXEL           # Coordinates in input lists: PIXEL or WORLD",
 " ",
 "#-------------------------------- Detector -----------------------------------",
 " ",

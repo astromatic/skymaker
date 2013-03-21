@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		11/03/2011
+*	Last modified:		06/09/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -39,6 +39,7 @@
 #include "define.h"
 #include "globals.h"
 #include "fits/fitscat.h"
+#include "fitswcs.h"
 #include "imaout.h"
 #include "key.h"
 #include "prefs.h"
@@ -147,8 +148,8 @@ extern char		keylist[][32];
 extern time_t		thetime;
 
 
-/****** read_aschead ********************************************************
-PROTO	int read_aschead(char *filename, int frameno, tabstruct *tab)
+/****** imaout_readaschead ****************************************************
+PROTO	int imaout_readaschead(char *filename, int frameno, tabstruct *tab)
 PURPOSE	Read an ASCII header file and update the current field's tab
 INPUT	Name of the ASCII file,
 	Frame number (if extensions),
@@ -158,7 +159,7 @@ NOTES	-.
 AUTHOR	E. Bertin (IAP)
 VERSION	11/03/2011
  ***/
-int	read_aschead(char *filename, int frameno, tabstruct *tab)
+int	imaout_readaschead(char *filename, int frameno, tabstruct *tab)
   {
    char		keyword[88],data[88],comment[88], str[88];
    FILE		*file;
@@ -204,11 +205,16 @@ int	read_aschead(char *filename, int frameno, tabstruct *tab)
   }
 
 
-/********************************* writeima **********************************/
-/*
-Save the simulated frame.
-*/
-void	writeima(simstruct *sim)
+/******* imaout_inithead ******************************************************
+PROTO	catstruct *imaout_inithead(simstruct *sim)
+PURPOSE	Initialize the header of the simulated image and the FITScat structure.
+INPUT	Pointer to the simulation.
+OUTPUT	Pointer to the initialized FITScat structure.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	24/05/2012
+ ***/
+catstruct	*imaout_inithead(simstruct *sim)
 
   {
    catstruct		*cat;
@@ -247,7 +253,7 @@ void	writeima(simstruct *sim)
 /* See if the user supplies a header or not */
   if (cistrcmp(sim->headname, "INTERNAL", 0))
     {
-    if (read_aschead(sim->headname, 0, tab)==RETURN_OK)
+    if (imaout_readaschead(sim->headname, 0, tab)==RETURN_OK)
       hflag = 0;
     else
       warning(sim->headname,
@@ -291,14 +297,36 @@ void	writeima(simstruct *sim)
       fitswrite(tab->headbuf, headkey->name, ptr,headkey->htype,headkey->ttype);
       }
     }
+
+  if (sim->wcsflag)
+/*-- Initialize WCS structure */
+    sim->wcs = read_wcs(tab);
+
+  return cat;
+  }
+
+
+/******* imaout_write *********************************************************
+PROTO	void imaout_write(simstruct *sim)
+PURPOSE	Write the simulated image to a FITS file.
+INPUT	Pointer to the simulation.
+OUTPUT	-.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	06/09/2012
+ ***/
+void	imaout_write(simstruct *sim)
+
+  {
+   tabstruct	*tab;
+
+  tab = sim->cat->tab;
   tab->bodybuf = (void *)sim->image;
   tab->tabsize = tab->naxisn[0]*tab->naxisn[1]*tab->naxisn[2]*tab->naxisn[3]
 		*tab->bytepix;
-  save_cat(cat, sim->filename);
-  tab->bodybuf = NULL;
-  free_cat(&cat, 1);
+  save_cat(sim->cat, sim->filename);
+  sim->cat->tab->bodybuf = NULL;
 
   return;
   }
-
 

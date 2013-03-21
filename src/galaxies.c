@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/05/2012
+*	Last modified:		21/03/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include FFTW_H>
+#include FFTW_H
 
 #include "define.h"
 #include "globals.h"
@@ -66,7 +66,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	01/03/2011
+VERSION	21/03/2013
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
@@ -175,7 +175,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 /* Bulge component */
   if (obj->bulge_ratio)
     {
-    QFFTWMALLOC(bsub, PIXTYPE, memnsub);
+    QFFTWF_MALLOC(bsub, PIXTYPE, memnsub);
     memset(bsub, 0, memnsub*sizeof(PIXTYPE));
     flux = bflux = make_sersic(bsub, subwidth, subheight, osamp*beq,
 	obj->bulge_ar,obj->bulge_posang, n) / obj->bulge_ratio;
@@ -190,7 +190,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 /* Disk component */
   if (dratio>0.001) 
     {
-    QFFTWMALLOC(dsub, PIXTYPE, memnsub);
+    QFFTWF_MALLOC(dsub, PIXTYPE, memnsub);
     memset(dsub, 0, memnsub*sizeof(PIXTYPE));
     flux = make_sersic(dsub, subwidth, subheight,  osamp*dscale*1.67835,
 		obj->disk_ar, obj->disk_posang, 1.0) / dratio;
@@ -245,8 +245,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   obj->subfactor = obj->flux/flux;
   obj->noiseqarea = flux*flux / flux2;
 
-  QFFTWFREE(bsub);
-  QFFTWFREE(dsub);
+  QFFTWF_FREE(bsub);
+  QFFTWF_FREE(dsub);
 
   return;
   }
