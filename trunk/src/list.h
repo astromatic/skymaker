@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/02/2011
+*	Last modified:		24/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -38,10 +38,13 @@
 
 /*------------------------------ Type definitions ---------------------------*/
 
+typedef enum	{LISTCOORD_PIXEL, LISTCOORD_WORLD}	listcoordenum;
+
 typedef	struct
 	{
 	int	type;			/* Source type */
-	double	pos[2];			/* Position of the object center */
+	double	pos[2];			/* Position of object center in pixels*/
+	double	wcspos[2];		/* Position of object center in WCS */
 	double	mag;			/* Catalog magnitude */
 	double	flux;			/* Instrumental flux */
 	double	bulge_ratio;		/* Bulge to total flux */

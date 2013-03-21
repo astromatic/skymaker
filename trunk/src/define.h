@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/01/2012
+*	Last modified:		12/02/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -53,7 +53,7 @@
 #define PI	3.1415926535898			/* never met before? */
 #endif
 #define C               2.9979250e8             /* speed of light in MKS */
-#define	PSF_NORDER	11			/* Max size = 2^11 */
+#define	PSF_NORDER	15			/* Max size = 2^15 */
 
 /*----------------------------- Unit conversions ----------------------------*/
 #define	DEG		(PI/180.0)		/* one degree in rad */

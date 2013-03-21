@@ -24,7 +24,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -39,7 +39,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/10/2010
+#	Last modified:		24/05/2012
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -67,7 +67,7 @@ subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acx_fftw.m4 \
-	$(top_srcdir)/acx_prog_cc_optim.m4 \
+	$(top_srcdir)/acx_mkl.m4 $(top_srcdir)/acx_prog_cc_optim.m4 \
 	$(top_srcdir)/acx_pthread.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -77,12 +77,14 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_sky_OBJECTS = alterimage.$(OBJEXT) fft.$(OBJEXT) galaxies.$(OBJEXT) \
-	image.$(OBJEXT) imaout.$(OBJEXT) list.$(OBJEXT) main.$(OBJEXT) \
-	makeit.$(OBJEXT) poly.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) \
-	random.$(OBJEXT) simul.$(OBJEXT) stars.$(OBJEXT)
+am_sky_OBJECTS = alterimage.$(OBJEXT) fft.$(OBJEXT) fitswcs.$(OBJEXT) \
+	galaxies.$(OBJEXT) image.$(OBJEXT) imaout.$(OBJEXT) \
+	list.$(OBJEXT) main.$(OBJEXT) makeit.$(OBJEXT) poly.$(OBJEXT) \
+	prefs.$(OBJEXT) psf.$(OBJEXT) random.$(OBJEXT) simul.$(OBJEXT) \
+	stars.$(OBJEXT)
 sky_OBJECTS = $(am_sky_OBJECTS)
-sky_DEPENDENCIES = $(top_builddir)/src/fits/libfits.a
+sky_DEPENDENCIES = $(top_builddir)/src/fits/libfits.a \
+	$(top_builddir)/src/wcs/libwcs_c.a
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__depfiles_maybe = depfiles
@@ -188,6 +190,9 @@ LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
+MKL_CFLAGS = @MKL_CFLAGS@
+MKL_LIBS = @MKL_LIBS@
+MKL_WARN = @MKL_WARN@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -264,14 +269,17 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = fits
-sky_SOURCES = alterimage.c fft.c galaxies.c image.c imaout.c list.c main.c \
-		  makeit.c poly.c prefs.c psf.c random.c simul.c stars.c \
-		  alterimage.h define.h fft.h galaxies.h globals.h image.h \
-		  imaout.h key.h list.h poly.h preflist.h prefs.h psf.h \
-		  random.h simul.h stars.h threads.h types.h
+SUBDIRS = fits wcs
+sky_SOURCES = alterimage.c fft.c fitswcs.c galaxies.c image.c imaout.c \
+		  list.c main.c makeit.c poly.c prefs.c psf.c random.c simul.c \
+		  stars.c \
+		  alterimage.h define.h fft.h fitswcs.h galaxies.h globals.h \
+		  image.h imaout.h key.h list.h poly.h preflist.h prefs.h \
+		  psf.h random.h simul.h stars.h threads.h types.h wcscelsys.h
 
-sky_LDADD = $(top_builddir)/src/fits/libfits.a
+sky_LDADD = $(top_builddir)/src/fits/libfits.a \
+		  $(top_builddir)/src/wcs/libwcs_c.a
+
 DATE = `date +"%Y-%m-%d"`
 all: all-recursive
 
@@ -362,6 +370,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alterimage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fft.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fitswcs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/galaxies.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/image.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/imaout.Po@am__quote@

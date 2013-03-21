@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/05/2012
+*	Last modified:		21/03/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -283,7 +283,7 @@ void	makepsf(simstruct *sim)
     if (sim->npsf==1)
       NFPRINTF(OUTPUT, "Creating the pupil mask...");
 /*-- Allocate memory */
-    QFFTWMALLOC(fbmp, float, nbpix*2);
+    QFFTWF_MALLOC(fbmp, float, nbpix*2);
 /*-- Create the aperture mask */
     fbmpt = fbmp;
     for (y=0; y<psfsize[1]; y++)
@@ -367,7 +367,7 @@ void	makepsf(simstruct *sim)
           error(EXIT_FAILURE, "*Internal Error*: no such imatype in ",
 		"makepsf()" );
         }
-      QFFTWFREE(fbmp);
+      QFFTWF_FREE(fbmp);
       continue;
       }
 
@@ -424,7 +424,7 @@ void	makepsf(simstruct *sim)
       invdsum = 1.0/(PIXTYPE)dsum;
       for (i=nbpix; i--;)
         *(pix++) *= invdsum;
-      QFFTWFREE(fbmp);
+      QFFTWF_FREE(fbmp);
       continue;
       }
 
@@ -550,7 +550,7 @@ void	makepsf(simstruct *sim)
       invnorm = 1.0/(PIXTYPE)norm;;
       for (i=nbpix; i--;)
         *(pix++) *= invnorm;
-      QFFTWFREE(fbmp);
+      QFFTWF_FREE(fbmp);
       continue;
       }
 
@@ -582,7 +582,7 @@ void	makepsf(simstruct *sim)
         }
       }
 
-    QFFTWFREE(fbmp);
+    QFFTWF_FREE(fbmp);
 
 /*-- Truncate to a disk that has diameter = (box width - 2*PSF "radius")*/
     if (sim->npsf==1)
@@ -617,7 +617,7 @@ void	makepsf(simstruct *sim)
       if (!p)
         QMALLOC(bmpc, float, nbpix*sim->npsf);
       memcpy(bmpc+p*nbpix, bmp, nbpix*sizeof(float));
-      QFFTWFREE(bmp);
+      QFREE(bmp);
       continue;
       }
 
@@ -644,7 +644,7 @@ void	makepsf(simstruct *sim)
         pix -= bstep;
         }
 
-    QFFTWFREE(bmp);
+    QFREE(bmp);
 /*-- Normalize the PSF */
     if (sim->npsf==1)
       NFPRINTF(OUTPUT, "Normalizing the PSF...");
@@ -675,7 +675,7 @@ void	makepsf(simstruct *sim)
     sim->imasize[2] = psfsize[2];
     sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
-    writeima(sim);
+    imaout_write(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
     sim_end(sim);
     NFPRINTF(OUTPUT, "All done");
@@ -693,7 +693,7 @@ void	makepsf(simstruct *sim)
     sim->imasize[2] = psfsize[2];
     sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
-    writeima(sim);
+    imaout_write(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
     sim_end(sim);
     NFPRINTF(OUTPUT, "All done");
@@ -708,7 +708,7 @@ void	makepsf(simstruct *sim)
     sim->imasize[2] = psfsize[2];
     sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
-    writeima(sim);
+    imaout_write(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
     sim_end(sim);
     fft_end(prefs.nthreads);
@@ -724,7 +724,7 @@ void	makepsf(simstruct *sim)
     sim->imasize[2] = psfsize[2];
     sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
-    writeima(sim);
+    imaout_write(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
     sim_end(sim);
     fft_end(prefs.nthreads);
@@ -740,7 +740,7 @@ void	makepsf(simstruct *sim)
     sim->imasize[2] = psfsize[2];
     sim->imasize[3] = psfsize[3];
     NFPRINTF(OUTPUT, "Writing image...");
-    writeima(sim);
+    imaout_write(sim);
     NFPRINTF(OUTPUT, "Freeing memory...");
     sim_end(sim);
     NFPRINTF(OUTPUT, "All done");
@@ -914,7 +914,7 @@ void	makeaureole(simstruct *sim)
   i /= sim->mscan[1];
   for (i--, j=1; i!=0; i/=2, j*=2);
   h = sim->aursize[1] = j;
-  QFFTWCALLOC(sim->aureole, PIXTYPE, w*h);
+  QFFTWF_CALLOC(sim->aureole, PIXTYPE, w*h);
   haw = sim->aurange/sim->mscan[0];
   hah = sim->aurange/sim->mscan[1];
   amp = 60.0*60.0*DEXP(-0.4*sim->psfhalosb);	/* 60 arcsec = 1' */
@@ -1067,7 +1067,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	Pointer to the interpolated PSF DFT array.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	21/03/2013
  ***/
 PIXTYPE	*interp_dft(simstruct *sim, int order, double *pos, double *dpos)
   {
@@ -1122,7 +1122,7 @@ PIXTYPE	*interp_dft(simstruct *sim, int order, double *pos, double *dpos)
       cpheight = (height>psfheight)?psfheight:height;
       hcpheight = cpheight>>1;
       cpheight = hcpheight<<1;
-      QFFTWMALLOC(mask, PIXTYPE, width*height);
+      QFFTWF_MALLOC(mask, PIXTYPE, width*height);
       }
 
     memset(mask, 0, width*height*sizeof(PIXTYPE));
@@ -1205,13 +1205,13 @@ PIXTYPE	*interp_dft(simstruct *sim, int order, double *pos, double *dpos)
 #endif
     }
 
-  free(mask);
+  QFFTWF_FREE(mask);
 
   if (sim->npsf>1)
     {
 /*-- Do the interpolation in Fourier space (thanks to FT linearity) */
     npix = (((width>>1) + 1)<< 1) * height;
-    QFFTWCALLOC(dft, float, npix);
+    QFFTWF_CALLOC(dft, float, npix);
     dpos[0] = dpos[1] = 0.0;
     for (p=0; p<nindex; p++)
       {
@@ -1244,7 +1244,7 @@ void    freepsf(simstruct *sim)
   free(sim->psf);
   for (p=0; p<(PSF_NORDER+1)*sim->npsf; p++)
     {
-    QFFTWFREE(sim->psfdft[p]);
+    QFFTWF_FREE(sim->psfdft[p]);
     }
   free(sim->psfdft);
 

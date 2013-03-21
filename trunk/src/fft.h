@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2005-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2005-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		21/03/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -33,18 +33,31 @@
 /*---------------------------- Internal constants ---------------------------*/
 
 /*------------------------------- Other Macros ------------------------------*/
-#define	QFFTWMALLOC(ptr, typ, nel) \
-		{if (!(ptr = (typ *)fftwf_malloc((size_t)(nel)*sizeof(typ)))) \
-		  error(EXIT_FAILURE, "Not enough memory for ", \
-			#ptr " (" #nel " elements) !");;}
-#define	QFFTWCALLOC(ptr, typ, nel) \
+#define	QFFTWF_MALLOC(ptr, typ, nel) \
 		{ \
 		if (!(ptr = (typ *)fftwf_malloc((size_t)(nel)*sizeof(typ)))) \
-		  error(EXIT_FAILURE, "Not enough memory for ", \
-			#ptr " (" #nel " elements) !"); \
-		 memset(ptr, 0, (size_t)(nel)*sizeof(typ)); \
+		   { \
+		   sprintf(gstr, #ptr " (" #nel "=%lld elements) " \
+			"at line %d in module " __FILE__ " !", \
+			(size_t)(nel)*sizeof(typ), __LINE__); \
+		   error(EXIT_FAILURE, "Could not allocate memory for ", gstr);\
+                   }; \
+                 }
+
+#define	QFFTWF_CALLOC(ptr, typ, nel) \
+		{ \
+		if (!(ptr = (typ *)fftwf_malloc((size_t)(nel)*sizeof(typ)))) \
+		   { \
+		   sprintf(gstr, #ptr " (" #nel "=%lld elements) " \
+			"at line %d in module " __FILE__ " !", \
+			(size_t)(nel)*sizeof(typ), __LINE__); \
+		   error(EXIT_FAILURE, "Could not allocate memory for ", gstr);\
+                   }; \
+		memset(ptr, 0, (size_t)(nel)*sizeof(typ)); \
 		}
-#define	QFFTWFREE(ptr)	fftwf_free(ptr)
+
+#define	QFFTWF_FREE(ptr) \
+		{fftwf_free(ptr); ptr=NULL;}
 
 /*--------------------------- structure definitions -------------------------*/
 

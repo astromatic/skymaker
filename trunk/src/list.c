@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/03/2011
+*	Last modified:		24/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -37,6 +37,7 @@
 #include "define.h"
 #include "globals.h"
 #include "fft.h"
+#include "fitswcs.h"
 #include "galaxies.h"
 #include "image.h"
 #include "list.h"
@@ -72,9 +73,9 @@ PROTO	void readlist(simstruct *sim)
 PURPOSE	Read the object list.
 INPUT	Pointer to the sim structure.
 OUTPUT	-.
-NOTES	-.
+NOTES	Global prefs variables are used.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	24/05/2012
  ***/
 void    readlist(simstruct *sim)
 
@@ -84,6 +85,7 @@ void    readlist(simstruct *sim)
    char			str[MAXCHAR], msg[MAXCHAR];
    int			i, gridindex, gridflag, ngrid;
 #endif
+
 /* First test if a list-filename has been provided in the command line */
   if (!(*(sim->inlistname)))
     return;
@@ -159,11 +161,11 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	21/12/2010
+VERSION	24/05/2012
  ***/
 int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   {
-   char		*cptr, *strtokbuf;
+   char		*cptr, *cptr2, *strtokbuf;
    int		gridflag;
 
   gridflag = (sim->imatype==GRID || sim->imatype==GRID_NONOISE);
@@ -178,12 +180,18 @@ int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
 /* Note: in FITS, the center of the first pixel is at position (1.0,1.0) */
   if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
     return RETURN_ERROR;
-  if (!gridflag)
-    obj->pos[0]  = atof(cptr) - 1.0;
-  if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
+  if (!(cptr2=strtok_r(NULL, " \t", &strtokbuf)))
     return RETURN_ERROR;
   if (!gridflag)
-    obj->pos[1]  = atof(cptr) - 1.0;
+    {
+    obj->wcspos[0] = obj->pos[0]  = atof(cptr);
+    obj->wcspos[1] = obj->pos[1]  = atof(cptr2);
+    if (sim->wcsflag && sim->wcs)
+/*---- Convert World coordinates to pixel coordinates */
+      wcs_to_raw(sim->wcs, obj->wcspos, obj->pos);
+    obj->pos[0] -= 1.0;
+    obj->pos[1] -= 1.0;
+    }
 
   if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
     return RETURN_ERROR;

@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		24/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -31,6 +31,10 @@
 
 #ifndef _FITSCAT_H_
 #include "fits/fitscat.h"
+#endif
+
+#ifndef _FITSWCS_H_
+#include "fitswcs.h"
 #endif
 
 /*----------------------------- Internal constants --------------------------*/
@@ -64,12 +68,16 @@ typedef struct
 /* Image itself */
   char		filename[MAXCHAR];	/* Image filename */
   char		headname[MAXCHAR];	/* Header filename */
+  catstruct	*cat;			/* cat (FITS file) structure */ 
   char		inlistname[MAXCHAR];	/* Input list filename */
   FILE		*inlistfile;		/* Input list file */
   char		outlistname[MAXCHAR];	/* Output list filename */
   FILE		*outlistfile;		/* Output list file */
   PIXTYPE	*image;			/* Pointer to the image pixel map */
   imatypenum	imatype;		/* Image type */
+/*------ Astrometry */
+  int		wcsflag;		/* Use WCS coordinates? */
+  wcsstruct	*wcs;			/* World Coordinate System */
   int		imasize[4];		/* Dimension of the image */
   int		nimasize;		/* Number of arguments */
   int		fimasize[2];		/* Dimension of the FULL pixmap */
@@ -78,6 +86,7 @@ typedef struct
   int		nmscan;			/* Number of arguments */
   double	pixscale[2];		/* Pixel scale (in arcsec) */
   int		npixscale;		/* Number of arguments */
+/*------ Photometry */
   double	lambdaeq;		/* Central wavelength (in microns) */
   double	wellcap;		/* Full well capacity (e-) */
   double	satlev;			/* Saturation level (ADU) */

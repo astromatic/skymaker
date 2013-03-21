@@ -35,11 +35,23 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `lgamma' function. */
-#undef HAVE_LGAMMA
+/* Define if you have the LAPACK libraries. */
+#undef HAVE_LAPACK
+
+/* Define if you have the LAPACKe libraries. */
+#undef HAVE_LAPACKE
+
+/* Define to 1 if you have the `lgamm' function. */
+#undef HAVE_LGAMM
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
+
+/* Define to 1 if the system has the type `long long int'. */
+#undef HAVE_LONG_LONG_INT
+
+/* Define to 1 if you have the <mathimf.h> header file. */
+#undef HAVE_MATHIMF_H
 
 /* Define to 1 if you have the `memcpy' function. */
 #undef HAVE_MEMCPY
@@ -53,6 +65,9 @@
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
 
+/* Define if you have the MKL libraries. */
+#undef HAVE_MKL
+
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
@@ -62,11 +77,11 @@
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
 
+/* Define to 1 if you have the `sincof' function. */
+#undef HAVE_SINCOF
+
 /* Define to 1 if you have the `sincos' function. */
 #undef HAVE_SINCOS
-
-/* Define to 1 if you have the `sincosf' function. */
-#undef HAVE_SINCOSF
 
 /* Define to 1 if `stat' has the bug that it succeeds when given the
    zero-length file name argument. */
@@ -108,6 +123,15 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if the system has the type `unsigned long long int'. */
+#undef HAVE_UNSIGNED_LONG_LONG_INT
+
+/* LAPACKe header filename. */
+#undef LAPACKE_H
+
+/* LAPACK header filename. */
+#undef LAPACK_H
+
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
@@ -115,6 +139,9 @@
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
+
+/* MKL header filename. */
+#undef MKL_H
 
 /* Name of package */
 #undef PACKAGE

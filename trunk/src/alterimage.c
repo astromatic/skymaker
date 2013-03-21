@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/05/2012
+*	Last modified:		21/03/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -316,7 +316,7 @@ void	addaureole(simstruct *sim)
   istep = 0;
 
   fft_init(prefs.nthreads);
-  QFFTWCALLOC(mima, PIXTYPE, mwidth*mheight);
+  QFFTWF_CALLOC(mima, PIXTYPE, mwidth*mheight);
   faureole = fft_rtf(sim->aureole, mwidth, mheight);
   for (m=0; m<nmscan2; m++, sima+=nbpix)
     {
@@ -402,9 +402,9 @@ void	addaureole(simstruct *sim)
     free(hbuffer1);
   if (nsiym1>1)
     free(hbuffer2);
-  QFFTWFREE(mima);
-  QFFTWFREE(faureole);
-  QFFTWFREE(sim->aureole);
+  QFFTWF_FREE(mima);
+  QFFTWF_FREE(faureole);
+  QFFTWF_FREE(sim->aureole);
   fft_end(prefs.nthreads);
 
   return;

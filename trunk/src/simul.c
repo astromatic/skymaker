@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/03/2011
+*	Last modified:		24/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -38,6 +38,8 @@
 #include "define.h"
 #include "globals.h"
 #include "prefs.h"
+#include "fitswcs.h"
+#include "imaout.h"
 #include "random.h"
 #include "simul.h"
 
@@ -48,7 +50,7 @@ INPUT   -.
 OUTPUT  Pointer to an allocated and filled sim structure.
 NOTES   Global prefs variables are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 17/05/2010
+VERSION 24/05/2012
 */
 simstruct	*sim_init(void)
   {
@@ -213,7 +215,10 @@ simstruct	*sim_init(void)
     sim->gridoffset[1] = yoffset;
     sim->gridindex = 0;
     }
+  else
+    sim->wcsflag = (prefs.listcoord_type == LISTCOORD_WORLD);
 
+  sim->cat = imaout_inithead(sim);
 
   return sim;
   }
@@ -225,11 +230,15 @@ INPUT   Pointer to the sim structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2005
+VERSION 24/05/2012
 */
 void    sim_end(simstruct *sim)
 
   {
+  end_wcs(sim->wcs);
+
+  free_cat(&sim->cat, 1);
+
   free(sim->image);
   free(sim->psfmot[0]);
   free(sim->psfmot[1]);

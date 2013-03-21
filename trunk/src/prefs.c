@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		16/11/2011
+*	Last modified:		21/03/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -47,6 +47,10 @@
 
 #if defined(__INTEL_COMPILER) && defined (USE_CPUREDISPATCH)
  #include <cpuid.h>
+#endif
+
+#ifdef HAVE_MKL
+ #include MKL_H
 #endif
 
 #include "define.h"
@@ -452,7 +456,9 @@ void	useprefs(void)
       warning("Cannot find the number of CPUs on this system:", str);
       }
     }
-#ifndef HAVE_FFTWF_MP
+#if defined(HAVE_MKL)
+  mkl_set_num_threads(prefs.nthreads);
+#elif !defined(HAVE_FFTWF_MP)
    if (prefs.nthreads>1)
      warning("This executable has been compiled using a version of the FFTW "
 	"library without support for multithreading. ",
