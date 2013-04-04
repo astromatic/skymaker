@@ -20,7 +20,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		21/03/2013
+#	Last modified:		04/04/2013
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([skymaker],[3.10.1],[bertin@iap.fr])
+AC_INIT([skymaker],[3.10.2],[bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS([config.h])
@@ -177,12 +177,14 @@ AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 
 #################### handle the INTEL MKL library (FFTW + LAPACKe) ###########
 if test "$enable_mkl" = "yes"; then
-  ACX_MKL()
+  convlibs="${srcdir}/wcs/libwcs_c.a"
+  ACX_MKL(,,$enable_best_link,$convlibs)
   if test "$MKL_WARN" != ""; then
     AC_MSG_WARN([$MKL_WARN])
   fi
   AM_CFLAGS="$AM_CFLAGS $MKL_CFLAGS "
-  LIBS="$MKL_LIBS $LIBS"
+  AM_LDFLAGS="$AM_LDFLAGS $MKL_LDFLAGS "
+  LIBS="$LIBS $MKL_LIBS"
 else
 ################ handle the FFTW library (Fourier transforms) ################
   ACX_FFTW($with_fftw_libdir,$with_fftw_incdir,$use_pthreads,yes,

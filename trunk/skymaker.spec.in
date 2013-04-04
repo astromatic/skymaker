@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/10/2010
+#	Last modified:		21/03/2013
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -51,7 +51,7 @@ SkyMaker is a program that simulates astronomical images in FITS format.
 
 %build
 if test "$USE_BEST"; then
-%configure --enable-icc --enable-auto-flags --enable-best-link
+%configure --enable-mkl --enable-auto-flags --enable-best-link
 elif test "$USE_ICC"; then
 %configure --enable-icc
 else

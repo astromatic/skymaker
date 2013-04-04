@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		24/05/2012
+#	Last modified:		04/04/2013
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -37,8 +37,8 @@ sky_SOURCES	= alterimage.c fft.c fitswcs.c galaxies.c image.c imaout.c \
 		  image.h imaout.h key.h list.h poly.h preflist.h prefs.h \
 		  psf.h random.h simul.h stars.h threads.h types.h wcscelsys.h
 
-sky_LDADD	= $(top_builddir)/src/fits/libfits.a \
-		  $(top_builddir)/src/wcs/libwcs_c.a
+sky_LDADD	= $(srcdir)/fits/libfits.a \
+		  $(srcdir)/wcs/libwcs_c.a
 
 DATE=`date +"%Y-%m-%d"`
 
