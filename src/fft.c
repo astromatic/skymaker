@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/03/2013
+*	Last modified:		04/04/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -125,7 +125,7 @@ OUTPUT	-.
 NOTES	For data1 and fdata2, memory must be allocated for
 	size[0]* ... * 2*(size[naxis-1]/2+1) floats (padding required).
 AUTHOR	E. Bertin (IAP)
-VERSION	21/03/2013
+VERSION	04/04/2013
  ***/
 void    fft_conv(float *data1, float *fdata2, int width, int height)
   {
@@ -163,12 +163,14 @@ void    fft_conv(float *data1, float *fdata2, int width, int height)
   fac = 1.0/npix;  
   fdata1p = (float *)fdata1;
   fdata2p = fdata2;
-  for (i=npix2/2; i--; fdata2p+=2)
+  for (i=npix2/2; i--;)
     {
     real = *fdata1p **fdata2p - *(fdata1p+1)**(fdata2p+1);
     imag = *(fdata1p+1)**fdata2p + *fdata1p**(fdata2p+1);
-    *(fdata1p++) = fac*real;
-    *(fdata1p++) = fac*imag;
+    *(fdata1p) = fac*real;
+    *(fdata1p+1) = fac*imag;
+    fdata1p+=2;
+    fdata2p+=2;
     }
 
 /* Reverse FFT */

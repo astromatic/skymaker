@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2012
+*	Last modified:		30/11/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -194,7 +194,7 @@ OUTPUT	RETURN_OK if something was found, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP),
         E.R. Deul - Handling of NaN
-VERSION	20/11/2012
+VERSION	30/11/2012
  ***/
 int	fitspick(char *fitsline, char *keyword, void *ptr, h_type *htype,
 		t_type *ttype, char *comment)
@@ -219,7 +219,7 @@ int	fitspick(char *fitsline, char *keyword, void *ptr, h_type *htype,
     fptr = fitsline+9;
     lastspace = NULL;
     for(i=71; i-- && (c=*(fptr++));)
-      if (c >= ' ')
+      if ((int)c >= ' ')
 	{
         *(comment++) = c;
         if (c > ' ')
