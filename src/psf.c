@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/03/2013
+*	Last modified:		05/04/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -72,7 +72,7 @@ void	makepsf(simstruct *sim)
 		*carms, *carmst,
                 phidefoc,phispher,phicomax,phicomay,phiast00,phiast45,
                 phitri00,phitri30,phiqua00,phiqua22,
-		redscale2, redscalem, xcf,ycf, r, r1,r2,h2, theta,ct,st,
+		redscale2, redscalem, r, r1,r2,h2, theta,ct,st,
 		dx,dy, dr2, sig2, motfact, ft, phi, 
 		grey, smallest, step2, rmax, norm, dsum, pupilnorm,
 		a2,b2, cxx,cyy,cxy, bandpass, rmax2, rsig,invrsig2, rmin,rmin2;

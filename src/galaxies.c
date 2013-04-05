@@ -22,12 +22,16 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/03/2013
+*	Last modified:		05/04/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#ifdef HAVE_SINCOSF
+#define _GNU_SOURCE 
 #endif
 
 #include <math.h>
@@ -66,7 +70,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	21/03/2013
+VERSION	05/04/2013
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
@@ -82,6 +86,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   osamp = sim->psfoversamp;
   beq = obj->bulge_req/sim->pixscale[0];
   dscale = obj->disk_scale/sim->pixscale[0];
+  n = 0.0;	/* avoid gcc -Wall warnings */
 
 /* Convert magnitude to linear units */
   if (!obj->flux)

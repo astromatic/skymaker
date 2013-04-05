@@ -20,7 +20,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		04/04/2013
+#	Last modified:		05/04/2013
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([skymaker],[3.10.2],[bertin@iap.fr])
+AC_INIT([skymaker],[3.10.3],[bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS([config.h])
@@ -119,8 +119,8 @@ AC_FUNC_MMAP
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS([atexit getenv lgamm memcpy memmove memset munmap sincos sincof \
-	strstr sysconf])
+AC_CHECK_FUNCS([atexit getenv memcpy memmove memset munmap sincos sincosf \
+		strstr sysconf])
  
 # Provide special options for FFTW
 AC_ARG_WITH(fftw-libdir,

@@ -41,9 +41,6 @@
 /* Define if you have the LAPACKe libraries. */
 #undef HAVE_LAPACKE
 
-/* Define to 1 if you have the `lgamm' function. */
-#undef HAVE_LGAMM
-
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
@@ -77,11 +74,11 @@
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
 
-/* Define to 1 if you have the `sincof' function. */
-#undef HAVE_SINCOF
-
 /* Define to 1 if you have the `sincos' function. */
 #undef HAVE_SINCOS
+
+/* Define to 1 if you have the `sincosf' function. */
+#undef HAVE_SINCOSF
 
 /* Define to 1 if `stat' has the bug that it succeeds when given the
    zero-length file name argument. */

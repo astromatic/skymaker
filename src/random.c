@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		05/04/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -42,8 +42,8 @@
 #define	THREAD_NMAX 16
 #endif
 
-#ifdef	HAVE_LGAMMA
-#define	LOGGAMMA	lgamma
+#ifdef	HAVE_LGAMMA_R
+#define	LOGGAMMA(x)	lgamma_r(x,&signp)	/* Generally slower */
 #else
 #define	LOGGAMMA	gammln
 static double		gammln();
@@ -181,11 +181,12 @@ INPUT   Mean of the Poisson distribution,
 OUTPUT  A double containing the integer (!) variable with Poisson deviate.
 NOTES   I am still searching for a faster algorithm!!
 AUTHOR  E. Bertin (IAP)
-VERSION 23/04/2010
+VERSION 05/04/2013
 */
 double	random_poisson(double xm, int p)
   {
    double		sq,alxm,g,oldm,em,t,y;
+   int			signp;
 
   sq = alxm = g = 0.0;
   oldm = -1.0;
