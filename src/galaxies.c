@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/04/2013
+*	Last modified:		07/06/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -70,7 +70,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/04/2013
+VERSION	07/06/2013
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
@@ -218,7 +218,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 /* Convolve with the oversampled PSF */
   fft_conv(sub, psfdft, subwidth,subheight);
   if (sim->npsf>1)
-    free(psfdft);
+    QFFTWF_FREE(psfdft);
   dx = (obj->pos[0] + sim->margin[0] - dpos[0])/sim->mscan[0];
   dy = (obj->pos[1] + sim->margin[1] - dpos[1])/sim->mscan[1];
   dx -= (double)(obj->subpos[0] = (int)(dx+0.49999));
