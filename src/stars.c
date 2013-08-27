@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		27/08/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -350,7 +350,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2007
+VERSION	27/08/2013
  ***/
 static void	pthread_makestarfield(simstruct *sim, int nstars)
   {
@@ -360,6 +360,8 @@ static void	pthread_makestarfield(simstruct *sim, int nstars)
 
   pthread_step = (int)(5000000.0*sim->psfoversamp*sim->psfoversamp)
 	/(sim->psfsize[0]*sim->psfsize[1]*sim->mscan[0]*sim->mscan[1]);
+  if (pthread_step<1)
+    pthread_step = 1;
 /* Number of active threads */
   nproc = prefs.nthreads;
   pthread_nobj = 2*nproc;	/* A margin of 2X for better efficiency */
