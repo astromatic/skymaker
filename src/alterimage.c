@@ -81,7 +81,7 @@ void	addback(simstruct *sim)
 
 /********************************** addnoise *********************************/
 /*
-Add photon photo and read-out noise to image. 
+Add photon and read-out noise to image. 
 */
 void	addnoise(simstruct *sim)
 
@@ -136,8 +136,7 @@ void	cutborders(simstruct *sim)
 /*-- If an overlap is possible, use a secure memmmove instead of memcpy */
     for (m=nmscan2; m--; pix2+=marginstep)
       for (y=height; y--; pix+=width, pix2+=fwidth)
-       /* memmove(pix, pix2, width*sizeof(PIXTYPE)); */
-        memcpy(pix, pix2, width*sizeof(PIXTYPE));
+        memmove(pix, pix2, width*sizeof(PIXTYPE));
 
 /* Don't spoil memory */
   QREALLOC(sim->image, PIXTYPE, width*height*nmscan2);

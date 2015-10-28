@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/05/2012
+*	Last modified:		06/07/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -61,6 +61,8 @@ typedef enum	{CENTER_UPPERHALF, CENTER_LOWERHALF, CENTER_HALF,
 		CENTER_PEAK}	centertypenum;
 
 typedef enum	{NO_TRACKERR, DRIFT, JITTER}	tracktypenum;
+
+typedef enum	{CORREL_NONE, CORREL_NOISE, CORREL_ALL}	correltypenum;
 
 /*------------------------------- preferences -------------------------------*/
 typedef struct
