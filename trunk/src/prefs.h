@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/05/2012
+*	Last modified:		06/07/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -62,6 +62,7 @@ typedef struct
   int		nmscan;			/* Number of arguments */
   double	pixscale[2];		/* Pixel scale (in arcsec) */
   int		npixscale;		/* Number of arguments */
+/*------ Detector */
   double	lambdaeq;		/* Central wavelength (in microns) */
   double	wellcap;		/* Full well capacity (e-) */
   double	satlev;			/* Saturation level (ADU) */
@@ -70,7 +71,8 @@ typedef struct
   double	magzero;		/* Mag. zero-point "ADU per second" */
   double	expotime;		/* Exposure time (s) */
   double	magback;		/* Background surface brightness */
-
+  correltypenum	correlation_type;	/* Correlation type */
+  double	correlation_length;	/* Correlation length (pixels) */
 /*------ PSF */
   psftypenum	psftype;		/* PSF type */
   char		psfname[MAXCHAR];	/* PSF file name */

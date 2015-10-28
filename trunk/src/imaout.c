@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/09/2012
+*	Last modified:		28/10/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -313,7 +313,7 @@ INPUT	Pointer to the simulation.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/09/2012
+VERSION	28/10/2015
  ***/
 void	imaout_write(simstruct *sim)
 
@@ -322,8 +322,8 @@ void	imaout_write(simstruct *sim)
 
   tab = sim->cat->tab;
   tab->bodybuf = (void *)sim->image;
-  tab->tabsize = tab->naxisn[0]*tab->naxisn[1]*tab->naxisn[2]*tab->naxisn[3]
-		*tab->bytepix;
+  tab->tabsize = (KINGSIZE_T)tab->naxisn[0]*tab->naxisn[1]*tab->naxisn[2]
+		*tab->naxisn[3]*tab->bytepix;
   save_cat(sim->cat, sim->filename);
   sim->cat->tab->bodybuf = NULL;
 
