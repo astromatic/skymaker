@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/03/2013
+*	Last modified:		10/03/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -36,6 +36,10 @@
 #include <math.h>
 
 #include FFTW_H
+
+#ifdef HAVE_MKL
+ #include MKL_H
+#endif
 
 #include "define.h"
 #include "types.h"
@@ -56,6 +60,13 @@ static pthread_mutex_t	noisemutex;
 
 static simstruct	*pthread_sim;
 static int		pthread_line;
+
+#ifdef HAVE_MKL
+static VSLStreamStatePtr	*pthread_stream;
+static double			**pthread_lambdabuf;
+static int			**pthread_poissonbuf;
+static float			**pthread_gaussbuf;
+#endif
 #endif
 
 /*********************************** addback *********************************/
@@ -419,15 +430,29 @@ INPUT	Pointer to the thread number.
 OUTPUT	NULL void pointer.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/08/2006
+VERSION	10/03/2016
  ***/
 static void	*pthread_addnoiseline(void *arg)
   {
    double	ron;
-   PIXTYPE	*pix;
+   PIXTYPE	*pix, *pixt;
    int		i, line, npix, nlines, proc;
+#ifdef HAVE_MKL
+   VSLStreamStatePtr	stream;
+   double		*lambdabuf, *lambdabuft;
+   float		*gaussbuf, *gaussbuft;
+   int			*poissonbuf, *poissonbuft;
+#endif
 
   proc = *((int *)arg);
+
+#ifdef HAVE_MKL
+  stream = pthread_stream[proc];
+  lambdabuf = pthread_lambdabuf[proc];
+  poissonbuf = pthread_poissonbuf[proc];
+  gaussbuf = pthread_gaussbuf[proc];
+#endif
+
   ron = pthread_sim->ron;
   npix = pthread_sim->imasize[0];
   nlines = pthread_sim->imasize[1];
@@ -437,10 +462,25 @@ static void	*pthread_addnoiseline(void *arg)
     {
     line = pthread_line++;
     QPTHREAD_MUTEX_UNLOCK(&noisemutex);  
-    pix = pthread_sim->image + line*npix;
-    for (i=npix; i--; pix++)
-      *pix = (PIXTYPE)(random_poisson((double)*pix, proc)
+    pixt = pix = pthread_sim->image + line*npix;
+#ifdef HAVE_MKL
+    lambdabuft = lambdabuf;
+    for (i=npix; i--;)
+      *(lambdabuft++) = *(pixt++);
+    viRngPoissonV(VSL_RNG_METHOD_POISSONV_POISNORM, stream, npix,
+		poissonbuf, lambdabuf);
+    vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, stream, npix,
+		gaussbuf, 0.0, ron);
+    pixt = pix;
+    poissonbuft = poissonbuf;
+    gaussbuft = gaussbuf;
+    for (i=npix; i--;)
+      *(pixt++) = (PIXTYPE)*(poissonbuft++) + (PIXTYPE)*(gaussbuft++);
+#else
+    for (i=npix; i--; pixt++)
+      *pixt = (PIXTYPE)(random_poisson((double)*pixt, proc)
 		+random_gauss(ron, proc));
+#endif
     QPTHREAD_MUTEX_LOCK(&noisemutex);  
     }
 
@@ -458,7 +498,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/08/2006
+VERSION	10/03/2016
  ***/
 static void	pthread_addnoise(simstruct *sim)
   {
@@ -477,9 +517,23 @@ static void	pthread_addnoise(simstruct *sim)
   pthread_sim = sim;
   pthread_line = 0;
 /* Start the reading/generation threads */
+
+#ifdef HAVE_MKL
+  QMALLOC(pthread_stream, VSLStreamStatePtr, nproc);
+  QMALLOC(pthread_lambdabuf, double *, nproc);
+  QMALLOC(pthread_poissonbuf, int *, nproc);
+  QMALLOC(pthread_gaussbuf, float *, nproc);
+#endif
+
   for (p=0; p<nproc; p++)
     {
     proc[p] = p;
+#ifdef HAVE_MKL
+    vslNewStream(&pthread_stream[p], VSL_BRNG_MT19937, p);
+    QMALLOC(pthread_lambdabuf[p], double, sim->imasize[0]);
+    QMALLOC(pthread_poissonbuf[p], int, sim->imasize[0]);
+    QMALLOC(pthread_gaussbuf[p], float, sim->imasize[0]);
+#endif
     QPTHREAD_CREATE(&thread[p], &pthread_attr, &pthread_addnoiseline, &proc[p]);
     }
   for (p=0; p<nproc; p++)
@@ -489,6 +543,19 @@ static void	pthread_addnoise(simstruct *sim)
   QPTHREAD_ATTR_DESTROY(&pthread_attr);
   free(proc);
   free(thread);
+#ifdef HAVE_MKL
+  for (p=0; p<nproc; p++)
+    {
+    vslDeleteStream(&pthread_stream[p]);
+    free(pthread_lambdabuf[p]);
+    free(pthread_poissonbuf[p]);
+    free(pthread_gaussbuf[p]);
+    }
+  free(pthread_stream);
+  free(pthread_lambdabuf);
+  free(pthread_poissonbuf);
+  free(pthread_gaussbuf);
+#endif
 
   return;
   }
