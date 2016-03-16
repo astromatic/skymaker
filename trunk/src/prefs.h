@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2016  IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/07/2015
+*	Last modified:		16/03/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -62,6 +62,9 @@ typedef struct
   int		nmscan;			/* Number of arguments */
   double	pixscale[2];		/* Pixel scale (in arcsec) */
   int		npixscale;		/* Number of arguments */
+/*------ Source list */
+  double	listmag_limits[2];	/* Brightest and faintest mag. allowed*/
+  int		nlistmag_limits;	/* Number of arguments */
 /*------ Detector */
   double	lambdaeq;		/* Central wavelength (in microns) */
   double	wellcap;		/* Full well capacity (e-) */
@@ -135,7 +138,7 @@ typedef struct
 /*------ Random generator */
   int		psfmotionseed;		/* Seed for PSF motion */
   int		starposseed;		/* Seed for star positions */
-/* Multithreading */
+/*------ Multithreading */
   int		nthreads;		/* Number of active threads */
 /*------ Grid parameters */
   int		grid_size;		/* Grid size (pixels) in GRID mode */
