@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/07/2015
+*	Last modified:		16/03/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -84,6 +84,8 @@ pkeystruct key[] =
    {""}, 1, 2, &prefs.nimasize},
   {"LISTCOORD_TYPE", P_KEY, &prefs.listcoord_type, 0,0, 0.0,0.0,
    {"PIXEL","WORLD",""}},
+  {"LISTMAG_LIMITS", P_FLOATLIST, prefs.listmag_limits, 0,0, -100.0, 100.0,
+   {""}, 2,2, &prefs.nlistmag_limits},
   {"M1_DIAMETER", P_FLOAT, &prefs.psfdm1, 0,0, 0.0, 100.0},
   {"M2_DIAMETER", P_FLOAT, &prefs.psfdm2, 0,0, 0.0, 100.0},
   {"MAG_LIMITS", P_FLOATLIST, prefs.maglim, 0,0, -30.0, 50.0,
@@ -160,6 +162,7 @@ char *default_prefs[] =
 "*GRID_SIZE          64           # Distance between objects in GRID mode",
 "IMAGE_HEADER       INTERNAL     # File name or INTERNAL",
 "LISTCOORD_TYPE     PIXEL        # Coordinates in input lists: PIXEL or WORLD",
+"LISTMAG_LIMITS     -99.0,99.0   # Magnitude range restriction for input lists",
 " ",
 "#-------------------------------- Detector -----------------------------------",
 " ",
@@ -227,7 +230,7 @@ char *default_prefs[] =
 " ",
 "STARCOUNT_ZP       3e4          # nb of stars /deg2 brighter than MAG_LIMITS",
 "STARCOUNT_SLOPE    0.2          # slope of differential star counts (dexp/mag)",
-"MAG_LIMITS         17.0,26.0    # stellar magnitude range allowed",
+"MAG_LIMITS         17.0,26.0    # stellar magnitude range",
 " ",
 "#------------------------------ Random Seeds ---------------------------------",
 " ",

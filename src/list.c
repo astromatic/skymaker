@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/05/2012
+*	Last modified:		16/03/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -161,7 +161,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	24/05/2012
+VERSION	16/03/2016
  ***/
 int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   {
@@ -196,6 +196,8 @@ int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
     return RETURN_ERROR;
   obj->mag = atof(cptr);
+  if (obj->mag < prefs.listmag_limits[0] || obj->mag > prefs.listmag_limits[1])
+    return RETURN_ERROR;
   if (obj->type == 200)
     {
     obj->bulge_sersicn = 4.0;
