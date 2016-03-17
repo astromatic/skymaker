@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/03/2016
+*	Last modified:		17/03/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include FFTW_H
 
@@ -98,20 +99,55 @@ void	addnoise(simstruct *sim)
 
   {
 #ifndef USE_THREADS
-   PIXTYPE	*pix;
-   double	ron;
-   int		i, nbpix;
+   PIXTYPE		*pix;
+   double		ron;
+   int			i, npix;
+ #ifdef HAVE_MKL
+   VSLStreamStatePtr	stream;
+   PIXTYPE		*pixt;
+   double		*lambdabuf, *lambdabuft;
+   int			*poissonbuf, *poissonbuft,
+			j;
+   float		*gaussbuf, *gaussbuft;
+ #endif
 #endif
 
   init_random(0);
 #ifdef USE_THREADS
   pthread_addnoise(sim);
 #else
-  nbpix = sim->imasize[0]*sim->imasize[1];
   ron = sim->ron;
   pix = sim->image;
-  for (i=0; i<nbpix; i++, pix++)
+ #ifdef HAVE_MKL
+  vslNewStream(&stream, VSL_BRNG_MT19937, (unsigned int)time(NULL));
+  npix = sim->imasize[0];
+  QMALLOC(lambdabuf, double, npix);
+  QMALLOC(poissonbuf, int, npix);
+  QMALLOC(gaussbuf, float, npix);
+  for (j=sim->imasize[1]; j--; pix += npix) {
+    pixt = pix;
+    lambdabuft = lambdabuf;
+    for (i=npix; i--;)
+      *(lambdabuft++) = (double)*(pixt++);
+    viRngPoissonV(VSL_RNG_METHOD_POISSONV_POISNORM, stream, npix,
+		poissonbuf, lambdabuf);
+    vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, stream, npix,
+		gaussbuf, 0.0, ron);
+    pixt = pix;
+    poissonbuft = poissonbuf;
+    gaussbuft = gaussbuf;
+    for (i=npix; i--;)
+      *(pixt++) = (PIXTYPE)*(poissonbuft++) + (PIXTYPE)*(gaussbuft++);
+  }
+  vslDeleteStream(&stream);
+  free(lambdabuf);
+  free(poissonbuf);
+  free(gaussbuf);
+ #else
+  npix =  sim->imasize[0] * sim->imasize[1];
+  for (i=0; i<npix; i++, pix++)
     *pix = (PIXTYPE)(random_poisson((double)*pix, 0)+random_gauss(ron, 0));
+ #endif
 #endif
 
   return;
