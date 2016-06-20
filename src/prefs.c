@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2016IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/03/2013
+*	Last modified:		20/06/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#define USE_CPUREDISPATCH 0
+
 #if defined(USE_THREADS) \
 && (defined(__APPLE__) || defined(FREEBSD) || defined(NETBSD))	/* BSD, Apple */
  #include <sys/types.h>
@@ -475,7 +475,7 @@ void	useprefs(void)
 #endif
 
 /* Override INTEL CPU detection routine to help performance on 3rd-party CPUs */
-#if defined(__INTEL_COMPILER) && defined (USE_CPUREDISPATCH)
+#if defined(__INTEL_COMPILER) && defined(USE_CPUREDISPATCH)
   __get_cpuid(1, &eax, &ebx, &ecx, &edx);
   if (ecx&bit_AVX)
     __intel_cpu_indicator = 0x20000;
