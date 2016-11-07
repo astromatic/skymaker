@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2016 Emmanuel Bertin -- IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		21/03/2013
+#	Last modified:		07/11/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -35,7 +35,7 @@ Summary: Simulate astronomical images
 Name: %{name}
 Version: %{version}
 Release: %{release}
-Source0: ftp://ftp.iap.fr/pub/from_users/bertin/skymaker/%{name}-%{version}.tar.gz
+Source0: http://astromatic.net/download/%{name}/%{name}-%{version}.tar.gz
 URL: http://astromatic.net/software/skymaker/
 License: GPL v3+
 Group: Sciences/Astronomy
@@ -68,7 +68,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README THANKS
+%doc AUTHORS BUGS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README.md THANKS
 /%{_bindir}/sky
 %{_mandir}/man1/sky.1*
 %{_mandir}/manx/sky.x*

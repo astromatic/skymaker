@@ -1,6 +1,8 @@
 #
 #				configure.ac
 #
+# Process this file with autoconf to generate a configure script.
+#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #
 #	This file part of:	SkyMaker
@@ -20,20 +22,20 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		20/06/2016
+#	Last modified:		07/11/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-# Process this file with autoconf to produce a configure script.
 
 # First, disable the annoying config.cache
 define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([skymaker],[3.12.2],[bertin@iap.fr])
-AC_CONFIG_SRCDIR(src/makeit.c)
+AC_INIT([SkyMaker],[3.13.0], [https://github.com/astromatic/skymaker],
+	sky, [http://astromatic.net/software/skymaker])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
+AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 date=`date +%Y-%m-%d`
@@ -51,44 +53,43 @@ sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
 
 # Display pakage and version number
-AC_MSG_RESULT([*********** Configuring:  $PACKAGE $VERSION ($date) **********])
+AC_MSG_RESULT([******** Configuring:  $PACKAGE_NAME $VERSION ($date) ********])
 
+# Provide special option for choosing automatically the compilation flags.
 AC_MSG_CHECKING([if compilation flags are set automatically])
 AC_ARG_ENABLE(auto-flags,
 	[AS_HELP_STRING([--enable-auto-flags],
-	[Let the configure script choose the compilation flags \
-(off by default)])],
+	[Let the configure script choose the compilation flags (default = no)])],
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
 # Provide special option for the Linux Intel C compiler
-AC_MSG_CHECKING([whether we should use the INTEL compiler])
+AC_MSG_CHECKING([whether the INTEL compiler is enabled])
 AC_ARG_ENABLE(icc,
 	[AS_HELP_STRING([--enable-icc],
-	[Use the Intel compiler (off by default)])],
-	CC="icc"
+	[Use the Intel compiler (default = no)])],
+        CC="icc"
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
 # Provide special options for INTEL MKL
 # We force the use of icc
-AC_MSG_CHECKING([whether we should use INTEL's MKL])
+AC_MSG_CHECKING([whether INTEL's MKL is enabled])
 AC_ARG_ENABLE(mkl,
 	[AS_HELP_STRING([--enable-mkl],
-	[Use INTEL's MKL for solvers and FFTs (off by default)])],
-	enable_icc="yes"
-	CC="icc"
+	[Use INTEL's MKL for FFTs (default = no)])],
+        enable_icc="yes"
+        CC="icc"
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
 # Checks for programs.
-# GCC is chosen last because it is likely to yield less optimized code
 AC_LANG(C)
 
 AC_SEARCH_LIBS([strerror],[cposix])
 if test "$enable_auto_flags" = "yes"; then
   CFLAGS=""
-  LDFLAGS =""
+  LDFLAGS=""
   ACX_PROG_CC_OPTIM
 fi
 LT_INIT
@@ -99,7 +100,7 @@ AC_CHECK_LIB(m, sin)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h string.h sys/mman.h unistd.h])
+AC_CHECK_HEADERS([limits.h malloc.c stdlib.h string.h sys/mman.h sys/time.h  sys/types.h unistd.h])
 if test "$enable_icc" = "yes"; then
   AC_CHECK_HEADERS(mathimf.h)
 fi
@@ -116,25 +117,28 @@ AC_TYPE_UID_T
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MMAP
-AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([atexit getenv memcpy memmove memset munmap sincos sincosf \
 		strstr sysconf])
  
+# Check support for large files
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
+
 # Provide special options for FFTW
 AC_ARG_WITH(fftw-libdir,
-        [AS_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
-        [Alternative directory for the FFTW library])])
+	[AS_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
+	[Provide an alternative path to the FFTW library])])
 AC_ARG_WITH(fftw-incdir,
         [AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
-        [Alternative directory for FFTW include files])])
+	[Provide an alternative path to the FFTW include directory])])
 
 # Set flags for multithreading
 n_pthreads=1024
 AC_ARG_ENABLE(threads,
-        [AS_HELP_STRING([--enable-threads@<:@=<max_number_of_threads>@:>@],
-	[Enable multhreading (on with up to 16 threads by default)])],
+	[AS_HELP_STRING([--enable-threads@<:@=<max_number_of_threads>@:>@],
+	[Enable multhreading (on with up to 1024 threads by default)])],
     if test "$enableval" = "no"; then
       use_pthreads="no"
     else
@@ -150,7 +154,7 @@ AC_ARG_ENABLE(threads,
 AC_MSG_CHECKING([for profiler mode])
 AC_ARG_ENABLE(profiling,
 	[AS_HELP_STRING([--enable-profiling],
-	[Enable special mode for profiling (off by default)])]
+	[Enable special mode for profiling (default = no)])]
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
@@ -159,7 +163,9 @@ AC_MSG_CHECKING([best linking option])
 AC_ARG_ENABLE(best-link,
 	[AS_HELP_STRING([--enable-best-link],
 	[Choose the right combination of static and dynamic linking to make \
-the executable as portable as possible (off by default)])])
+the executable as portable as possible (default = no)])],
+	AC_MSG_RESULT([yes]),
+	AC_MSG_RESULT([no]))
 
 ################# Actions to complete in case of multhreading ################
 AC_DEFINE_UNQUOTED(THREADS_NMAX, $n_pthreads,[Maximum number of POSIX threads])
@@ -171,15 +177,18 @@ if test "$use_pthreads" = "yes"; then
   ACX_PTHREAD
   CC="$PTHREAD_CC"
   [AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS -D_REENTRANT"]
-  LIBS="$PTHREAD_LIBS $LIBS"
+  LIBS="$LIBS $PTHREAD_LIBS"
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 
 #################### handle the INTEL MKL library (FFTW + LAPACKe) ###########
 if test "$enable_mkl" = "yes"; then
   convlibs="${srcdir}/wcs/libwcs_c.a"
-  ACX_MKL(,,$enable_best_link,$convlibs)
-  if test "$MKL_WARN" != ""; then
+  ACX_MKL($with_mkl_dir,yes,$enable_best_link,$convlibs)
+  if test "$MKL_WARN" == ""; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
     AC_MSG_WARN([$MKL_WARN])
   fi
   AM_CFLAGS="$AM_CFLAGS $MKL_CFLAGS "
@@ -187,12 +196,15 @@ if test "$enable_mkl" = "yes"; then
   LIBS="$LIBS $MKL_LIBS"
 else
 ################ handle the FFTW library (Fourier transforms) ################
-  ACX_FFTW($with_fftw_libdir,$with_fftw_incdir,$use_pthreads,yes,
-	[LIBS="$FFTW_LIBS $LIBS"]
-	if test "$FFTW_WARN" != ""; then
-	  AC_MSG_WARN([$FFTW_WARN])
-	fi,
-	AC_MSG_ERROR([$FFTW_ERROR Exiting.]))
+  ACX_FFTW($with_fftw_libdir, $with_fftw_incdir, $use_pthreads,yes,
+    [
+      [LIBS="$FFTW_LIBS $LIBS"]
+      if test "$FFTW_WARN" != ""; then
+        AC_MSG_WARN([$FFTW_WARN])
+      fi
+    ],
+    AC_MSG_ERROR([$FFTW_ERROR Exiting.])
+  )
 fi
 
 # Compile with profiling option
@@ -209,7 +221,7 @@ fi
 if test "$enable_best_link" = "yes"; then
   if test "$enable_icc" = "yes"; then
     AM_LDFLAGS="-static-intel -qopenmp-link static -shared-libgcc \
-	-static-libtool-libs -no-intel-extensions  -avoid-version $AM_LDFLAGS"
+	-static-libtool-libs -no-intel-extensions -avoid-version $AM_LDFLAGS"
   else
     AM_LDFLAGS="-shared-libgcc -static-libtool-libs -avoid-version $AM_LDFLAGS"
   fi
@@ -228,11 +240,11 @@ AC_MSG_RESULT([***************************************************************])
 
 AC_CONFIG_FILES([
 Makefile
+skymaker.spec
 man/Makefile
+man/sky.1
 src/Makefile
 src/fits/Makefile
 src/wcs/Makefile
-skymaker.spec
-man/sky.1])
+])
 AC_OUTPUT
-

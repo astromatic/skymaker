@@ -1,21 +1,23 @@
-Pascal Fouqué <pfouque@eso.org>
+Pascal Fouqué
 	Help with ESO-Zernike coefficients
 
-Ville Laurikari	<vl@iki.fi>
+Ville Laurikari
 	For his VL_PROG_CC_WARNINGS (modified to ACX_PROG_CC_OPTIM)
 
-Steven G. Johnson <stevenj@alum.mit.edu>	
+Steven G. Johnson	
 	For his AX_PTHREAD configuration script
 
-Thomas Erben <terben@astro.uni-bonn.de>
-Alberto Krone-Martins <algol_i@uol.com.br>
+Sébastien Carassou
+Thomas Erben
+Alberto Krone-Martins
+Corentin Schreiber
 	Help in discovering bugs or bringing suggestions
 
-Christophe Pichon <pichon@iap.fr>
+Christophe Pichon
 	For providing n-body simulation data for testing
 
-Jan Kohnert <jan.kohnert@nexgo.de>
-        Helping SkyMAker forum users
+Jan Kohnert
+        Helping SkyMaker forum users
 
 Institut d'Astrophysique de Paris
 TERAPIX project

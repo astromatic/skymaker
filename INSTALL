@@ -1,73 +1,117 @@
-Copyright 1994, 1995, 1996, 1999, 2000, 2001, 2002 Free Software
-Foundation, Inc.
+Installing the software
+***********************
 
-   This file is free documentation; the Free Software Foundation gives
-unlimited permission to copy, distribute and modify it.
-
-Basic Installation
-==================
-The simplest way to compile this package is:
-
-  1. `cd' to the directory containing the package's source code and type
-     `./configure' to configure the package for your system.
-  2. Type `make' to compile the package.
-  3. Type `make install' to install the programs and any data files and
-     documentation.
-
-Optional Features
-=================
-By default a single-threaded version of the executable is built, which
-is fine for machines with a single processor. If the machine the software
-will run on has multiple processors, you might prefer to take advantage
-of parallel processing by enable multi-threading. For this you must run
-configure with the --enable-threads option:
-
-     ./configure --enable-threads
-
-This will allow the program to run with up to 16 simultaneous threads
-(tasks). If your machine has more than 16 processors, say, 40 (!),
-you may increase the maximum number of threads allowed by using instead
-
-     ./configure --enable-threads=40
-
-The executable is dynamically linked by default. If you have the necessary
-static libraries installed, you might want to turn on static linking by typing
-
-     ./configure --enable-static
-
-A statically-linked executable takes more disk and memory space; however it
-runs generally faster and it will work on any similar system independently of
-the libraries available.
-
-Compilers and Options
+Hardware requirements
 =====================
 
-   Some systems require unusual options for compilation or linking that
-the `configure' script does not know about.  Run `./configure --help'
-for details on some of the pertinent environment variables.
+SkyMaker runs in (ANSI) text-mode from a shell. A window system is not
+necessary.
 
-   You can give `configure' initial values for variables by setting
-them in the environment.  You can do that on the command line like this:
+When it comes to memory usage, the amount required by SkyMaker depends on the
+size of the image being generated (about 8 times the number of pixels).
 
-     ./configure CC=c89 CFLAGS=-O2 LIBS=-lposix
+Note that SkyMaker takes advantage of multiple CPU cores for most operations.
 
 
-Installation Names
-==================
+Obtaining SkyMaker
+===============
 
-   By default, `make install' will install the package's files in
-`/usr/local/bin', `/usr/local/man', etc.  You can specify an
-installation prefix other than `/usr/local' by giving `configure' the
-option `--prefix=PATH'.
+For Linux users, the simplest way to have SkyMaker up and running is
+to install the standard binary package the comes with your Linux
+distribution. Run, e.g., "apt-get SkyMaker" (on Debian) or "dnf install SkyMaker"
+(Fedora) and SkyMaker, as well as all its dependencies, will
+automatically be installed. If you decided to install the package this
+way you may skip the following and move straight to the next section.
 
-   You can specify separate installation prefixes for
-architecture-specific files and architecture-independent files.  If you
-give `configure' the option `--exec-prefix=PATH', the package will use
-PATH as the prefix for installing programs and libraries.
-Documentation and other data files will still use the regular prefix.
+However if SkyMaker is not available in your distribution, or to
+obtain the most recent version, the SkyMaker source package can be
+downloaded from the official GitHub repository. One may choose one of
+the stable releases, or for the fearless, a copy of the current master
+development branch.
 
-   In addition, if you use an unusual directory layout you can give
-options like `--bindir=PATH' to specify different values for particular
-kinds of files.  Run `configure --help' for a list of the directories
-you can set and what kinds of files go in them.
+
+Software requirements
+=====================
+
+SkyMaker has been developed on GNU/Linux machines and should compile
+on any POSIX-compliant system (this includes Apple OS X and Cygwin
+on Microsoft Windows, at the price of some difficulties with the
+configuration), provided that the development package of the
+following library has been installed:
+
+* FFTw V3.0 and above [2],
+
+On Fedora/Redhat distributions for instance, the development package
+above is available as "fftw-devel". FFTw is not required if SkyMaker is linked
+with Intel's MKL (Math Kernel Library) library.
+
+
+Installation
+============
+
+To install from the GitHub source package, you must first uncompress
+the archive:
+
+   $ unzip SkyMaker-<version>.zip
+
+A new directory called "skymaker-<version>" should now appear at the
+current location on your disk. Enter the directory and generate the
+files required by the autotools, which the package relies on:
+
+   $ cd skymaker-<version>
+   $ sh autogen.sh
+
+A "configure" script is created. This script has many options, which
+may be listed with the "--help" option:
+
+   $ ./configure --help
+
+No options are required for compiling with the default GNU C compiler
+("gcc") if all the required libraries are installed at their default
+locations:
+
+   $ ./configure
+
+Compared to "gcc" and the librairies above, the combination of the
+Intel compiler ("icc") and the MKL (Math Kernel Library) libraries
+can give the SkyMaker executable a significant boost in performance,
+thanks to better vectorized code, and reduced memory usage. If "icc"
+and the MKL (Math Kernel Library) are installed on your system [3],
+you can take advantage of those using instead
+
+   $ ./configure --enable-mkl
+
+Additionally, if the SkyMaker binary is to be run on a different
+machine that does not have "icc" and the MKL (Math Kernel Library)
+installed (e.g., a cluster computing node), you must configure a
+partially statically linked executable using
+
+   $ ./configure --enable-mkl --enable-auto-flags --enable-best-link
+
+In all cases, SkyMaker can now be compiled with
+
+   $ make -j
+
+An "src/skymaker" executable is created. For system-wide installation,
+run the usual
+
+   $ sudo make install
+
+You may now check that the software is properly installed by simply
+typing in your shell:
+
+   $ sky
+
+(note that some shells require the "rehash" command to be run before
+making a freshly installed executable accessible in the execution
+path).
+
+[1] Mac OS X ".dmg" packages should be available soon.
+
+[2] Make sure that FFTw has been compiled with "configure"
+    options "--enable-threads --enable-float".
+
+[3] The Linux versions of the Intel compiler and MKL (Math
+    Kernel Library) are available for free to academic researchers,
+    students, educators and open source contributors.
 
