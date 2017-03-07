@@ -358,6 +358,7 @@ double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
       *(pixt++) = 0.0;
       npix2--;
       }
+#pragma ivdep
     for (i=npix2; i--;)
       *(pixt++) = *(pixt2--);
     }
@@ -463,9 +464,13 @@ PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,
   for (y=height; y--; dy += 1.0)
     {
     dx = -xcenter;
-    for (x=width; x--; dx += 1.0)
+#pragma omp simd reduction(min:thresh)
+    for (x=0; x<width; x++)
+      {
       if ((val=*(pixt++))>thresh && (r=dx*dx+dy*dy)>rmin2 && r<rmax2)
         thresh = val;
+      dx++;
+      }
     }
 
 /* Threshold! */

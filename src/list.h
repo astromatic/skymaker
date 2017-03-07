@@ -61,12 +61,12 @@ typedef	struct
 	PIXTYPE	*subimage;		/* Sub-frame with the final object */
 	int	subsize[2];		/* Sub-frame dimensions */
 	int	subpos[2];		/* Sub-frame position in image */
-	double	subfactor;		/* Sub-frame amplitude factor */
-	double	*maskbuf;		/* Interpolation kernel buffer */
+	float	subfactor;		/* Sub-frame amplitude factor */
+	float	*maskbuf;		/* Interpolation kernel buffer */
 	int	*nmaskbuf;		/* Interpolation kernel size */
 	int	*startbuf;		/* Interpolation kernel start */
 	int	buf1size;		/* Size of first buffers series */
-	double	*buf2;			/* Second (intermediary) buffer */
+	float	*buf2;			/* Second (intermediary) buffer */
 	int	buf2size;		/* Size of second buffer */
 	}	objstruct;
 

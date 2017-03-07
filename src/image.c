@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		07/11/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -30,10 +30,10 @@
 #include "config.h"
 #endif
 
+#define _GNU_SOURCE
 #ifdef HAVE_MATHIMF_H
 #include <mathimf.h>
 #else
-#define _GNU_SOURCE
 #include <math.h>
 #endif
 
@@ -49,7 +49,7 @@
 #include "threads.h"
 #endif
 
-static void	make_kernel(double pos, double *kernel, interpenum interptype);
+static void	make_kernel(float pos, float *kernel, interpenum interptype);
 
 int		interp_kernwidth[5]={1,2,4,6,8};
 
@@ -68,18 +68,18 @@ INPUT   Pointer to input raster,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 23/09/2006
+VERSION 15/11/2016
  ***/
 /*
 Scale and shift a small image through sinc interpolation.
 Image parts which lie outside boundaries are ignored.
 */
 int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
-			double dx, double dy, double step2)
+			float dx, float dy, float step2)
   {
    interpenum	interp_type;
    PIXTYPE	*pixin,*pixin0, *pixout,*pixout0;
-   double	kernel[INTERP_MAXKERNELWIDTH], *kernelt,
+   float	kernel[INTERP_MAXKERNELWIDTH], *kernelt,
 		*dpixin,*dpixin0, *dpixout,*dpixout0, *maskt,
 		xc1,xc2,yc1,yc2, xs1,ys1, x1,y1, val;
    int		i,j,k,n,t, *startt, *nmaskt,
@@ -144,20 +144,17 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
   ys1 -= (double)iys1a;
 
 /* Allocate interpolant stuff for the x direction */
-  if (!obj->buf1size)
-    {
-    obj->buf1size = nx2;
-    QMALLOC(obj->maskbuf, double, nx2*interpw);	/* Interpolation masks */
-    QMALLOC(obj->nmaskbuf, int, nx2);		/* Interpolation mask sizes */
-    QMALLOC(obj->startbuf, int, nx2);	/* Int part of Im1 conv starts */
+  if (obj->buf1size < nx2) {
+    if (!obj->buf1size) {
+      free(obj->maskbuf);
+      free(obj->nmaskbuf);
+      free(obj->startbuf);
     }
-  else if (obj->buf1size < nx2)
-    {
     obj->buf1size = nx2;
-    QREALLOC(obj->maskbuf, double, nx2*interpw);
-    QREALLOC(obj->nmaskbuf, int, nx2);
-    QREALLOC(obj->startbuf, int, nx2);
-    }
+    QMALLOC16(obj->maskbuf, float, nx2*interpw);/* Interpolation masks */
+    QMALLOC16(obj->nmaskbuf, int, nx2);		/* Interpolation mask sizes */
+    QMALLOC16(obj->startbuf, int, nx2);		/* Int part of Im1 conv starts */
+  }
 
 /* Compute the local interpolant and data starting points in x */
   x1 = xs1;
@@ -185,17 +182,12 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
       *(maskt++) = *(kernelt++);
     }
 
-  if (!obj->buf2size)
-    {
+  if (obj->buf2size < nx2*ny1) {
+    if (!obj->buf2size)
+      free(obj->buf2);
     obj->buf2size = nx2*ny1;
-    QCALLOC(obj->buf2, double, obj->buf2size);	/* Intermediary frame-buffer */
-    }
-  else if (obj->buf2size < nx2*ny1)
-    {
-    obj->buf2size = nx2*ny1;
-    free(obj->buf2);
-    QCALLOC(obj->buf2, double, obj->buf2size);	/* Intermediary frame-buffer */
-    }
+    QCALLOC16(obj->buf2, float, obj->buf2size);	/* Intermediary frame-buffer */
+  }
 
 /* Make the interpolation in x (this includes transposition) */
   pixin0 = pix1+iys1a*w1;
@@ -206,12 +198,13 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
     nmaskt = obj->nmaskbuf;
     startt = obj->startbuf;
     dpixout = dpixout0;
-    for (j=nx2; j--; dpixout+=ny1)
+    for (j=0; j<nx2; j++,dpixout+=ny1)
       {
       pixin = pixin0+*(startt++);
-      val = 0.0; 
-      for (i=*(nmaskt++); i--;)
-        val += *(maskt++)*(double)*(pixin++);
+      val = 0.0;
+#pragma omp simd reduction(+:val)
+      for (i=*(nmaskt++); i!=0; --i)
+        val += *(maskt++)**(pixin++);
       *dpixout = val;
       }
     }
@@ -220,9 +213,12 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
   if (obj->buf1size < ny2)
     {
     obj->buf1size = ny2;
-    QREALLOC(obj->maskbuf, double, ny2*interpw);
-    QREALLOC(obj->nmaskbuf, int, ny2);
-    QREALLOC(obj->startbuf, int, ny2);
+    free(obj->maskbuf);
+    free(obj->nmaskbuf);
+    free(obj->startbuf);
+    QMALLOC16(obj->maskbuf, float, ny2*interpw);
+    QMALLOC16(obj->nmaskbuf, int, ny2);
+    QMALLOC16(obj->startbuf, int, ny2);
     }
 
 /* Compute the local interpolant and data starting points in y */
@@ -254,7 +250,7 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
 /* Initialize destination buffer to zero */
   memset(obj->subimage, 0, (size_t)(w2*h2)*sizeof(PIXTYPE));
 
-/* Make the interpolation in y  and transpose once again */
+/* Make the interpolation in y and transpose once again */
   dpixin0 = obj->buf2;
   pixout0 = obj->subimage+ixs2+iys2*w2;
   for (k=nx2; k--; dpixin0+=ny1, pixout0++)
@@ -288,43 +284,54 @@ NOTES	-.
 AUTHOR	E. Bertin (IAP)
 VERSION	07/04/2008
  ***/
-static void	make_kernel(double pos, double *kernel, interpenum interptype)
+/****** make_kernel **********************************************************
+PROTO	void make_kernel(float pos, float *kernel, interpenum interptype)
+PURPOSE	Conpute interpolation-kernel data
+INPUT	Position,
+	Pointer to the output kernel data,
+	Interpolation method.
+OUTPUT	-.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	07/11/2016
+ ***/
+static void	make_kernel(float pos, float *kernel, interpenum interptype)
   {
-   double	x, val, sinx1,sinx2,sinx3,cosx1;
+   float	x, val, sinx1,sinx2,sinx3,cosx1;
 
   if (interptype == INTERP_NEARESTNEIGHBOUR)
     *kernel = 1;
   else if (interptype == INTERP_BILINEAR)
     {
-    *(kernel++) = 1.0-pos;
+    *(kernel++) = 1.0f-pos;
     *kernel = pos;
     }
   else if (interptype == INTERP_LANCZOS2)
     {
-    if (pos<1e-5 && pos>-1e5)
+    if (pos<1e-5f && pos>-1e-5f)
       {
-      *(kernel++) = 0.0;
-      *(kernel++) = 1.0;
-      *(kernel++) = 0.0;
-      *kernel = 0.0;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 1.0f;
+      *(kernel++) = 0.0f;
+      *kernel = 0.0f;
       }
     else
       {
-      x = -PI/2.0*(pos+1.0);
-#ifdef HAVE_SINCOS
-      sincos(x, &sinx1, &cosx1);
+      x = -PI/2.0f*(pos+1.0f);
+#ifdef HAVE_SINCOSF
+      sincosf(x, &sinx1, &cosx1);
 #else
-      sinx1 = sin(x);
-      cosx1 = cos(x);
+      sinx1 = sinf(x);
+      cosx1 = cosf(x);
 #endif
       val = (*(kernel++) = sinx1/(x*x));
-      x += PI/2.0;
+      x += PI/2.0f;
       val += (*(kernel++) = -cosx1/(x*x));
-      x += PI/2.0;
+      x += PI/2.0f;
       val += (*(kernel++) = -sinx1/(x*x));
-      x += PI/2.0;
+      x += PI/2.0f;
       val += (*kernel = cosx1/(x*x));
-      val = 1.0/val;
+      val = 1.0f/val;
       *(kernel--) *= val;
       *(kernel--) *= val;
       *(kernel--) *= val;
@@ -333,38 +340,87 @@ static void	make_kernel(double pos, double *kernel, interpenum interptype)
     }
   else if (interptype == INTERP_LANCZOS3)
     {
-    if (pos<1e-5 && pos>-1e5)
+    if (pos<1e-5f && pos>-1e-5f)
       {
-      *(kernel++) = 0.0;
-      *(kernel++) = 0.0;
-      *(kernel++) = 1.0;
-      *(kernel++) = 0.0;
-      *(kernel++) = 0.0;
-      *kernel = 0.0;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 1.0f;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 0.0f;
+      *kernel = 0.0f;
       }
     else
       {
-      x = -PI/3.0*(pos+2.0);
-#ifdef HAVE_SINCOS
-      sincos(x, &sinx1, &cosx1);
+      x = -PI/3.0f*(pos+2.0f);
+#ifdef HAVE_SINCOSF
+      sincosf(x, &sinx1, &cosx1);
 #else
-      sinx1 = sin(x);
-      cosx1 = cos(x);
+      sinx1 = sinf(x);
+      cosx1 = cosf(x);
 #endif
       val = (*(kernel++) = sinx1/(x*x));
-      x += PI/3.0;
-      val += (*(kernel++) = (sinx2=-0.5*sinx1-0.866025403785*cosx1)
+      x += PI/3.0f;
+      val += (*(kernel++) = (sinx2=-0.5f*sinx1-0.866025403785f*cosx1)
 				/ (x*x));
-      x += PI/3.0;
-      val += (*(kernel++) = (sinx3=-0.5*sinx1+0.866025403785*cosx1)
+      x += PI/3.0f;
+      val += (*(kernel++) = (sinx3=-0.5f*sinx1+0.866025403785f*cosx1)
 				/(x*x));
-      x += PI/3.0;
+      x += PI/3.0f;
       val += (*(kernel++) = sinx1/(x*x));
-      x += PI/3.0;
+      x += PI/3.0f;
       val += (*(kernel++) = sinx2/(x*x));
-      x += PI/3.0;
+      x += PI/3.0f;
       val += (*kernel = sinx3/(x*x));
-      val = 1.0/val;
+      val = 1.0f/val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *kernel *= val;
+      }
+    }
+  else if (interptype == INTERP_LANCZOS4)
+    {
+    if (pos<1e-5f && pos>-1e-5f)
+      {
+      *(kernel++) = 0.0f;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 1.0f;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 0.0f;
+      *(kernel++) = 0.0f;
+      *kernel = 0.0f;
+      }
+    else
+      {
+      x = -PI/4.0f*(pos+3.0f);
+#ifdef HAVE_SINCOSF
+      sincosf(x, &sinx1, &cosx1);
+#else
+      sinx1 = sinf(x);
+      cosx1 = cosf(x);
+#endif
+      val = (*(kernel++) = sinx1/(x*x));
+      x += PI/4.0f;
+      val +=(*(kernel++) = -(sinx2=0.707106781186f*(sinx1+cosx1))
+				/(x*x));
+      x += PI/4.0f;
+      val += (*(kernel++) = cosx1/(x*x));
+      x += PI/4.0f;
+      val += (*(kernel++) = -(sinx3=0.707106781186f*(cosx1-sinx1))/(x*x));
+      x += PI/4.0f;
+      val += (*(kernel++) = -sinx1/(x*x));
+      x += PI/4.0f;
+      val += (*(kernel++) = sinx2/(x*x));
+      x += PI/4.0f;
+      val += (*(kernel++) = -cosx1/(x*x));
+      x += PI/4.0f;
+      val += (*kernel = sinx3/(x*x));
+      val = 1.0f/val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
       *(kernel--) *= val;
       *(kernel--) *= val;
       *(kernel--) *= val;
@@ -374,54 +430,8 @@ static void	make_kernel(double pos, double *kernel, interpenum interptype)
       }
     }
   else
-    {
-    if (pos<1e-5 && pos>-1e5)
-      {
-      *(kernel++) = 0.0;
-      *(kernel++) = 0.0;
-      *(kernel++) = 0.0;
-      *(kernel++) = 1.0;
-      *(kernel++) = 0.0;
-      *(kernel++) = 0.0;
-      *(kernel++) = 0.0;
-      *kernel = 0.0;
-      }
-    else
-      {
-      x = -PI/4.0*(pos+3.0);
-#ifdef HAVE_SINCOS
-      sincos(x, &sinx1, &cosx1);
-#else
-      sinx1 = sin(x);
-      cosx1 = cos(x);
-#endif
-      val = (*(kernel++) = sinx1/(x*x));
-      x += PI/4.0;
-      val +=(*(kernel++) = -(sinx2=0.707106781186*(sinx1+cosx1))
-				/(x*x));
-      x += PI/4.0;
-      val += (*(kernel++) = cosx1/(x*x));
-      x += PI/4.0;
-      val += (*(kernel++) = -(sinx3=0.707106781186*(cosx1-sinx1))/(x*x));
-      x += PI/4.0;
-      val += (*(kernel++) = -sinx1/(x*x));
-      x += PI/4.0;
-      val += (*(kernel++) = sinx2/(x*x));
-      x += PI/4.0;
-      val += (*(kernel++) = -cosx1/(x*x));
-      x += PI/4.0;
-      val += (*kernel = sinx3/(x*x));
-      val = 1.0/val;
-      *(kernel--) *= val;
-      *(kernel--) *= val;
-      *(kernel--) *= val;
-      *(kernel--) *= val;
-      *(kernel--) *= val;
-      *(kernel--) *= val;
-      *(kernel--) *= val;
-      *kernel *= val;
-      }
-    }
+    error(EXIT_FAILURE, "*Internal Error*: Unknown interpolation type in ",
+		"make_kernel()");
 
   return;
   }

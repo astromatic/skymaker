@@ -48,5 +48,5 @@ typedef enum {INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
 extern int	add_image(PIXTYPE *pix1, int w1, int h1, PIXTYPE *pix2,
 			int w2, int h2, int ix, int iy, float amplitude),
 		resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
-			double dx, double dy, double step2);
+			float dx, float dy, float step2);
 
