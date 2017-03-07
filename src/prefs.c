@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/06/2016
+*	Last modified:		07/11/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -44,6 +44,8 @@
 #elif defined(USE_THREADS) && defined(HAVE_MPCTL)		/* HP/UX */
  #include <sys/mpctl.h>
 #endif
+
+#define USE_CPUREDISPATCH 1
 
 #if defined(__INTEL_COMPILER) && defined (USE_CPUREDISPATCH)
  #include <cpuid.h>
@@ -477,7 +479,9 @@ void	useprefs(void)
 /* Override INTEL CPU detection routine to help performance on 3rd-party CPUs */
 #if defined(__INTEL_COMPILER) && defined(USE_CPUREDISPATCH)
   __get_cpuid(1, &eax, &ebx, &ecx, &edx);
-  if (ecx&bit_AVX)
+  if (ebx&bit_AVX2)
+    __intel_cpu_indicator = 0x400000;
+  else if (ecx&bit_AVX)
     __intel_cpu_indicator = 0x20000;
   else if (ecx&bit_SSE4_2)
     __intel_cpu_indicator = 0x8000;

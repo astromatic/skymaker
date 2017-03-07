@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2016 IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		07/11/2016
+#	Last modified:		07/03/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([SkyMaker],[3.13.0], [https://github.com/astromatic/skymaker],
+AC_INIT([SkyMaker],[3.14.0], [https://github.com/astromatic/skymaker],
 	sky, [http://astromatic.net/software/skymaker])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
@@ -133,6 +133,11 @@ AC_ARG_WITH(fftw-libdir,
 AC_ARG_WITH(fftw-incdir,
         [AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
 	[Provide an alternative path to the FFTW include directory])])
+
+# Provide special options for the MKL library
+AC_ARG_WITH(mkl-dir,
+	[AS_HELP_STRING([--with-mkl-dir=<MKL path>],
+	[Provide an alternative path to the MKL library])])
 
 # Set flags for multithreading
 n_pthreads=1024

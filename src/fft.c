@@ -163,6 +163,7 @@ void    fft_conv(float *data1, float *fdata2, int width, int height)
   fac = 1.0/npix;  
   fdata1p = (float *)fdata1;
   fdata2p = fdata2;
+#pragma ivdep
   for (i=npix2; i--;)
     {
     real = *fdata1p **fdata2p - *(fdata1p+1)**(fdata2p+1);
