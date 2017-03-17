@@ -64,7 +64,10 @@ typedef enum	{NO_TRACKERR, DRIFT, JITTER}	tracktypenum;
 
 typedef enum	{CORREL_NONE, CORREL_NOISE, CORREL_ALL}	correltypenum;
 
-/*------------------------------- preferences -------------------------------*/
+typedef enum	{WEIGHT_NONE, WEIGHT_FROMRMSMAP, WEIGHT_FROMVARMAP,
+		WEIGHT_FROMWEIGHTMAP}	weightenum;	/* WEIGHT_IMAGE type */
+
+/*------------------------------- Structures --------------------------------*/
 typedef struct
   {
 /* Image itself */
@@ -77,6 +80,8 @@ typedef struct
   FILE		*outlistfile;		/* Output list file */
   PIXTYPE	*image;			/* Pointer to the image pixel map */
   imatypenum	imatype;		/* Image type */
+/* Noise */
+  PIXTYPE	*noise;			/* Pointer to the image noise map */
 /*------ Astrometry */
   int		wcsflag;		/* Use WCS coordinates? */
   wcsstruct	*wcs;			/* World Coordinate System */
@@ -151,7 +156,6 @@ typedef struct
   double	scountslope;		/* Diff. star count slope (dexp/mag) */
   double	maglim[2];		/* Brightest and faintest mag. allowed*/
   int		nmaglim;		/* Number of arguments */
-
 /*------ Random generator */
   int		psfmotionseed;		/* Seed for PSF motion */
   int		starposseed;		/* Seed for star positions */
@@ -160,7 +164,6 @@ typedef struct
   int		gridstep;		/* Step between objects */
   int		ngrid[2];		/* Number of objects per axis */
   int		gridoffset[2];		/* Grid offset on each axis */
-/* Misc */
         }	simstruct;
 
 /*-------------------------------- protos -----------------------------------*/

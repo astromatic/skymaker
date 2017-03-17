@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2016  IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		16/03/2016
+*	Last modified:		09/03/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -36,6 +36,10 @@
 
 #ifndef _SIMUL_H_
 #include "simul.h"
+#endif
+
+#ifndef _WEIGHT_H_
+#include "weight.h"
 #endif
 
 #ifndef _PREFS_H_
@@ -54,6 +58,13 @@ typedef struct
   char		inlistname[MAXCHAR];	/* Input list filename */
   char		outlistname[MAXCHAR];	/* Output list filename */
   imatypenum	imatype;		/* Image type */
+/*----- Weighting */
+  char		weight_name[MAXCHAR];	/* Input weight filename */
+  weightenum	weight_type;		/* Weighting scheme */
+  double	weight_thresh;		/* Bad pixel weight threshold */
+  int		nweight_thresh;		/* Number of arguments */
+  int		weightrescale_flag;	/* Weight rescaling? */
+  int		weightgain_flag;	/* Weight proportional to gain? */
 /*------ Astrometry */
   listcoordenum	listcoord_type;		/* Use World coordinates? */
   int		imasize[2];		/* Dimension of the image */

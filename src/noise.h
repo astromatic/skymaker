@@ -1,7 +1,7 @@
 /*
-*				alterimage.h
+*				noise.h
 *
-* Include file for alterimage.c.
+* Include file for noise.c.
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
@@ -35,9 +35,4 @@
 /*--------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
-extern void	addaureole(simstruct *sim),
-		addback(simstruct *sim),
-		cutborders(simstruct *sim),
-		etoadu(simstruct *sim),
-		microscan(simstruct *sim),
-		saturate(simstruct *sim);
+extern void	addnoise(simstruct *sim);

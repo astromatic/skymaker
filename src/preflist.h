@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		16/03/2016
+*	Last modified:		09/03/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -112,6 +112,7 @@ pkeystruct key[] =
   {"QUA_CENTER", P_FLOATLIST, prefs.psfquac, 0,0, -1e18, 1e18,
    {""}, 2, 2, &prefs.npsfquac},
   {"READOUT_NOISE", P_FLOAT, &prefs.ron, 0,0, 0.0,1e9},
+  {"RESCALE_WEIGHTS", P_BOOL, &prefs.weightrescale_flag, 0,0, 0.0,0.0},
   {"SATUR_LEVEL", P_FLOAT, &prefs.satlev, 0,0, -1e18,1e18},
   {"SEED_MOTION", P_INT, &prefs.psfmotionseed, 0, 0x7fffffffL},
   {"SEED_STARPOS", P_INT, &prefs.starposseed, 0, 0x7fffffffL},
@@ -138,6 +139,12 @@ pkeystruct key[] =
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
    {"QUIET","NORMAL","FULL",""}},
   {"WAVELENGTH", P_FLOAT, &prefs.lambdaeq, 0,0, 1e-12, 1e12},
+  {"WEIGHT_GAIN", P_BOOL, &prefs.weightgain_flag},
+  {"WEIGHT_IMAGE", P_STRING, prefs.weight_name},
+  {"WEIGHT_THRESH", P_FLOATLIST, &prefs.weight_thresh, 0,0, 0.0, BIG,
+   {""}, 0, 1, &prefs.nweight_thresh},
+  {"WEIGHT_TYPE", P_KEY, &prefs.weight_type, 0,0, 0.0,0.0,
+   {"NONE", "MAP_RMS", "MAP_VAR","MAP_WEIGHT", ""}},
   {"WELL_CAPACITY", P_FLOAT, &prefs.wellcap, 0,0, 0.0,1e18},
   {""}
  };
@@ -164,6 +171,14 @@ char *default_prefs[] =
 "LISTCOORD_TYPE     PIXEL        # Coordinates in input lists: PIXEL or WORLD",
 "LISTMAG_LIMITS     -99.0,99.0   # Magnitude range restriction for input lists",
 " ",
+"*#----------------------------- Pixel weights --------------------------------",
+"*",
+"*WEIGHT_TYPE        NONE         # MAP_RMS,MAP_VARIANCE or MAP_WEIGHT",
+"*RESCALE_WEIGHTS    N            # Rescale input weights/variances (Y/N)?",
+"*WEIGHT_IMAGE       sky.weight.fits # Input weight-map filename",
+"*WEIGHT_GAIN        Y            # modulate gain (E/ADU) with weights? (Y/N)",
+"*WEIGHT_THRESH                   # Bad pixel weight-threshold",
+"*",
 "#-------------------------------- Detector -----------------------------------",
 " ",
 "GAIN               1.0          # gain (e-/ADU)",

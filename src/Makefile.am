@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		04/04/2013
+#	Last modified:		17/03/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,11 +31,12 @@ SUBDIRS		= fits wcs
 bin_PROGRAMS	= sky
 
 sky_SOURCES	= alterimage.c fft.c fitswcs.c galaxies.c image.c imaout.c \
-		  list.c main.c makeit.c poly.c prefs.c psf.c random.c simul.c \
-		  stars.c \
+		  list.c main.c makeit.c noise.c poly.c prefs.c psf.c random.c \
+		  simul.c stars.c \
 		  alterimage.h define.h fft.h fitswcs.h galaxies.h globals.h \
-		  image.h imaout.h key.h list.h poly.h preflist.h prefs.h \
-		  psf.h random.h simul.h stars.h threads.h types.h wcscelsys.h
+		  image.h imaout.h key.h list.h noise.h poly.h preflist.h \
+		  prefs.h psf.h random.h simul.h stars.h threads.h types.h \
+		  wcscelsys.h
 
 sky_LDADD	= $(srcdir)/fits/libfits.a \
 		  $(srcdir)/wcs/libwcs_c.a

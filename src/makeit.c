@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/05/2012
+*	Last modified:		12/03/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -41,6 +41,7 @@
 #include "alterimage.h"
 #include "imaout.h"
 #include "list.h"
+#include "noise.h"
 #include "prefs.h"
 #include "psf.h"
 #include "simul.h"
