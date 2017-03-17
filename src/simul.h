@@ -81,6 +81,7 @@ typedef struct
   PIXTYPE	*image;			/* Pointer to the image pixel map */
   imatypenum	imatype;		/* Image type */
 /* Noise */
+  PIXTYPE	*weight;		/* Pointer to the weight map */
   PIXTYPE	*noise;			/* Pointer to the image noise map */
 /*------ Astrometry */
   int		wcsflag;		/* Use WCS coordinates? */

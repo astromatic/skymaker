@@ -30,10 +30,14 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_MATHIMF_H
+#include <mathimf.h>
+#else
+#include <math.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <time.h>
 
 #include FFTW_H

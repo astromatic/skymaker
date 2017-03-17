@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2016 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/03/2016
+*	Last modified:		17/03/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -30,10 +30,14 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_MATHIMF_H
+#include <mathimf.h>
+#else
+#include <math.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include FFTW_H
 
@@ -42,8 +46,9 @@
 #endif
 
 #include "define.h"
-#include "types.h"
 #include "globals.h"
+
+#include "alterimage.h"
 #include "fft.h"
 #include "prefs.h"
 #include "psf.h"
