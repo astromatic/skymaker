@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/03/2017
+*	Last modified:		28/03/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,6 +46,7 @@
 #include "psf.h"
 #include "simul.h"
 #include "stars.h"
+#include "weight.h"
 
 /******************************** makeit *************************************/
 /*
@@ -83,6 +84,8 @@ void    makeit()
     makepsf(simul);
   center_psf(simul);
   QCALLOC(simul->image, PIXTYPE, (size_t)simul->fimasize[0]*simul->fimasize[1]);
+  if (prefs.weight_type != WEIGHT_NONE)
+    load_weight(simul);
   openoutlist(simul);
   readlist(simul);
   makestarfield(simul);
@@ -95,12 +98,15 @@ void    makeit()
     NFPRINTF(OUTPUT, "Removing margins...");
     cutborders(simul);
     }
-  NFPRINTF(OUTPUT, "Adding background...");
-  addback(simul);
+  if (prefs.weight_type == WEIGHT_NONE) {
+    NFPRINTF(OUTPUT, "Adding background...");
+    addback(simul);
+  }
   if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE)
     {
-    NFPRINTF(OUTPUT, "Adding noise...");
-    addnoise(simul);
+    NFPRINTF(OUTPUT, "Generating noise...");
+    make_noise(simul);
+    add_noise(simul);
     }
 /*
   quantify(&simul);

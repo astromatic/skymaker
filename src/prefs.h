@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/03/2017
+*	Last modified:		28/03/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ typedef struct
   weightenum	weight_type;		/* Weighting scheme */
   double	weight_thresh;		/* Bad pixel weight threshold */
   int		nweight_thresh;		/* Number of arguments */
-  int		weightrescale_flag;	/* Weight rescaling? */
+  double	weight_factor;		/* Noise scaling factor */
   int		weightgain_flag;	/* Weight proportional to gain? */
 /*------ Astrometry */
   listcoordenum	listcoord_type;		/* Use World coordinates? */

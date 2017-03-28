@@ -35,4 +35,5 @@
 /*--------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
-extern void	addnoise(simstruct *sim);
+extern void	add_noise(simstruct *sim),
+		make_noise(simstruct *sim);

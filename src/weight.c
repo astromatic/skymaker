@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/03/2017
+*	Last modified:		28/03/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -45,15 +45,16 @@
 #include "prefs.h"
 #include "weight.h"
 
+union {unsigned int i; float f;} anan = {0x7ff80000};
 
 /******* load_weight *********************************************************
 PROTO	int load_weight(simstruct *sim)
-PURPOSE	Load a weight-map
+PURPOSE	Load a weight-map and convert it to a noise (RMS) map.
 INPUT	Pointer to the simulation.
 OUTPUT	RETURN_OK if no error, or RETURN_ERROR in case of non-fatal error(s).
-NOTES   -.
+NOTES   Relies on global variables.
 AUTHOR  E. Bertin (IAP)
-VERSION 17/03/2017
+VERSION 28/03/2017
  ***/
 int	load_weight(simstruct *sim)
 
@@ -104,12 +105,12 @@ int	load_weight(simstruct *sim)
   npix = sim->imasize[0] * sim->imasize[1];
   sprintf(lstr,"Loading %s", rfilename);
   NFPRINTF(OUTPUT, lstr);
-  QMALLOC(sim->weight, PIXTYPE, npix);
+  QMALLOC16(sim->noise, PIXTYPE, npix);
   QFSEEK(tab->cat->file, tab->bodypos, SEEK_SET, tab->cat->filename);
-  read_body(tab, sim->weight, npix);
+  read_body(tab, sim->noise, npix);
   free_cat(&cat, 1);
 
-  weight_fac = 1.0;
+  weight_fac = prefs.weight_factor;
 
   switch(prefs.weight_type)
     {
@@ -118,23 +119,26 @@ int	load_weight(simstruct *sim)
 
     case WEIGHT_FROMRMSMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : BIG;
+      pix = sim->noise;
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
-        *pix = *pix < weight_thresh ? weight_fac * *pix * *pix : -1.0;
+        *pix = *pix < weight_thresh ? weight_fac * *pix : anan.f;
       break;
 
     case WEIGHT_FROMVARMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : BIG;
+      pix = sim->noise;
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
-        *pix = *pix < weight_thresh ? weight_fac * *pix : -1.0;
+        *pix = *pix < weight_thresh ? weight_fac * sqrtf(fabsf(*pix)) : anan.f;
       break;
 
     case WEIGHT_FROMWEIGHTMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : 0.0;
+      pix = sim->noise;
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
-        *pix = *pix > weight_thresh ? weight_fac / (*pix) : -1.0;
+        *pix = *pix > weight_thresh ? weight_fac / sqrtf(fabs(*pix)) : anan.f;
       break;
 
     default:
@@ -145,4 +149,5 @@ int	load_weight(simstruct *sim)
 
   return RETURN_OK;
   }
+
 
