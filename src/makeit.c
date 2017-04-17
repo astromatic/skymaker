@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/03/2017
+*	Last modified:		17/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -105,8 +105,8 @@ void    makeit()
   if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE)
     {
     NFPRINTF(OUTPUT, "Generating noise...");
-    make_noise(simul);
-    add_noise(simul);
+    noise_make(simul);
+    noise_add(simul);
     }
 /*
   quantify(&simul);

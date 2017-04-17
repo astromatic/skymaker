@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/07/2015
+*	Last modified:		17/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -81,7 +81,12 @@ typedef struct
   PIXTYPE	*image;			/* Pointer to the image pixel map */
   imatypenum	imatype;		/* Image type */
 /* Noise */
+  PIXTYPE	*weight;			/* Pointer to the noise rms map */
+/* Noise */
   PIXTYPE	*noise;			/* Pointer to the image noise map */
+/* Correlation */
+  PIXTYPE	*corr;			/* Noise correlation kernel */
+  int		corrsize[2];		/* Noise correlation kernel dimensions*/
 /*------ Astrometry */
   int		wcsflag;		/* Use WCS coordinates? */
   wcsstruct	*wcs;			/* World Coordinate System */

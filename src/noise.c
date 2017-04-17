@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/03/2017
+*	Last modified:		17/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -73,8 +73,8 @@ static float			**pthread_gaussbuf;
 #endif
 #endif
 
-/****** add_noise **************************************************
-PROTO	void make_noise(simstruct *sim)
+/****** noise_add **************************************************
+PROTO	void noise_add(simstruct *sim)
 PURPOSE	Add noise map to image.
 INPUT	Pointer to the simulation.
 OUTPUT	-.
@@ -82,7 +82,7 @@ NOTES	-.
 AUTHOR	E. Bertin (IAP)
 VERSION	28/03/2017
  ***/
-void	add_noise(simstruct *sim)
+void	noise_add(simstruct *sim)
 
   {
    PIXTYPE	*imapix, *rmspix;
@@ -97,8 +97,8 @@ void	add_noise(simstruct *sim)
   }
 
 
-/****** make_noise **************************************************
-PROTO	void make_noise(simstruct *sim)
+/****** noise_make **************************************************
+PROTO	void noise_make(simstruct *sim)
 PURPOSE	Generate a photon and read-out noise map.
 INPUT	Pointer to the simulation.
 OUTPUT	-.
@@ -106,11 +106,11 @@ NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
 VERSION	28/03/2017
  ***/
-void	make_noise(simstruct *sim)
+void	noise_make(simstruct *sim)
 
   {
 #ifndef USE_THREADS
-   PIXTYPE		*pix, *imapix, *rmspix, *imapixt, *pixt,
+   PIXTYPE		*pix, *imapix, *noisepix, *rmspix, *imapixt,
 			ron;
    int			i, npix;
  #ifdef HAVE_MKL
@@ -122,29 +122,25 @@ void	make_noise(simstruct *sim)
    float		*gaussbuf, *gaussbuft;
  #endif
 #endif
-   int			wflag;
 
   init_random(0);
 
-  if ((sim->noise))
-    wflag = 1;
-  else {
-    wflag = 0;
-    QMALLOC16(sim->noise, PIXTYPE, sim->imasize[0]*sim->imasize[1]);
-  }
+  QMALLOC16(sim->noise, PIXTYPE, sim->imasize[0]*sim->imasize[1]);
+
 #ifdef USE_THREADS
   pthread_addnoise(sim);
 #else
   ron = (PIXTYPE)sim->ron;
   imapix = sim->image;
-  rmspix = sim->noise;
+  noisepix = sim->noise;
+  rmspix = sim->weight;
  #ifdef HAVE_MKL
   vslNewStream(&stream, VSL_BRNG_MT19937, (unsigned int)time(NULL));
   npix = sim->imasize[0];
   QMALLOC(lambdabuf, double, npix);
   QMALLOC(poissonbuf, int, npix);
   QMALLOC(gaussbuf, float, npix);
-  for (j=sim->imasize[1]; j--; imapix += npix, rmspix += npix) {
+  for (j=sim->imasize[1]; j--; imapix += npix) {
     imapixt = imapix;
     lambdabuft = lambdabuf;
     for (i=npix; i--;)
@@ -154,18 +150,19 @@ void	make_noise(simstruct *sim)
     vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, stream, npix,
 		gaussbuf, 0.0, 1.0);
     imapixt = imapix;
-    pixt = rmspix;
     poissonbuft = poissonbuf;
     gaussbuft = gaussbuf;
-    if (wflag)
-      for (i=npix; i--; pixt++, imapixt++, poissonbuft++, gaussbuft++) {
-        if (isfinite(*pixt))
-          *pixt = (PIXTYPE)*poissonbuft - *imapixt
-					+ *pixt * (PIXTYPE)*gaussbuft;
+    if (sim->weight)
+      rmspixt = rmspix;
+      for (i=npix; i--;
+		rmspix++, noisepix++, imapixt++, poissonbuft++, gaussbuft++) {
+        if (isfinite(*rmspix) && *rmspix > SMALL)
+          *noisepix = ((PIXTYPE)*poissonbuft - *imapixt) / *rmspix
+					+ (PIXTYPE)*gaussbuft;
       }
     else
       for (i=npix; i--;)
-        *(pixt++) = (PIXTYPE)*(poissonbuft++) + ron * (PIXTYPE)*(gaussbuft++);
+        *(noisepix++) = (PIXTYPE)*(poissonbuft++) + ron * (PIXTYPE)*(gaussbuft++);
   }
   vslDeleteStream(&stream);
   free(lambdabuf);
@@ -173,17 +170,16 @@ void	make_noise(simstruct *sim)
   free(gaussbuf);
  #else
   npix =  sim->imasize[0] * sim->imasize[1];
-  imapixt = imapix;
-  pixt = rmspix;
-  if (wflag)
-    for (i=sim->imasize[0] * sim->imasize[1]; i--; pixt++, imapixt++) {
-      if (isfinite(*pixt))
-	*pixt = (PIXTYPE)(random_poisson((double)*imapixt, 0) - *imapixt
-		+ random_gauss(*pixt, 0));
+  if (sim->weight)
+    for (i=sim->imasize[0] * sim->imasize[1]; i--;
+		rmspix++, noisepix++, imapix++) {
+      if (isfinite(*rmspix) && *rmspix > SMALL)
+	*noisepix = (PIXTYPE)(random_poisson((double)*imapix, 0) - *imapix
+		+ random_gauss(1.0, 0));
     }
   else
-    for (i=sim->imasize[0] * sim->imasize[1]; i--; imapixt++)
-      *(pixt++) = (PIXTYPE)(random_poisson((double)*imapixt, 0) - *imapixt
+    for (i=sim->imasize[0] * sim->imasize[1]; i--; imapix++)
+      *(noisepix++) = (PIXTYPE)(random_poisson((double)*imapix, 0) - *imapix
 		+ random_gauss(ron, 0));
  #endif
 #endif
@@ -191,6 +187,107 @@ void	make_noise(simstruct *sim)
   return;
   }
 
+
+/****** noise_corr **************************************************
+PROTO	void noise_corr(simstruct *sim)
+PURPOSE	Correlate (convolve) a noise map with some kernel.
+INPUT	Pointer to the simulation.
+OUTPUT	-.
+NOTES	Relies on global variables.
+AUTHOR	E. Bertin (IAP)
+VERSION	17/04/2017
+ ***/
+void	noise_corr(simstruct *sim) {
+   PIXTYPE	*corrnoise, *corrnoisepix, *rmspix, *noisepix;
+   int		i, y;
+
+  QMALLOC16(corrnoise, PIXTYPE, sim->imasize[0]*sim->imasize[1]);
+  for (y = 0; y < sim->imasize[1]; y++) {
+    noise_corrline(sim, corrnoise + y * sim->imasize[0], y);
+  }
+
+  noisepix = sim->noise;
+  corrnoisepix = corrnoise;
+  if (sim->weight) {
+    rmspix = sim->weight;
+    for (i = sim->imasize[0] * sim->imasize[1]; i--;
+		rmspix++, noisepix++, corrnoisepix++)
+      if (isfinite(*rmspix) && *rmspix > SMALL)
+        *noisepix = *corrnoisepix * *rmspix;
+  } else {
+    for (i = sim->imasize[0] * sim->imasize[1]; i--;)
+      *(noisepix++) = *(corrnoisepix++);
+  }
+
+  free(corrnoise);
+
+  return;
+}
+
+
+/****** noise_corrline **************************************************
+PROTO	void noise_corrline(simstruct *sim, PIXTYPE *corrline, int y)
+PURPOSE	Correlate a noise-map line to replicate image interpolation effects
+INPUT	Pointer to the simulation,
+	Pointer to the correlated (convolved) line data,
+	y coordinate.
+OUTPUT	-.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	17/04/2017
+ ***/
+void	noise_corrline(simstruct *sim, PIXTYPE *corrline, int y) {
+
+   int		mw,mw2,m0,me,m,mx,dmx, y0, dy, sw,sh;
+   PIXTYPE	*corrlinee, *corr,
+		*s,*s0, *d,*de, mval;
+
+  sw = sim->imasize[0];
+  mw = sim->corrsize[0];
+  mw2 = mw/2;
+  y0 = y - (sim->corrsize[1]/2);
+  if ((dy = -y0) > 0)
+    {
+    m0 = mw*dy;
+    y0 = 0;
+    }
+  else
+    m0 = 0;
+
+  if ((dy = sim->imasize[1] - y0) < sim->corrsize[1])
+    me = mw * dy;
+  else
+    me = mw * sim->corrsize[1];
+
+  corrlinee = corrline + sw;
+
+  memset(corrline, 0, sw * sizeof(PIXTYPE));
+  
+  s0 = NULL;				/* To avoid gcc -Wall warnings */
+  corr = sim->corr + m0;
+  for (m = m0, mx = 0; m<me; m++, mx++) {
+    if (mx==mw)
+      mx = 0;
+    if (!mx)
+      s0 = sim->noise + sw * y0++;
+
+    if ((dmx = mx - mw2) >= 0) {
+      s = s0 + dmx;
+      d = corrline;
+      de = corrlinee - dmx;
+    } else {
+      s = s0;
+      d = corrline - dmx;
+      de = corrlinee;
+    }
+
+    mval = *(corr++);
+    while (d < de)
+      *(d++) += mval * *(s++);
+  }
+
+  return;
+}
 
 #ifdef USE_THREADS
 
@@ -206,7 +303,7 @@ VERSION	28/03/2017
 static void	*pthread_addnoiseline(void *arg)
   {
    double	ron;
-   PIXTYPE	*pix, *pixt, *imapixt;
+   PIXTYPE	*pix, *pixt, *imapix, *noisepix, *rmspix;
    int		i, line, npix, nlines, proc,
 		wflag = (pthread_sim->noise != NULL);
 #ifdef HAVE_MKL
@@ -234,39 +331,41 @@ static void	*pthread_addnoiseline(void *arg)
     {
     line = pthread_line++;
     QPTHREAD_MUTEX_UNLOCK(&noisemutex);  
-    imapixt = pthread_sim->image + line*npix;
-    pixt = pthread_sim->noise + line*npix;
+    noisepix = pthread_sim->noise + line*npix;
+    rmspix = pthread_sim->weight + line*npix;
+    imapix = pthread_sim->image + line*npix;
 #ifdef HAVE_MKL
     lambdabuft = lambdabuf;
     for (i=npix; i--;)
-      *(lambdabuft++) = *(imapixt++);
+      *(lambdabuft++) = *(imapix++);
     viRngPoissonV(VSL_RNG_METHOD_POISSONV_POISNORM, stream, npix,
 		poissonbuf, lambdabuf);
     vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, stream, npix,
 		gaussbuf, 0.0, 1.0);
-    imapixt = pthread_sim->image + line*npix;;
+    imapix = pthread_sim->image + line*npix;
     poissonbuft = poissonbuf;
     gaussbuft = gaussbuf;
-    if (wflag)
-      for (i=npix; i--; pixt++, imapixt++, poissonbuft++, gaussbuft++) {
-        if (isfinite(*pixt))
-          *pixt = (PIXTYPE)*poissonbuft - *imapixt
-					+ *pixt * (PIXTYPE)*gaussbuft;
+    if (pthread_sim->weight)
+      for (i=npix; i--;
+		noisepix++, rmspix++, imapix++, poissonbuft++, gaussbuft++) {
+        if (isfinite(*rmspix) && *rmspix > SMALL)
+          *noisepix = ((PIXTYPE)*poissonbuft - *imapix) / *rmspix
+					+ (PIXTYPE)*gaussbuft;
       }
     else
       for (i=npix; i--;)
-        *(pixt++) = (PIXTYPE)*(poissonbuft++) - *(imapixt++)
+        *(noisepix++) = (PIXTYPE)*(poissonbuft++) - *(imapix++)
 		+ ron * (PIXTYPE)*(gaussbuft++);
 #else
-    if (wflag)
-      for (i=npix; i--; pixt++, imapixt++) {
-        if (isfinite(*pixt))
-          *pixt = (PIXTYPE)(random_poisson((double)*imapixt, 0) - *imapixt
-			+ random_gauss(*pixt, 0));
+    if (pthread_sim->weight)
+      for (i=npix; i--; noisepix++, imapix++) {
+        if (isfinite(*rmspix) && *rmspix > SMALL)
+          *noisepix = ((PIXTYPE)random_poisson((double)*imapix, 0) - *imapix)
+			/ *rmpix + random_gauss(1.0, 0));
       }
     else
-      for (i=npix; i--; imapixt++)
-        *(pixt++) = (PIXTYPE)(random_poisson((double)*imapixt, 0) - *imapixt
+      for (i=npix; i--; imapix++)
+        *(noisepix++) = (PIXTYPE)(random_poisson((double)*imapix, 0) - *imapix
 			+ random_gauss(ron, 0));
 #endif
     QPTHREAD_MUTEX_LOCK(&noisemutex);  

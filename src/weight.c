@@ -105,7 +105,7 @@ int	load_weight(simstruct *sim)
   npix = sim->imasize[0] * sim->imasize[1];
   sprintf(lstr,"Loading %s", rfilename);
   NFPRINTF(OUTPUT, lstr);
-  QMALLOC16(sim->noise, PIXTYPE, npix);
+  QMALLOC16(sim->weight, PIXTYPE, npix);
   QFSEEK(tab->cat->file, tab->bodypos, SEEK_SET, tab->cat->filename);
   read_body(tab, sim->noise, npix);
   free_cat(&cat, 1);
@@ -119,7 +119,7 @@ int	load_weight(simstruct *sim)
 
     case WEIGHT_FROMRMSMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : BIG;
-      pix = sim->noise;
+      pix = sim->weight;
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
         *pix = *pix < weight_thresh ? weight_fac * *pix : anan.f;
@@ -127,7 +127,7 @@ int	load_weight(simstruct *sim)
 
     case WEIGHT_FROMVARMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : BIG;
-      pix = sim->noise;
+      pix = sim->weight;
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
         *pix = *pix < weight_thresh ? weight_fac * sqrtf(fabsf(*pix)) : anan.f;
@@ -135,7 +135,7 @@ int	load_weight(simstruct *sim)
 
     case WEIGHT_FROMWEIGHTMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : 0.0;
-      pix = sim->noise;
+      pix = sim->weight;
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
         *pix = *pix > weight_thresh ? weight_fac / sqrtf(fabs(*pix)) : anan.f;
