@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/04/2017
+*	Last modified:		18/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -49,15 +49,16 @@
 #include "define.h"
 #include "types.h"
 #include "globals.h"
+#include "corr.h"
 #include "fft.h"
+#include "noise.h"
 #include "prefs.h"
 #include "random.h"
+#include "simul.h"
 
 #ifdef USE_THREADS
 #include "threads.h"
 
-static void	pthread_addnoise(simstruct *sim),
-		*pthread_addnoiseline(void *arg);
 
 static pthread_t	*thread;
 static pthread_mutex_t	noisemutex;
@@ -128,7 +129,7 @@ void	noise_make(simstruct *sim)
   QMALLOC16(sim->noise, PIXTYPE, sim->imasize[0]*sim->imasize[1]);
 
 #ifdef USE_THREADS
-  pthread_addnoise(sim);
+  noise_add_pthread(sim);
 #else
   ron = (PIXTYPE)sim->ron;
   imapix = sim->image;
@@ -198,10 +199,12 @@ AUTHOR	E. Bertin (IAP)
 VERSION	17/04/2017
  ***/
 void	noise_corr(simstruct *sim) {
+
    PIXTYPE	*corrnoise, *corrnoisepix, *rmspix, *noisepix;
    int		i, y;
 
   QMALLOC16(corrnoise, PIXTYPE, sim->imasize[0]*sim->imasize[1]);
+
   for (y = 0; y < sim->imasize[1]; y++) {
     noise_corrline(sim, corrnoise + y * sim->imasize[0], y);
   }
@@ -291,16 +294,16 @@ void	noise_corrline(simstruct *sim, PIXTYPE *corrline, int y) {
 
 #ifdef USE_THREADS
 
-/****** pthread_addnoiseline **************************************************
-PROTO	void *pthread_addnoiseline(void *arg)
+/****** noise_addline_pthread *************************************************
+PROTO	void *noise_addline_pthread(void *arg)
 PURPOSE	Noise generation thread.
 INPUT	Pointer to the thread number.
 OUTPUT	NULL void pointer.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2017
+VERSION	18/04/2017
  ***/
-static void	*pthread_addnoiseline(void *arg)
+void	*noise_addline_pthread(void *arg)
   {
    double	ron;
    PIXTYPE	*pix, *pixt, *imapix, *noisepix, *rmspix;
@@ -361,7 +364,7 @@ static void	*pthread_addnoiseline(void *arg)
       for (i=npix; i--; noisepix++, imapix++) {
         if (isfinite(*rmspix) && *rmspix > SMALL)
           *noisepix = ((PIXTYPE)random_poisson((double)*imapix, 0) - *imapix)
-			/ *rmpix + random_gauss(1.0, 0));
+			/ *rmspix + random_gauss(1.0, 0);
       }
     else
       for (i=npix; i--; imapix++)
@@ -378,16 +381,16 @@ static void	*pthread_addnoiseline(void *arg)
   }
 
 
-/****** pthread_addnoise ****************************************************
-PROTO	void pthread_addnoise(simstruct *sim)
+/****** noise_add_pthread ****************************************************
+PROTO	void noise_add_pthread(simstruct *sim)
 PURPOSE	Add photon photo and read-out noise to image using multithreads
 INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	10/03/2016
+VERSION	18/04/2016
  ***/
-static void	pthread_addnoise(simstruct *sim)
+void	noise_add_pthread(simstruct *sim)
   {
    static pthread_attr_t	pthread_attr;
    int				*proc,
@@ -421,7 +424,8 @@ static void	pthread_addnoise(simstruct *sim)
     QMALLOC(pthread_poissonbuf[p], int, sim->imasize[0]);
     QMALLOC(pthread_gaussbuf[p], float, sim->imasize[0]);
 #endif
-    QPTHREAD_CREATE(&thread[p], &pthread_attr, &pthread_addnoiseline, &proc[p]);
+    QPTHREAD_CREATE(&thread[p], &pthread_attr, &noise_addline_pthread,
+	&proc[p]);
     }
   for (p=0; p<nproc; p++)
     QPTHREAD_JOIN(thread[p], NULL);

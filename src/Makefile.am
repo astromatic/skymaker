@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		17/03/2017
+#	Last modified:		18/04/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -30,13 +30,13 @@ SUBDIRS		= fits wcs
 
 bin_PROGRAMS	= sky
 
-sky_SOURCES	= alterimage.c fft.c fitswcs.c galaxies.c image.c imaout.c \
-		  list.c main.c makeit.c noise.c poly.c prefs.c psf.c random.c \
-		  simul.c stars.c weight.c \
-		  alterimage.h define.h fft.h fitswcs.h galaxies.h globals.h \
-		  image.h imaout.h key.h list.h noise.h poly.h preflist.h \
-		  prefs.h psf.h random.h simul.h stars.h threads.h types.h \
-		  wcscelsys.h weight.h
+sky_SOURCES	= alterimage.c corr.c fft.c fitswcs.c galaxies.c image.c \
+		  imaout.c list.c main.c makeit.c noise.c poly.c prefs.c psf.c \
+		  random.c simul.c stars.c weight.c \
+		  alterimage.h corr.h define.h fft.h fitswcs.h galaxies.h \
+		  globals.h image.h imaout.h key.h list.h noise.h poly.h \
+		  preflist.h prefs.h psf.h random.h simul.h stars.h threads.h \
+		  types.h wcscelsys.h weight.h
 
 sky_LDADD	= $(srcdir)/fits/libfits.a \
 		  $(srcdir)/wcs/libwcs_c.a

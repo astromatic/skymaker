@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/04/2017
+*	Last modified:		18/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -39,6 +39,7 @@
 #include "define.h"
 #include "globals.h"
 #include "alterimage.h"
+#include "corr.h"
 #include "imaout.h"
 #include "list.h"
 #include "noise.h"
@@ -85,7 +86,7 @@ void    makeit()
   center_psf(simul);
   QCALLOC(simul->image, PIXTYPE, (size_t)simul->fimasize[0]*simul->fimasize[1]);
   if (prefs.weight_type != WEIGHT_NONE)
-    load_weight(simul);
+    weight_load(simul);
   openoutlist(simul);
   readlist(simul);
   makestarfield(simul);
@@ -105,7 +106,10 @@ void    makeit()
   if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE)
     {
     NFPRINTF(OUTPUT, "Generating noise...");
+//    corr_generate(simul, CORRINTERP_BILINEAR, 1.0);
+
     noise_make(simul);
+    noise_corr(simul);
     noise_add(simul);
     }
 /*
@@ -116,12 +120,16 @@ void    makeit()
     NFPRINTF(OUTPUT, "Simulating saturation...");
     saturate(simul);
     }
+
   NFPRINTF(OUTPUT, "Converting to ADUs...");
   etoadu(simul);
+
   NFPRINTF(OUTPUT, "Microscanning image...");
   microscan(simul);
+
   NFPRINTF(OUTPUT, "Writing image...");
   imaout_write(simul);
+
   NFPRINTF(OUTPUT, "Freeing memory...");
   sim_end(simul);
 

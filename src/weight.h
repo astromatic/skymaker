@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/03/2017
+*	Last modified:		18/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -31,7 +31,7 @@
 
 /*---------------------------------- protos --------------------------------*/
 
-extern int	load_weight(simstruct *sim);
+extern int	weight_load(simstruct *sim);
 
 #endif
 

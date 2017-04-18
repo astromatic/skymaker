@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/03/2017
+*	Last modified:		18/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -47,16 +47,16 @@
 
 union {unsigned int i; float f;} anan = {0x7ff80000};
 
-/******* load_weight *********************************************************
-PROTO	int load_weight(simstruct *sim)
+/******* weight_load *********************************************************
+PROTO	int weight_load(simstruct *sim)
 PURPOSE	Load a weight-map and convert it to a noise (RMS) map.
 INPUT	Pointer to the simulation.
 OUTPUT	RETURN_OK if no error, or RETURN_ERROR in case of non-fatal error(s).
 NOTES   Relies on global variables.
 AUTHOR  E. Bertin (IAP)
-VERSION 28/03/2017
+VERSION 18/04/2017
  ***/
-int	load_weight(simstruct *sim)
+int	weight_load(simstruct *sim)
 
   {
    catstruct	*cat;

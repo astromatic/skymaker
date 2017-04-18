@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/04/2017
+*	Last modified:		18/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -61,6 +61,10 @@ typedef enum	{CENTER_UPPERHALF, CENTER_LOWERHALF, CENTER_HALF,
 		CENTER_PEAK}	centertypenum;
 
 typedef enum	{NO_TRACKERR, DRIFT, JITTER}	tracktypenum;
+
+typedef enum	{CORRINTERP_NONE, CORRINTERP_NEAREST, CORRINTERP_BILINEAR,
+		CORRINTERP_LANCZOS2, CORRINTERP_LANCZOS3, CORRINTERP_LANCZOS4}
+			corrinterpenum;
 
 typedef enum	{CORREL_NONE, CORREL_NOISE, CORREL_ALL}	correltypenum;
 

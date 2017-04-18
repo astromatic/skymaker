@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/03/2017
+*	Last modified:		18/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -230,7 +230,7 @@ INPUT   Pointer to the sim structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 28/03/2017
+VERSION 18/04/2017
 */
 void    sim_end(simstruct *sim)
 
@@ -242,7 +242,9 @@ void    sim_end(simstruct *sim)
   free(sim->image);
   free(sim->psfmot[0]);
   free(sim->psfmot[1]);
+  free(sim->weight);
   free(sim->noise);
+  free(sim->corr);
   free(sim);
 
   return;
