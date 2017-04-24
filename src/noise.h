@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/04/2017
+*	Last modified:		24/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -36,9 +36,8 @@
 
 /*---------------------------------- protos --------------------------------*/
 extern void	noise_add(simstruct *sim),
-		noise_add_pthread(simstruct *sim),
-		*noise_addline_pthread(void *arg),
 		noise_corr(simstruct *sim),
-		noise_corrline(simstruct *sim, PIXTYPE *convline, int y),
-		noise_make(simstruct *sim);
+		noise_corrline(simstruct *sim, PIXTYPE *corrnoise, int y),
+		noise_generate(simstruct *sim),
+		noise_generateline(simstruct *sim, PIXTYPE *noise, int y);
 

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/04/2017
+*	Last modified:		24/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -108,7 +108,7 @@ void    makeit()
     NFPRINTF(OUTPUT, "Generating noise...");
 //    corr_generate(simul, CORRINTERP_BILINEAR, 1.0);
 
-    noise_make(simul);
+    noise_generate(simul);
     noise_corr(simul);
     noise_add(simul);
     }

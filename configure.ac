@@ -49,6 +49,7 @@ AC_SUBST(DATE3, "$date3")
 # Include macros
 sinclude(acx_fftw.m4)
 sinclude(acx_mkl.m4)
+sinclude(acx_openmp.m4)
 sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
 
@@ -180,8 +181,9 @@ if test "$use_pthreads" = "yes"; then
   AC_DEFINE(USE_THREADS, 1, [Triggers multhreading])
 # CC, CFLAGS and LIBS are system and compiler-dependent
   ACX_PTHREAD
+  AX_OPENMP
   CC="$PTHREAD_CC"
-  [AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS -D_REENTRANT"]
+  [AM_CFLAGS="$AM_CFLAGS $OPENMP_CFLAGS $PTHREAD_CFLAGS -D_REENTRANT"]
   LIBS="$LIBS $PTHREAD_LIBS"
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")

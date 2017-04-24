@@ -168,6 +168,12 @@ typedef struct
 /*------ Random generator */
   int		psfmotionseed;		/* Seed for PSF motion */
   int		starposseed;		/* Seed for star positions */
+#ifdef HAVE_MKL
+  void		**streams;		/* Seeds for MKL functions */
+  double	**lambdabuf;		/* Lambda buffers for MKL Poisson gen. */
+  int		**poissonbuf;		/* Poisson buffers for MKL generator */
+  float		**gaussbuf;		/* Gauss buffers for MKL generator */
+#endif
 /*------ Grid parameters */
   int		gridindex;		/* Position in grid */
   int		gridstep;		/* Step between objects */

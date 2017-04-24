@@ -84,7 +84,7 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
 		xc1,xc2,yc1,yc2, xs1,ys1, x1,y1, val;
    int		i,j,k,n,t, *startt, *nmaskt,
 		ixs2,iys2, ix2,iy2, dix2,diy2, nx2,ny2, iys1a, ny1, hmw,hmh,
-		ix,iy, ix1,iy1, w2,h2, interpw;
+		ix,iy, ix1,iy1, w2,h2, interpw, imax;
 
   interp_type = INTERP_TYPE;
   interpw = interp_kernwidth[interp_type];
@@ -202,8 +202,9 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
       {
       pixin = pixin0+*(startt++);
       val = 0.0;
+      imax = *(nmaskt++);
 #pragma omp simd reduction(+:val)
-      for (i=*(nmaskt++); i!=0; --i)
+      for (i=0; i<imax; i++)
         val += *(maskt++)**(pixin++);
       *dpixout = val;
       }
