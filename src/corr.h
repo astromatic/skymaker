@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/04/2017
+*	Last modified:		25/04/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -31,8 +31,14 @@
 #endif
 
 /*---------------------------- Internal constants ---------------------------*/
+#define	CORRINTERP_STEP		0.01	/* interpolant integration step */
 
 /*--------------------------- structure definitions -------------------------*/
+typedef struct {
+  corrinterpenum 	corrinterp_type;	/* Correlation interp. type */
+  float			radius;			/* Correlation kernel size */
+  PIXTYPE 	(*func)(float x);	/* Pointer to kernel function */
+}	corrstruct;
 
 /*---------------------------------- protos --------------------------------*/
 extern void	corr_generate(simstruct *sim, corrinterpenum interp_type,

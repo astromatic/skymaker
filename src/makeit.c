@@ -106,8 +106,7 @@ void    makeit()
   if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE)
     {
     NFPRINTF(OUTPUT, "Generating noise...");
-//    corr_generate(simul, CORRINTERP_BILINEAR, 1.0);
-
+    corr_generate(simul, CORRINTERP_NEAREST, 4.0);
     noise_generate(simul);
     noise_corr(simul);
     noise_add(simul);

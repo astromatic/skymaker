@@ -67,18 +67,19 @@ INPUT	Pointer to the simulation.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2017
+VERSION	25/04/2017
  ***/
 void	noise_add(simstruct *sim)
 
   {
-   PIXTYPE	*imapix, *rmspix;
+   PIXTYPE	*imapix, *noisepix;
    int		i;
 
   imapix = sim->image;
-  rmspix = sim->noise;
-  for (i = sim->imasize[0] * sim->imasize[1]; i--; imapix++, rmspix++)
-    *imapix = isfinite(*rmspix) ? *imapix + *rmspix : 0.0;
+  noisepix = sim->noise;
+  for (i = sim->imasize[0] * sim->imasize[1]; i--; imapix++, noisepix++)
+    if (isfinite(*noisepix))
+      *imapix += *noisepix;
 
   return;
   }
@@ -152,7 +153,7 @@ INPUT	Pointer to the simulation,
 OUTPUT	-.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	24/04/2017
+VERSION	25/04/2017
  ***/
 void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
 
@@ -161,7 +162,6 @@ void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
    int			i, p, npix;
 
 #ifdef HAVE_MKL
-   PIXTYPE		*imapixt;
    double		*lambdabuf, *lambdabuft;
    int			*poissonbuf;
    float		*gaussbuf;
@@ -180,17 +180,16 @@ void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
   rmspix = sim->weight + y * npix;
 
 #ifdef HAVE_MKL
-  imapixt = imapix;
   lambdabuf = sim->lambdabuf[p];
   for (i=npix; i--;)
-    *(lambdabuf++) = (double)*(imapixt++);
+    *(lambdabuf++) = (double)*(imapix++);
   viRngPoissonV(VSL_RNG_METHOD_POISSONV_POISNORM,
 		(VSLStreamStatePtr)sim->streams[p], npix,
 		sim->poissonbuf[p], sim->lambdabuf[p]);
   vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF,
 		(VSLStreamStatePtr)sim->streams[p], npix,
 		sim->gaussbuf[p], 0.0, 1.0);
-  imapixt = imapix;
+  imapix = sim->image + y * npix;
   poissonbuf = sim->poissonbuf[p];
   gaussbuf = sim->gaussbuf[p];
   if (sim->weight) {
@@ -202,7 +201,8 @@ void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
     }
   } else
     for (i=npix; i--;)
-      *(noisepix++) = (PIXTYPE)*(poissonbuf++) + ron * (PIXTYPE)*(gaussbuf++);
+      *(noisepix++) = (PIXTYPE)*(poissonbuf++) - *(imapix++) +
+			ron * (PIXTYPE)*(gaussbuf++);
 #else
   if (sim->weight)
     for (i=npix; i--; rmspix++, noisepix++, imapix++) {
