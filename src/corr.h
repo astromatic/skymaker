@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/04/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -30,17 +30,23 @@
 #include "simul.h"
 #endif
 
-/*---------------------------- Internal constants ---------------------------*/
-#define	CORRINTERP_STEP		0.01	/* interpolant integration step */
+/*---------------------------- Internal constants --------------------------*/
+#define	CORRFUNC_STEP		0.01	/* Corr. function integration step */
 
-/*--------------------------- structure definitions -------------------------*/
+/*--------------------------- structure definitions ------------------------*/
 typedef struct {
-  corrinterpenum 	corrinterp_type;	/* Correlation interp. type */
-  float			radius;			/* Correlation kernel size */
+  corrfuncenum 	corrfunc_type;		/* Correlation interp. type */
+  float		radius;			/* Correlation kernel size */
   PIXTYPE 	(*func)(float x);	/* Pointer to kernel function */
 }	corrstruct;
 
+/*---------------------------- External constants --------------------------*/
+extern const corrstruct	coors[];
+
 /*---------------------------------- protos --------------------------------*/
-extern void	corr_generate(simstruct *sim, corrinterpenum interp_type,
+extern void	corr_conv(simstruct *sim, PIXTYPE **image),
+		corr_convline(simstruct *sim, PIXTYPE *imagein,
+			PIXTYPE *imageout, int y),
+		corr_generate(simstruct *sim, corrfuncenum interp_type,
 			float scale);
 

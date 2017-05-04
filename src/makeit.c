@@ -53,9 +53,8 @@
 /*
 Manage the whole stuff.
 */
-void    makeit()
+void    makeit() {
 
-  {
    simstruct	*simul;
    time_t	thetime, thetime2;
    struct tm	*tm;
@@ -92,28 +91,32 @@ void    makeit()
   makestarfield(simul);
   closeoutlist(simul);
   freepsf(simul);
-  if (simul->aurange)
-    {
+  if (simul->aurange) {
     NFPRINTF(OUTPUT, "Adding diffuse component...");
     addaureole(simul);
-    NFPRINTF(OUTPUT, "Removing margins...");
-    cutborders(simul);
-    }
+  }
+
   if (prefs.weight_type == WEIGHT_NONE) {
     NFPRINTF(OUTPUT, "Adding background...");
     addback(simul);
   }
-  if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE)
-    {
+
+  if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE) {
     NFPRINTF(OUTPUT, "Generating noise...");
-    corr_generate(simul, CORRINTERP_NEAREST, 4.0);
     noise_generate(simul);
-    noise_corr(simul);
-    noise_add(simul);
+    if (prefs.corr_type != CORR_NONE) {
+      noise_corr(simul);
+      if (prefs.corr_type == CORR_ALL)
+        corr_conv(simul, &simul->image);
     }
-/*
-  quantify(&simul);
-*/
+    noise_add(simul);
+  }
+
+  NFPRINTF(OUTPUT, "Removing margins...");
+  cutborders(simul, &simul->image);
+
+//  quantify(&simul);
+
   if (simul->wellcap)
     {
     NFPRINTF(OUTPUT, "Simulating saturation...");

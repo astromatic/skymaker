@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/04/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -62,11 +62,11 @@ typedef enum	{CENTER_UPPERHALF, CENTER_LOWERHALF, CENTER_HALF,
 
 typedef enum	{NO_TRACKERR, DRIFT, JITTER}	tracktypenum;
 
-typedef enum	{CORRINTERP_NONE, CORRINTERP_NEAREST, CORRINTERP_BILINEAR,
-		CORRINTERP_LANCZOS2, CORRINTERP_LANCZOS3, CORRINTERP_LANCZOS4}
-			corrinterpenum;
+typedef enum	{CORRFUNC_NONE, CORRFUNC_NEAREST, CORRFUNC_BILINEAR,
+		CORRFUNC_LANCZOS2, CORRFUNC_LANCZOS3, CORRFUNC_LANCZOS4}
+			corrfuncenum;
 
-typedef enum	{CORREL_NONE, CORREL_NOISE, CORREL_ALL}	correltypenum;
+typedef enum	{CORR_NONE, CORR_NOISE, CORR_ALL}	corrtypenum;
 
 typedef enum	{WEIGHT_NONE, WEIGHT_FROMRMSMAP, WEIGHT_FROMVARMAP,
 		WEIGHT_FROMWEIGHTMAP}	weightenum;	/* WEIGHT_IMAGE type */
@@ -85,7 +85,8 @@ typedef struct
   PIXTYPE	*image;			/* Pointer to the image pixel map */
   imatypenum	imatype;		/* Image type */
 /* Noise */
-  PIXTYPE	*weight;			/* Pointer to the noise rms map */
+  PIXTYPE	*weight;		/* Pointer to the noise rms map */
+  PIXTYPE	**weightbuf;		/* Pointer to the noise rms map buffer*/
 /* Noise */
   PIXTYPE	*noise;			/* Pointer to the image noise map */
 /* Correlation */

@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2016 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/03/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -64,8 +64,10 @@ pkeystruct key[] =
    {""}, 1, 3, &prefs.npsfd80comax},
   {"COMAY_D80", P_FLOATLIST, prefs.psfd80comay, 0,0, -1e3, 1e3,
    {""}, 1, 3, &prefs.npsfd80comay},
-  {"CORRELATION_LENGTH", P_FLOAT, &prefs.correlation_length, 0,0, 0.0, 1024.0},
-  {"CORRELATION_TYPE", P_KEY, &prefs.correlation_type, 0,0, 0.0,0.0,
+  {"CORREL_FUNC_TYPE", P_KEY, &prefs.corr_func_type, 0,0, 0.0,0.0,
+   {"NEAREST","BILINEAR","LANCZOS2","LANCZOS3","LANCZOS4",""}},
+  {"CORREL_SCALE", P_FLOAT, &prefs.corr_scale, 0,0, 0.0,100.0},
+  {"CORREL_TYPE", P_KEY, &prefs.corr_type, 0,0, 0.0,0.0,
    {"NONE","NOISE", "ALL",""}},
   {"DEFOC_D80", P_FLOATLIST, prefs.psfd80defoc, 0,0, -1e3, 1e3,
    {""}, 1, 3, &prefs.npsfd80defoc},
@@ -188,13 +190,16 @@ char *default_prefs[] =
 "EXPOSURE_TIME      300.0        # total exposure time (s)",
 "MAG_ZEROPOINT      26.0         # magnitude zero-point (\"ADU per second\")",
 " ",
+"*#---------------------------- Noise correlation ------------------------------",
+"*CORREL_TYPE        NONE         # pixel correlation: NONE, NOISE or ALL",
+"*CORREL_FUNC_TYPE   BILINEAR     # correlation function type: NEAREST, BILINEAR,",
+"*                                # LANCZOS2, LANCZOS3 or LANCZOS4",
+"*CORREL_SCALE       1.0          # Spatial scaling of the correlation function",
+"* ",
 "#-------------------------------- Sampling -----------------------------------",
 " ",
 "PIXEL_SIZE         0.200        # pixel size in arcsec.",
 "MICROSCAN_NSTEP    1            # number of microscanning steps (1=no mscan)",
-"CORRELATION_TYPE   NONE         # pixel correlation (NONE, NOISE or ALL)",
-"CORRELATION_LENGTH 2            # autocorrelation length in pixels",
-" ",
 "#---------------------------------- PSF --------------------------------------",
 " ",
 "PSF_TYPE           INTERNAL     # INTERNAL or FILE",

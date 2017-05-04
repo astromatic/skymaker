@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/04/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -39,6 +39,7 @@
 #include "globals.h"
 #include "prefs.h"
 #include "fitswcs.h"
+#include "corr.h"
 #include "imaout.h"
 #include "random.h"
 #include "simul.h"
@@ -50,7 +51,7 @@ INPUT   -.
 OUTPUT  Pointer to an allocated and filled sim structure.
 NOTES   Global prefs variables are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 24/05/2012
+VERSION 04/05/2012
 */
 simstruct	*sim_init(void)
   {
@@ -137,6 +138,16 @@ simstruct	*sim_init(void)
 /* Pad the pixel map in order to bypass aliasing with the aureole FFTs */
   sim->margin[0] = sim->mscan[0]*(sim->aurange/sim->mscan[0]);
   sim->margin[1] = sim->mscan[1]*(sim->aurange/sim->mscan[1]);
+
+/* Prepare noise correlation function */
+  if (prefs.corr_type != CORR_NONE) {
+    corr_generate(sim, prefs.corr_func_type, prefs.corr_scale);
+    if (sim->margin[0] < sim->corrsize[0] / 2)
+      sim->margin[0] = sim->corrsize[0] / 2;
+    if (sim->margin[1] < sim->corrsize[1] / 2)
+      sim->margin[1] = sim->corrsize[1] / 2;
+  }
+
   sim->fimasize[0] = sim->imasize[0]+2*sim->margin[0];
   sim->fimasize[1] = sim->imasize[1]+2*sim->margin[1];
 

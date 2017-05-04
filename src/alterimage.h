@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/03/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -37,7 +37,7 @@
 /*---------------------------------- protos --------------------------------*/
 extern void	addaureole(simstruct *sim),
 		addback(simstruct *sim),
-		cutborders(simstruct *sim),
+		cutborders(simstruct *sim, PIXTYPE **image),
 		etoadu(simstruct *sim),
 		microscan(simstruct *sim),
 		saturate(simstruct *sim);

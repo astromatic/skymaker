@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/03/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -85,8 +85,10 @@ typedef struct
   double	magzero;		/* Mag. zero-point "ADU per second" */
   double	expotime;		/* Exposure time (s) */
   double	magback;		/* Background surface brightness */
-  correltypenum	correlation_type;	/* Correlation type */
-  double	correlation_length;	/* Correlation length (pixels) */
+/*------ Noise correlation */
+  corrtypenum	corr_type;		/* Correlation type */
+  corrfuncenum  corr_func_type;		/* Correlation function type */
+  double	corr_scale;		/* Scaling of the correl. function */
 /*------ PSF */
   psftypenum	psftype;		/* PSF type */
   char		psfname[MAXCHAR];	/* PSF file name */

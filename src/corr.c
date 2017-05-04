@@ -1,7 +1,7 @@
 /*
 *				corr.c
 *
-* Generate correlation square root function.
+* Manage noise correlation.
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/04/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -37,11 +37,16 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include FFTW_H
 
 #ifdef HAVE_MKL
  #include MKL_H
+#endif
+
+#ifdef USE_THREADS
+  #include <omp.h>
 #endif
 
 #include "define.h"
@@ -58,30 +63,128 @@ static	PIXTYPE	corr_func_nearest(float x),
 		corr_func_lanczos3(float x),
 		corr_func_lanczos4(float x);
 
+static const corrstruct coors[] = {
+  {CORRFUNC_NEAREST, 0.5, corr_func_nearest},
+  {CORRFUNC_BILINEAR, 1.0, corr_func_bilinear},
+  {CORRFUNC_LANCZOS2, 2.0, corr_func_lanczos2},
+  {CORRFUNC_LANCZOS3, 3.0, corr_func_lanczos3},
+  {CORRFUNC_LANCZOS4, 4.0, corr_func_lanczos4}
+};
+
+
+/****** corr_conv ******************************************************
+PROTO	void corr_conv(simstruct *sim, PIXTYPE **image)
+PURPOSE	Correlate (convolve) an image with some symmetric kernel.
+INPUT	Pointer to the simulation,
+	pointer to the input image pointer.
+OUTPUT	-.
+NOTES	The input image pointer is freed and replaced with that of the new
+	correlated image. 
+AUTHOR	E. Bertin (IAP)
+VERSION	04/05/2017
+ ***/
+void	corr_conv(simstruct *sim, PIXTYPE **image) {
+
+   PIXTYPE	*imageout;
+   int		y;
+
+  QMALLOC16(imageout, PIXTYPE, sim->fimasize[0]*sim->fimasize[1]);
+
+#pragma omp parallel for num_threads(prefs.nthreads)
+  for (y = 0; y < sim->fimasize[1]; y++)
+    corr_convline(sim, *image, imageout, y);
+
+  free(*image);
+  *image = imageout;
+
+  return;
+  }
+
+
+/****** corr_convline **************************************************
+PROTO	void corr_convline(simstruct *sim, PIXTYPE *imagein, PIXTYPE *imageout,
+		int y)
+PURPOSE	Correlate an image line to replicate image interpolation effects
+INPUT	Pointer to the simulation,
+	pointer to the input image,
+	pointer to the output correlated (convolved) image,
+	y coordinate.
+OUTPUT	-.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	04/05/2017
+ ***/
+void	corr_convline(simstruct *sim, PIXTYPE *imagein, PIXTYPE *imageout,
+		int y) {
+
+   int		mw,mw2,m0,me,m,mx,dmx, y0, dy, sw,sh;
+   PIXTYPE	*corrline, *corrlinee, *corr,
+		*s,*s0, *d,*de, mval;
+
+  sw = sim->fimasize[0];
+  mw = sim->corrsize[0];
+  mw2 = mw/2;
+  y0 = y - (sim->corrsize[1]/2);
+  corrline = imageout + y * sw;
+  if ((dy = -y0) > 0)
+    {
+    m0 = mw*dy;
+    y0 = 0;
+    }
+  else
+    m0 = 0;
+
+  if ((dy = sim->fimasize[1] - y0) < sim->corrsize[1])
+    me = mw * dy;
+  else
+    me = mw * sim->corrsize[1];
+
+  corrlinee = corrline + sw;
+
+  memset(corrline, 0, sw * sizeof(PIXTYPE));
+  
+  s0 = NULL;				/* To avoid gcc -Wall warnings */
+  corr = sim->corr + m0;
+  for (m = m0, mx = 0; m<me; m++, mx++) {
+    if (mx==mw)
+      mx = 0;
+    if (!mx)
+      s0 = imagein + sw * y0++;
+
+    if ((dmx = mx - mw2) >= 0) {
+      s = s0 + dmx;
+      d = corrline;
+      de = corrlinee - dmx;
+    } else {
+      s = s0;
+      d = corrline - dmx;
+      de = corrlinee;
+    }
+
+    mval = *(corr++);
+    while (d < de)
+      *(d++) += mval * *(s++);
+  }
+
+  return;
+}
+
+
 /****** corr_generate **************************************************
-PROTO	void corr_generate(simstruct *sim, corrinterpenum interp_type,
+PROTO	void corr_generate(simstruct *sim, corrfuncenum corrfunc_type,
 		float scale)
 PURPOSE	Generate average correlation square root function for the provided
 	interpolation function.
 INPUT	Pointer to the simulation,
-	interpolant type,
+	correlation function type,
 	relative pixel scale (>1 if the output grid oversamples the input grid)
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/04/2017
+VERSION	04/05/2017
  ***/
-void	corr_generate(simstruct *sim, corrinterpenum corrinterp_type,
+void	corr_generate(simstruct *sim, corrfuncenum corrfunc_type,
 		float scale) {
-
-  static const corrstruct coors[6] = {
-    {CORRINTERP_NONE, 0.0,  NULL},
-    {CORRINTERP_NEAREST, 0.5, corr_func_nearest},
-    {CORRINTERP_BILINEAR, 1.0, corr_func_bilinear},
-    {CORRINTERP_LANCZOS2, 2.0, corr_func_lanczos2},
-    {CORRINTERP_LANCZOS3, 3.0, corr_func_lanczos3},
-    {CORRINTERP_LANCZOS4, 4.0, corr_func_lanczos4}
-  };
 
    corrstruct	corr;
    PIXTYPE	(*corr_func)(float x),
@@ -90,10 +193,7 @@ void	corr_generate(simstruct *sim, corrinterpenum corrinterp_type,
    float	invscale, dx, dy;
    int		i, imax, ix, iy;
 
-  if (corrinterp_type == CORRINTERP_NONE)
-    return;
-
-  corr = coors[corrinterp_type];
+  corr = coors[corrfunc_type];
   imax = (int)(scale * (corr.radius + 0.499));
   sim->corrsize[0] = sim->corrsize[1] = imax * 2 + 1;
   invscale = 1.0 / scale;
@@ -105,15 +205,17 @@ void	corr_generate(simstruct *sim, corrinterpenum corrinterp_type,
 /* Integrate over all kernel positions with respect to the pixel grid */
   kernel = sim->corr;
   dsum = 0.0;
+
+//#pragma omp parallel for collapse(2) private(dval,dx,dy) reduction(+:dsum) num_threads(prefs.nthreads)
   for (iy = -imax; iy <= imax; iy++)
     for (ix = -imax; ix <= imax; ix++) {
       dval = 0.0;
-      for (dy = -0.5; dy <= 0.5; dy += CORRINTERP_STEP)
-        for (dx = -0.5; dx <= 0.5; dx += CORRINTERP_STEP)
+      for (dy = -0.5; dy <= 0.5; dy += CORRFUNC_STEP)
+        for (dx = -0.5; dx <= 0.5; dx += CORRFUNC_STEP)
                dval += corr_func((ix+dx) * invscale) *
 			corr_func((iy+dy) * invscale);
-    *(kernel++) = (PIXTYPE)dval;
-    dsum += dval;
+      *(kernel++) = (PIXTYPE)dval;
+      dsum += dval;
     }
 
 /* Normalize kernel sum to 1 */
@@ -152,7 +254,9 @@ VERSION	25/04/2017
  ***/
 PIXTYPE corr_func_bilinear(float x) {
 
-  return fabsf(x) < 1.0f ? 1.0f - x : 0.0f;
+  x = fabsf(x);
+
+  return x < 1.0f ? 1.0f - x : 0.0f;
 }
 
 
@@ -168,6 +272,7 @@ VERSION	25/04/2017
 PIXTYPE corr_func_lanczos2(float x) {
 
   x = fabsf(x);
+
   if (x < 1e-5f)
     return 1.0f;
   else if (x < 2.0f) {
@@ -190,6 +295,7 @@ VERSION	25/04/2017
 PIXTYPE corr_func_lanczos3(float x) {
 
   x = fabsf(x);
+
   if (x < 1e-5f)
     return 1.0f;
   else if (x < 3.0f) {
@@ -212,6 +318,7 @@ VERSION	25/04/2017
 PIXTYPE corr_func_lanczos4(float x) {
 
   x = fabsf(x);
+
   if (x < 1e-5f)
     return 1.0f;
   else if (x < 4.0f) {

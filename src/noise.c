@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/04/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -67,7 +67,7 @@ INPUT	Pointer to the simulation.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	25/04/2017
+VERSION	04/05/2017
  ***/
 void	noise_add(simstruct *sim)
 
@@ -77,7 +77,7 @@ void	noise_add(simstruct *sim)
 
   imapix = sim->image;
   noisepix = sim->noise;
-  for (i = sim->imasize[0] * sim->imasize[1]; i--; imapix++, noisepix++)
+  for (i = sim->fimasize[0] * sim->fimasize[1]; i--; imapix++, noisepix++)
     if (isfinite(*noisepix))
       *imapix += *noisepix;
 
@@ -92,18 +92,26 @@ INPUT	Pointer to the simulation.
 OUTPUT	-.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	24/04/2017
+VERSION	04/05/2017
  ***/
 void	noise_generate(simstruct *sim) {
 
 #ifdef HAVE_MKL
    unsigned int	seed;
-   int		p;
 #endif
 
-   int		y;
+   PIXTYPE	*rmspix;
+   int		i, p, y;
 
-  QMALLOC16(sim->noise, PIXTYPE, sim->imasize[0]*sim->imasize[1]);
+  QMALLOC16(sim->noise, PIXTYPE, sim->fimasize[0]*sim->fimasize[1]);
+  QCALLOC(sim->weightbuf, PIXTYPE *, sim->fimasize[0] * prefs.nthreads);
+  for (p = 0; p<prefs.nthreads; p++) {
+    QMALLOC16(sim->weightbuf[p], PIXTYPE, sim->fimasize[0]);
+    rmspix = sim->weightbuf[p];
+    for (i = sim->fimasize[0]; i--;)
+      *(rmspix++) = 1.0;
+  }
+    
 
 #ifdef HAVE_MKL
 /* Allocate buffer memory */
@@ -115,20 +123,24 @@ void	noise_generate(simstruct *sim) {
   for (p = 0; p<prefs.nthreads; p++) {
     vslNewStream((VSLStreamStatePtr *)&sim->streams[p], VSL_BRNG_MT2203,
 		seed + p);
-  QMALLOC16(sim->lambdabuf[p], double, sim->imasize[0]);
-  QMALLOC16(sim->poissonbuf[p], int, sim->imasize[0]);
-  QMALLOC16(sim->gaussbuf[p], float, sim->imasize[0]);
+    QMALLOC16(sim->lambdabuf[p], double, sim->fimasize[0]);
+    QMALLOC16(sim->poissonbuf[p], int, sim->fimasize[0]);
+    QMALLOC16(sim->gaussbuf[p], float, sim->fimasize[0]);
   }
 #else
   init_random(0);
 #endif
 
 #pragma omp parallel for num_threads(prefs.nthreads)
-  for (y = 0; y < sim->imasize[1]; y++)
+  for (y = 0; y < sim->fimasize[1]; y++)
     noise_generateline(sim, sim->noise, y);
 
-#ifdef HAVE_MKL
 /* Free buffer memory */
+  for (p = 0; p<prefs.nthreads; p++)
+    free(sim->weightbuf[p]);
+  free(sim->weightbuf);
+
+#ifdef HAVE_MKL
   for (p = 0; p<prefs.nthreads; p++) {
     vslDeleteStream((VSLStreamStatePtr *)&sim->streams[p]);
     free(sim->lambdabuf[p]);
@@ -141,6 +153,7 @@ void	noise_generate(simstruct *sim) {
   free(sim->gaussbuf);
 #endif
 
+  return;
 }
 
 
@@ -153,7 +166,7 @@ INPUT	Pointer to the simulation,
 OUTPUT	-.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	25/04/2017
+VERSION	04/05/2017
  ***/
 void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
 
@@ -173,11 +186,15 @@ void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
   p = 0;
 #endif
 
-  npix = sim->imasize[0];
+  npix = sim->fimasize[0];
   ron = (PIXTYPE)sim->ron;
   imapix = sim->image + y * npix;
   noisepix = sim->noise + y * npix;
-  rmspix = sim->weight + y * npix;
+  if (sim->weight) {
+/* Weightmaps have no margin! */
+    memcpy(sim->weightbuf[p] + sim->margin[0], sim->weight + y * npix, sim->imasize[0] * sizeof(PIXTYPE));
+    rmspix = sim->weightbuf[p];
+  }
 
 #ifdef HAVE_MKL
   lambdabuf = sim->lambdabuf[p];
@@ -220,108 +237,31 @@ void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
 }
 
 
-/****** noise_corr **************************************************
+/****** noise_corr ******************************************************
 PROTO	void noise_corr(simstruct *sim)
 PURPOSE	Correlate (convolve) a noise map with some kernel.
 INPUT	Pointer to the simulation.
 OUTPUT	-.
-NOTES	Relies on global variables.
+NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/04/2017
+VERSION	04/05/2017
  ***/
 void	noise_corr(simstruct *sim) {
 
-   PIXTYPE	*corrnoise, *corrnoisepix, *rmspix, *noisepix;
-   int		i, y;
+   PIXTYPE	*rmspix, *noisepix;
+   int		i;
 
-  QMALLOC16(corrnoise, PIXTYPE, sim->imasize[0]*sim->imasize[1]);
-
-#pragma omp parallel for num_threads(prefs.nthreads)
-  for (y = 0; y < sim->imasize[1]; y++) {
-    noise_corrline(sim, corrnoise, y);
-  }
+  corr_conv(sim, &sim->noise);
 
   noisepix = sim->noise;
-  corrnoisepix = corrnoise;
   if (sim->weight) {
     rmspix = sim->weight;
-    for (i = sim->imasize[0] * sim->imasize[1]; i--;
-		rmspix++, noisepix++, corrnoisepix++)
+    for (i = sim->fimasize[0] * sim->fimasize[1]; i--; rmspix++, noisepix++)
       if (isfinite(*rmspix) && *rmspix > SMALL)
-        *noisepix = *corrnoisepix * *rmspix;
-  } else {
-    for (i = sim->imasize[0] * sim->imasize[1]; i--;)
-      *(noisepix++) = *(corrnoisepix++);
-  }
-
-  free(corrnoise);
-
-  return;
-}
-
-
-/****** noise_corrline **************************************************
-PROTO	void noise_corrline(simstruct *sim, PIXTYPE *corrnoise, int y)
-PURPOSE	Correlate a noise-map line to replicate image interpolation effects
-INPUT	Pointer to the simulation,
-	pointer to the correlated (convolved) data array,
-	y coordinate.
-OUTPUT	-.
-NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	24/04/2017
- ***/
-void	noise_corrline(simstruct *sim, PIXTYPE *corrnoise, int y) {
-
-   int		mw,mw2,m0,me,m,mx,dmx, y0, dy, sw,sh;
-   PIXTYPE	*corrline, *corrlinee, *corr,
-		*s,*s0, *d,*de, mval;
-
-  sw = sim->imasize[0];
-  mw = sim->corrsize[0];
-  mw2 = mw/2;
-  y0 = y - (sim->corrsize[1]/2);
-  corrline = corrnoise + y * sw;
-  if ((dy = -y0) > 0)
-    {
-    m0 = mw*dy;
-    y0 = 0;
-    }
-  else
-    m0 = 0;
-
-  if ((dy = sim->imasize[1] - y0) < sim->corrsize[1])
-    me = mw * dy;
-  else
-    me = mw * sim->corrsize[1];
-
-  corrlinee = corrline + sw;
-
-  memset(corrline, 0, sw * sizeof(PIXTYPE));
-  
-  s0 = NULL;				/* To avoid gcc -Wall warnings */
-  corr = sim->corr + m0;
-  for (m = m0, mx = 0; m<me; m++, mx++) {
-    if (mx==mw)
-      mx = 0;
-    if (!mx)
-      s0 = sim->noise + sw * y0++;
-
-    if ((dmx = mx - mw2) >= 0) {
-      s = s0 + dmx;
-      d = corrline;
-      de = corrlinee - dmx;
-    } else {
-      s = s0;
-      d = corrline - dmx;
-      de = corrlinee;
-    }
-
-    mval = *(corr++);
-    while (d < de)
-      *(d++) += mval * *(s++);
+        *noisepix *= *rmspix;
   }
 
   return;
 }
+
 

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/03/2017
+*	Last modified:		04/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -67,7 +67,7 @@ void	addback(simstruct *sim)
    PIXTYPE	*pix, back;
    int		i, nbpix;
 
-  nbpix = sim->imasize[0]*sim->imasize[1];
+  nbpix = sim->fimasize[0]*sim->fimasize[1];
   back = sim->pixscale[0]*sim->pixscale[1]
 	*DEXP(-0.4*(sim->magback-sim->magzero2));
   pix = sim->image;
@@ -82,7 +82,7 @@ void	addback(simstruct *sim)
 /*
 Remove "optical" margins from image, for subsequent processing.
 */
-void	cutborders(simstruct *sim)
+void	cutborders(simstruct *sim, PIXTYPE **image)
 
   {
    PIXTYPE	*pix, *pix2;
@@ -97,7 +97,7 @@ void	cutborders(simstruct *sim)
   marginstep = fwidth*2*sim->margin[1]/sim->mscan[1];
   nmscan2 = sim->mscan[0]*sim->mscan[1];
 /* Go on, on an SI-per-SI, line-per-line basis */
-  pix = sim->image;
+  pix = *image;
   pix2 = pix+(fwidth*sim->margin[1])/sim->mscan[1]+sim->margin[0]/sim->mscan[0];
   if (sim->margin[1])
     for (m=nmscan2; m--; pix2+=marginstep)
@@ -110,7 +110,7 @@ void	cutborders(simstruct *sim)
         memmove(pix, pix2, width*sizeof(PIXTYPE));
 
 /* Don't spoil memory */
-  QREALLOC(sim->image, PIXTYPE, width*height*nmscan2);
+  QREALLOC(*image, PIXTYPE, width*height*nmscan2);
 
   return;
   }
