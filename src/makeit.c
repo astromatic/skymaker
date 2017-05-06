@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/04/2017
+*	Last modified:		05/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -102,15 +102,23 @@ void    makeit() {
   }
 
   if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE) {
+/*-- Generate white noise */
     NFPRINTF(OUTPUT, "Generating noise...");
     noise_generate(simul);
-    if (prefs.corr_type != CORR_NONE) {
-      noise_corr(simul);
-      if (prefs.corr_type == CORR_ALL)
-        corr_conv(simul, &simul->image);
-    }
-    noise_add(simul);
+    if (prefs.corr_type != CORR_NONE)
+/*---- Correlate noise */
+      corr_conv(simul, &simul->noise);
+    noise_fix(simul);
   }
+
+  if (prefs.corr_type == CORR_ALL)
+/*-- Correlate the image itself */
+    corr_conv(simul, &simul->image);
+
+  if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE)
+/*-- Add noise to image */
+    noise_add(simul);
+
 
   NFPRINTF(OUTPUT, "Removing margins...");
   cutborders(simul, &simul->image);

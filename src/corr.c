@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		04/05/2017
+*	Last modified:		05/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ static	PIXTYPE	corr_func_nearest(float x),
 		corr_func_lanczos3(float x),
 		corr_func_lanczos4(float x);
 
-static const corrstruct coors[] = {
+static const corrstruct corrs[] = {
   {CORRFUNC_NEAREST, 0.5, corr_func_nearest},
   {CORRFUNC_BILINEAR, 1.0, corr_func_bilinear},
   {CORRFUNC_LANCZOS2, 2.0, corr_func_lanczos2},
@@ -181,7 +181,7 @@ INPUT	Pointer to the simulation,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/05/2017
+VERSION	05/05/2017
  ***/
 void	corr_generate(simstruct *sim, corrfuncenum corrfunc_type,
 		float scale) {
@@ -191,11 +191,11 @@ void	corr_generate(simstruct *sim, corrfuncenum corrfunc_type,
 		*kernel;
    double	dval, dsum;
    float	invscale, dx, dy;
-   int		i, imax, ix, iy;
+   int		i, imax, size, ix, iy;
 
-  corr = coors[corrfunc_type];
+  corr = corrs[corrfunc_type];
   imax = (int)(scale * (corr.radius + 0.499));
-  sim->corrsize[0] = sim->corrsize[1] = imax * 2 + 1;
+  sim->corrsize[0] = sim->corrsize[1] = size = imax * 2 + 1;
   invscale = 1.0 / scale;
   corr_func = corr.func;
 
@@ -203,10 +203,10 @@ void	corr_generate(simstruct *sim, corrfuncenum corrfunc_type,
   QMALLOC16(sim->corr, PIXTYPE, sim->corrsize[0] * sim->corrsize[1]);
 
 /* Integrate over all kernel positions with respect to the pixel grid */
-  kernel = sim->corr;
+  kernel = sim->corr + imax * (size + 1);
   dsum = 0.0;
 
-//#pragma omp parallel for collapse(2) private(dval,dx,dy) reduction(+:dsum) num_threads(prefs.nthreads)
+#pragma omp parallel for collapse(2) private(dval,dx,dy) reduction(+:dsum) num_threads(prefs.nthreads)
   for (iy = -imax; iy <= imax; iy++)
     for (ix = -imax; ix <= imax; ix++) {
       dval = 0.0;
@@ -214,7 +214,7 @@ void	corr_generate(simstruct *sim, corrfuncenum corrfunc_type,
         for (dx = -0.5; dx <= 0.5; dx += CORRFUNC_STEP)
                dval += corr_func((ix+dx) * invscale) *
 			corr_func((iy+dy) * invscale);
-      *(kernel++) = (PIXTYPE)dval;
+      kernel[iy * size + ix] = (PIXTYPE)dval;
       dsum += dval;
     }
 

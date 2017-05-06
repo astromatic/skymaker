@@ -45,8 +45,6 @@
 #include "prefs.h"
 #include "weight.h"
 
-union {unsigned int i; float f;} anan = {0x7ff80000};
-
 /******* weight_load *********************************************************
 PROTO	int weight_load(simstruct *sim)
 PURPOSE	Load a weight-map and convert it to a noise (RMS) map.
@@ -59,6 +57,7 @@ VERSION 18/04/2017
 int	weight_load(simstruct *sim)
 
   {
+   static const union {unsigned int i; float f;} anan = {0x7ff80000};
    catstruct	*cat;
    tabstruct	*tab;
    PIXTYPE	*pix,
@@ -107,7 +106,7 @@ int	weight_load(simstruct *sim)
   NFPRINTF(OUTPUT, lstr);
   QMALLOC16(sim->weight, PIXTYPE, npix);
   QFSEEK(tab->cat->file, tab->bodypos, SEEK_SET, tab->cat->filename);
-  read_body(tab, sim->noise, npix);
+  read_body(tab, sim->weight, npix);
   free_cat(&cat, 1);
 
   weight_fac = prefs.weight_factor;

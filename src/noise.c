@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		04/05/2017
+*	Last modified:		05/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -77,6 +77,7 @@ void	noise_add(simstruct *sim)
 
   imapix = sim->image;
   noisepix = sim->noise;
+
   for (i = sim->fimasize[0] * sim->fimasize[1]; i--; imapix++, noisepix++)
     if (isfinite(*noisepix))
       *imapix += *noisepix;
@@ -133,7 +134,7 @@ void	noise_generate(simstruct *sim) {
 
 #pragma omp parallel for num_threads(prefs.nthreads)
   for (y = 0; y < sim->fimasize[1]; y++)
-    noise_generateline(sim, sim->noise, y);
+    noise_generateline(sim, y);
 
 /* Free buffer memory */
   for (p = 0; p<prefs.nthreads; p++)
@@ -158,17 +159,16 @@ void	noise_generate(simstruct *sim) {
 
 
 /****** noise_generateline ************************************************
-PROTO	void noise_generateline(simstruct *sim, PIXTYPE *noise, int y)
+PROTO	void noise_generateline(simstruct *sim, int y)
 PURPOSE	Generate lines of photon and read-out noise.
 INPUT	Pointer to the simulation,
-	pointer to the noise data,
 	y coordinate.
 OUTPUT	-.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/05/2017
+VERSION	05/05/2017
  ***/
-void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
+void	noise_generateline(simstruct *sim, int y) {
 
    PIXTYPE		*pix, *imapix, *noisepix, *rmspix,
 			ron;
@@ -190,9 +190,11 @@ void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
   ron = (PIXTYPE)sim->ron;
   imapix = sim->image + y * npix;
   noisepix = sim->noise + y * npix;
-  if (sim->weight) {
+  if (sim->weight && y >= sim->margin[1] && y < sim->fimasize[1] - sim->margin[1]) {
 /* Weightmaps have no margin! */
-    memcpy(sim->weightbuf[p] + sim->margin[0], sim->weight + y * npix, sim->imasize[0] * sizeof(PIXTYPE));
+    memcpy(sim->weightbuf[p] + sim->margin[0],
+	sim->weight + (y - sim->margin[1]) * sim->imasize[0],
+	sim->imasize[0] * sizeof(PIXTYPE));
     rmspix = sim->weightbuf[p];
   }
 
@@ -209,57 +211,69 @@ void	noise_generateline(simstruct *sim, PIXTYPE *noise,  int y) {
   imapix = sim->image + y * npix;
   poissonbuf = sim->poissonbuf[p];
   gaussbuf = sim->gaussbuf[p];
-  if (sim->weight) {
-    for (i=npix; i--;
-		rmspix++, noisepix++, imapix++, poissonbuf++, gaussbuf++) {
-      if (isfinite(*rmspix) && *rmspix > SMALL)
-        *noisepix = ((PIXTYPE)*poissonbuf - *imapix) / *rmspix
-					+ (PIXTYPE)*gaussbuf;
-    }
-  } else
+  if (sim->weight)
+    for (i=npix; i--; rmspix++, imapix++, poissonbuf++, gaussbuf++)
+      *(noisepix++) = (PIXTYPE)*gaussbuf +
+		((isfinite(*rmspix) && *rmspix > SMALL) ?
+			((PIXTYPE)*poissonbuf - *imapix) / *rmspix : 0.0);
+  else
     for (i=npix; i--;)
-      *(noisepix++) = (PIXTYPE)*(poissonbuf++) - *(imapix++) +
-			ron * (PIXTYPE)*(gaussbuf++);
+      *(noisepix++) = ron * (PIXTYPE)*(gaussbuf++) +
+		(PIXTYPE)*(poissonbuf++) - *(imapix++);
 #else
   if (sim->weight)
-    for (i=npix; i--; rmspix++, noisepix++, imapix++) {
-      if (isfinite(*rmspix) && *rmspix > SMALL)
-	*noisepix = (PIXTYPE)(random_poisson((double)*imapix, 0) - *imapix
-		+ random_gauss(1.0, 0));
-    }
+    for (i=npix; i--; rmspix++, imapix++)
+      *(noisepix++) = random_gauss(1.0, 0) +
+		((isfinite(*rmspix) && *rmspix > SMALL) ?
+			((PIXTYPE)random_poisson((double)*imapix, 0) -
+				*imapix) / *rmspix : 0.0);
   else
     for (i=npix; i--; imapix++)
-      *(noisepix++) = (PIXTYPE)(random_poisson((double)*imapix, 0) - *imapix
-		+ random_gauss(ron, 0));
+      *(noisepix++) = random_gauss(ron, 0) +
+		(PIXTYPE)(random_poisson((double)*imapix, 0) - *imapix; 
 #endif
 
   return;
 }
 
 
-/****** noise_corr ******************************************************
-PROTO	void noise_corr(simstruct *sim)
-PURPOSE	Correlate (convolve) a noise map with some kernel.
+/****** noise_fix ******************************************************
+PROTO	void noise_fix(simstruct *sim)
+PURPOSE	"Fix" noise map (apply properly weight map if needed) after correlation.
 INPUT	Pointer to the simulation.
 OUTPUT	-.
-NOTES	-.
+NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/05/2017
+VERSION	05/05/2017
  ***/
-void	noise_corr(simstruct *sim) {
+void	noise_fix(simstruct *sim) {
 
+   static const union {unsigned int i; float f;} anan = {0x7ff80000};
    PIXTYPE	*rmspix, *noisepix;
-   int		i;
+   int		x, y;
 
-  corr_conv(sim, &sim->noise);
+  if (!sim->weight)
+    return;
 
   noisepix = sim->noise;
-  if (sim->weight) {
-    rmspix = sim->weight;
-    for (i = sim->fimasize[0] * sim->fimasize[1]; i--; rmspix++, noisepix++)
-      if (isfinite(*rmspix) && *rmspix > SMALL)
-        *noisepix *= *rmspix;
+  rmspix = sim->weight;
+
+  for (y = sim->margin[1]; y--;)
+    for (x = sim->fimasize[0]; x--;)
+      *(noisepix++) = anan.f;
+
+  for (y = sim->imasize[1]; y--;) {
+    for (x = sim->margin[0]; x--;)
+      *(noisepix++) = anan.f;
+    for (x = sim->imasize[0]; x--; rmspix++)
+      *(noisepix++) *= isfinite(*rmspix) ? *rmspix : anan.f;
+    for (x = sim->margin[0]; x--;)
+      *(noisepix++) = anan.f;
   }
+
+  for (y = sim->margin[1]; y--;)
+    for (x = sim->fimasize[0]; x--;)
+      *(noisepix++) = anan.f;
 
   return;
 }
