@@ -116,8 +116,8 @@ void    makeit() {
     corr_conv(simul, &simul->image);
 
   if (simul->imatype != SKY_NONOISE && simul->imatype != GRID_NONOISE)
-/*-- Add noise to image */
-    noise_add(simul);
+/*-- Apply noise to image */
+    noise_apply(simul);
 
 
   NFPRINTF(OUTPUT, "Removing margins...");

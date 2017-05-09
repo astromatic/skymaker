@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/04/2017
+*	Last modified:		09/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -52,16 +52,15 @@ INPUT	Pointer to the simulation.
 OUTPUT	RETURN_OK if no error, or RETURN_ERROR in case of non-fatal error(s).
 NOTES   Relies on global variables.
 AUTHOR  E. Bertin (IAP)
-VERSION 18/04/2017
+VERSION 09/05/2017
  ***/
-int	weight_load(simstruct *sim)
+int	weight_load(simstruct *sim) {
 
-  {
    static const union {unsigned int i; float f;} anan = {0x7ff80000};
    catstruct	*cat;
    tabstruct	*tab;
    PIXTYPE	*pix,
-		weight_fac, weight_thresh;
+		weight_fac, weight_thresh, minval;
    char		lstr[MAXCHAR],
 		*filename, *rfilename, *str,*str2;
    weightenum	wtype;
@@ -70,12 +69,11 @@ int	weight_load(simstruct *sim)
   wtype = prefs.weight_type;
 
   filename = prefs.weight_name;
-  if ((str = strrchr(filename, '[')))
-    {
+  if ((str = strrchr(filename, '['))) {
     *str = '\0';
     if ((str2 = strrchr(str, ']')))
       *str2 = '\0';
-    }
+  }
 
 /* A short, "relative" version of the filename */
   if (!(rfilename = strrchr(filename, '/')))
@@ -88,12 +86,10 @@ int	weight_load(simstruct *sim)
   if (!(cat=read_cat(filename)))
     error(EXIT_FAILURE, "*Error*: no FITS data found in ", filename);
 
-  if (str)
-    {
+  if (str) {
     if (!(tab = name_to_tab(cat, str+1, 0)))
       tab = pos_to_tab(cat, atoi(str+1), 0);
-    }
-  else
+  } else
     tab = cat->tab;
 
 /*-- Force the data to be at least 2D */
@@ -109,10 +105,9 @@ int	weight_load(simstruct *sim)
   read_body(tab, sim->weight, npix);
   free_cat(&cat, 1);
 
-  weight_fac = prefs.weight_factor;
+  weight_fac = prefs.weight_factor * sim->gain;	// Weight factor in e-
 
-  switch(prefs.weight_type)
-    {
+  switch(prefs.weight_type) {
     case WEIGHT_NONE:
       return RETURN_ERROR;
 
@@ -122,7 +117,7 @@ int	weight_load(simstruct *sim)
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
         *pix = *pix < weight_thresh ? weight_fac * *pix : anan.f;
-      break;
+    break;
 
     case WEIGHT_FROMVARMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : BIG;
@@ -130,7 +125,7 @@ int	weight_load(simstruct *sim)
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
         *pix = *pix < weight_thresh ? weight_fac * sqrtf(fabsf(*pix)) : anan.f;
-      break;
+    break;
 
     case WEIGHT_FROMWEIGHTMAP:
       weight_thresh = prefs.nweight_thresh ? prefs.weight_thresh : 0.0;
@@ -138,13 +133,22 @@ int	weight_load(simstruct *sim)
       for (p=npix; p--; pix++)
 //---- Negative variance means "bad pixel"
         *pix = *pix > weight_thresh ? weight_fac / sqrtf(fabs(*pix)) : anan.f;
-      break;
+    break;
 
     default:
       error(EXIT_FAILURE,
 	"*Internal Error*: Unknown weight-map type in ", "load_weight()");
-      break;
-    }
+    break;
+  }
+
+// Find the lowest noise standard deviation to set minimum S/B requirements
+  minval = BIG;
+  pix = sim->weight;
+  for (p=npix; p--; pix++)
+    if (*pix < minval && *pix > SMALL)
+      minval = *pix;
+
+  sim->minquant = minval; 
 
   return RETURN_OK;
   }

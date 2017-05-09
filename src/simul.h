@@ -84,9 +84,10 @@ typedef struct
   FILE		*outlistfile;		/* Output list file */
   PIXTYPE	*image;			/* Pointer to the image pixel map */
   imatypenum	imatype;		/* Image type */
-/* Noise */
+/* Noise RMS map */
   PIXTYPE	*weight;		/* Pointer to the noise rms map */
   PIXTYPE	**weightbuf;		/* Pointer to the noise rms map buffer*/
+
 /* Noise */
   PIXTYPE	*noise;			/* Pointer to the image noise map */
 /* Correlation */

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/05/2017
+*	Last modified:		09/05/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -60,16 +60,16 @@
 #include "random.h"
 #include "simul.h"
 
-/****** noise_add **************************************************
+/****** noise_apply ***************************************************
 PROTO	void noise_add(simstruct *sim)
-PURPOSE	Add noise map to image.
+PURPOSE	Apply noise map to image.
 INPUT	Pointer to the simulation.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/05/2017
+VERSION	09/05/2017
  ***/
-void	noise_add(simstruct *sim)
+void	noise_apply(simstruct *sim)
 
   {
    PIXTYPE	*imapix, *noisepix;
@@ -81,6 +81,8 @@ void	noise_add(simstruct *sim)
   for (i = sim->fimasize[0] * sim->fimasize[1]; i--; imapix++, noisepix++)
     if (isfinite(*noisepix))
       *imapix += *noisepix;
+    else
+      *imapix = 0.0;
 
   return;
   }
@@ -190,13 +192,19 @@ void	noise_generateline(simstruct *sim, int y) {
   ron = (PIXTYPE)sim->ron;
   imapix = sim->image + y * npix;
   noisepix = sim->noise + y * npix;
-  if (sim->weight && y >= sim->margin[1] && y < sim->fimasize[1] - sim->margin[1]) {
+
+  rmspix = sim->weightbuf[p] + sim->margin[0];
+
+  if (sim->weight && y >= sim->margin[1] && y < sim->fimasize[1] - sim->margin[1])
 /* Weightmaps have no margin! */
-    memcpy(sim->weightbuf[p] + sim->margin[0],
+    memcpy(rmspix,
 	sim->weight + (y - sim->margin[1]) * sim->imasize[0],
 	sim->imasize[0] * sizeof(PIXTYPE));
-    rmspix = sim->weightbuf[p];
-  }
+  else  
+    for (i = sim->imasize[0]; i--;)
+      *(rmspix++) = 1.0;
+
+  rmspix = sim->weightbuf[p];
 
 #ifdef HAVE_MKL
   lambdabuf = sim->lambdabuf[p];
@@ -230,7 +238,7 @@ void	noise_generateline(simstruct *sim, int y) {
   else
     for (i=npix; i--; imapix++)
       *(noisepix++) = random_gauss(ron, 0) +
-		(PIXTYPE)(random_poisson((double)*imapix, 0) - *imapix; 
+		(PIXTYPE)random_poisson((double)*imapix, 0) - *imapix; 
 #endif
 
   return;
