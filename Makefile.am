@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2016 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		07/11/2016
+#	Last modified:		09/05/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -38,14 +38,14 @@ dist-hook:
 	rm -rf `find $(distdir) -name .git`
 
 rpm:	dist
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
+	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
+	rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
 
 rpm-icc:	dist
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	USE_ICC="1" rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
+	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
+	USE_ICC="1" rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
 
 rpm-best:	dist
-	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	USE_BEST="1" rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
+	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
+	USE_BEST="1" rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
 

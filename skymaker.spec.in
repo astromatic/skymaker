@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2016 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,13 +22,13 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		07/11/2016
+#	Last modified:		28/05/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%define name @PACKAGE_NAME@
+%define name @PACKAGE_TARNAME@
 %define version @PACKAGE_VERSION@
-%define release 1
+%define release 1%{?dist}
 %undefine _missing_build_ids_terminate_build
 
 Summary: Simulate astronomical images
@@ -72,7 +72,7 @@ rm -rf $RPM_BUILD_ROOT
 /%{_bindir}/sky
 %{_mandir}/man1/sky.1*
 %{_mandir}/manx/sky.x*
-%{_datadir}/@PACKAGE_NAME@
+%{_datadir}/@PACKAGE_TARNAME@
 
 %changelog
 * @DATE2@ @PACKAGER@ <@PACKAGE_BUGREPORT@>
