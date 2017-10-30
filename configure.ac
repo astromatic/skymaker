@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		09/05/2017
+#	Last modified:		30/10/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,18 +31,20 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([SkyMaker],[4.0.0], [https://github.com/astromatic/skymaker],
+AC_INIT([SkyMaker],[4.0.1], [https://github.com/astromatic/skymaker],
 	skymaker, [http://astromatic.net/software/skymaker])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_SRCDIR(src/makeit.c)
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE
 date=`date +%Y-%m-%d`
+date1=`date -R`
 date2=`date +"%a %b %d %Y"`
 date3=`date +"%B %Y"`
 AC_DEFINE_UNQUOTED(DATE, "$date", [Archive creation date])
-AC_SUBST(PACKAGER, "Emmanuel Bertin")
+AC_SUBST(PACKAGER, "AstrOmatic")
+AC_SUBST(DATE2, "$date1")
 AC_SUBST(DATE2, "$date2")
 AC_SUBST(DATE3, "$date3")
 
@@ -248,6 +250,10 @@ AC_MSG_RESULT([***************************************************************])
 AC_CONFIG_FILES([
 Makefile
 skymaker.spec
+debian/Makefile
+debian/changelog
+doc/Makefile
+doc/src/conf.py
 man/Makefile
 man/sky.1
 src/Makefile

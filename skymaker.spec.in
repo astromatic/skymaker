@@ -30,13 +30,14 @@
 %define version @PACKAGE_VERSION@
 %define release 1%{?dist}
 %undefine _missing_build_ids_terminate_build
+%define debug_package %{nil}
 
-Summary: Simulate astronomical images
+Summary: simulate astronomical images
 Name: %{name}
 Version: %{version}
 Release: %{release}
 Source0: http://astromatic.net/download/%{name}/%{name}-%{version}.tar.gz
-URL: http://astromatic.net/software/skymaker/
+URL: http://astromatic.net/software/%{name}/
 License: GPL v3+
 Group: Sciences/Astronomy
 BuildRoot: %{_tmppath}/%{name}-buildroot
