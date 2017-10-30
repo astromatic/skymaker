@@ -22,20 +22,22 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		09/05/2017
+#	Last modified:		30/10/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ACLOCAL_AMFLAGS		= -I m4
 AUTOMAKE_OPTIONS	= foreign no-dependencies
-SUBDIRS			= man src
+SUBDIRS			= src man doc debian
 dist_pkgdata_DATA	= config/*
 EXTRA_DIST		= autogen.sh AUTHORS BUGS ChangeLog COPYRIGHT \
 			  HISTORY INSTALL LICENSE README.md THANKS
 RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
 RPM_SRCDIR		= $(RPM_ROOTDIR)/SOURCES
+DEB_SRCDIR		= ~/DEBIAN/SOURCES
+
 dist-hook:
-	rm -rf `find $(distdir) -name .git`
+	rm -rf `find $(distdir) -type d \( -name .svn -o -name .git \)`
 
 rpm:	dist
 	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
@@ -48,4 +50,16 @@ rpm-icc:	dist
 rpm-best:	dist
 	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
 	USE_BEST="1" rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
+
+deb:	dist
+	mkdir -p $(DEB_SRCDIR)
+	tar -xvf $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz -C $(DEB_SRCDIR) 
+	cd $(DEB_SRCDIR)/$(PACKAGE_TARNAME)-$(PACKAGE_VERSION)
+	debuild -j4 -b -us -uc
+
+deb-best:	dist
+	mkdir -p $(DEB_SRCDIR)
+	tar -xvf $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz -C $(DEB_SRCDIR) 
+	cd $(DEB_SRCDIR)/$(PACKAGE_TARNAME)-$(PACKAGE_VERSION)
+	debuild --set-envvar=USE_BEST=1 --preserve-env --preserve-envvar=PATH -j4 -b -us -uc
 

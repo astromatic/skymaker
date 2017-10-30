@@ -3,7 +3,7 @@
 .. _using_skymaker:
 
 Using SkyMaker
-===========
+==============
 
 |SkyMaker| is run from the shell with the following syntax:
 

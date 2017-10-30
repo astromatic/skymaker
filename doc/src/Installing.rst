@@ -15,7 +15,7 @@ number of pixels in the simulated image.
 cores.
 
 Obtaining |SkyMaker|
------------------
+--------------------
 
 For Linux users, the simplest way to have |SkyMaker| up and running is to install
 the standard binary package the comes with your Linux distribution. Run, e.g.,
@@ -126,6 +126,8 @@ some shells require the :program:`rehash` command to be run before making a
 freshly installed executable accessible in the execution path).
 
 .. [#mac_install] Mac OS X |.dmg|_ packages should be available soon.
+.. [#fftw_install] Make sure that |FFTW| has been compiled with
+   :command:`configure` options ``--enable-threads --enable-float``.
 .. [#geticc] The Linux versions of the |Intel| compiler and |MKL| are
    `available for free to academic researchers, students, educators and open
    source contributors <http://software.intel.com/qualify-for-free-software>`_.

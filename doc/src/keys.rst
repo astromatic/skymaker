@@ -1,6 +1,9 @@
 .. |.dmg| replace:: :file:`.dmg`
 .. _.dmg: https://en.wikipedia.org/wiki/Apple_Disk_Image
 
+.. |FFTw| replace:: :program:`FFTw`
+.. _FFTw: http://www.fftw.org
+
 .. |FITS| replace:: :abbr:`FITS (Flexible Image Transport System)`
 .. _FITS: http://fits.gsfc.nasa.gov
 
