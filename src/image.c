@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		07/11/2016
+*	Last modified:		08/11/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -68,7 +68,7 @@ INPUT   Pointer to input raster,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/11/2016
+VERSION 08/11/2017
  ***/
 /*
 Scale and shift a small image through sinc interpolation.
@@ -81,7 +81,7 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
    PIXTYPE	*pixin,*pixin0, *pixout,*pixout0;
    float	kernel[INTERP_MAXKERNELWIDTH], *kernelt,
 		*dpixin,*dpixin0, *dpixout,*dpixout0, *maskt,
-		xc1,xc2,yc1,yc2, xs1,ys1, x1,y1, val;
+		xc1,xc2,yc1,yc2, xs1,ys1, x1,y1, val, ddix2,ddiy2;
    int		i,j,k,n,t, *startt, *nmaskt,
 		ixs2,iys2, ix2,iy2, dix2,diy2, nx2,ny2, iys1a, ny1, hmw,hmh,
 		ix,iy, ix1,iy1, w2,h2, interpw, imax;
@@ -98,10 +98,11 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
   ixs2 = 0;			/* Int part of Im2 start x-coord */
   if (xs1<0.0)
     {
-    dix2 = (int)(1-xs1/step2);
+    ddix2 = 1.0 - xs1/step2;
 /*-- Simply leave here if the images do not overlap in x */
-    if (dix2 >= w2)
+    if (ddix2 >= (float)w2)
       return RETURN_ERROR;
+    dix2 = (int)ddix2;
     ixs2 += dix2;
     xs1 += dix2*step2;
     }
@@ -118,10 +119,11 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
   iys2 = 0;			/* Int part of Im2 start y-coord */
   if (ys1<0.0)
     {
-    diy2 = (int)(1-ys1/step2);
+    ddiy2 = 1.0 - ys1/step2;
 /*-- Simply leave here if the images do not overlap in y */
-    if (diy2 >= h2)
+    if (ddiy2 >= (float)h2)
       return RETURN_ERROR;
+    diy2 = (int)ddiy2;
     iys2 += diy2;
     ys1 += diy2*step2;
     }
