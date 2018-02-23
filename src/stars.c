@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		27/08/2013
+*	Last modified:		23/02/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -173,7 +173,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	23/02/2018
  ***/
 void	make_star(simstruct *sim, objstruct *obj)
 
@@ -190,8 +190,8 @@ void	make_star(simstruct *sim, objstruct *obj)
   else
     obj->flux = (float)(flux = DEXP(0.4*(sim->magzero2-obj->mag)));
   osamp = sim->psfoversamp;
-  dx = (obj->pos[0] + sim->margin[0]-dpos[0])/sim->mscan[0];
-  dy = (obj->pos[1] + sim->margin[1]-dpos[1])/sim->mscan[1];
+  dx = (obj->pos[0] - 1.0 + sim->margin[0] - dpos[0])/sim->mscan[0];
+  dy = (obj->pos[1] - 1.0 + sim->margin[1] - dpos[1])/sim->mscan[1];
   dx -= (double)(obj->subpos[0] = (int)(dx+0.49999));
   dy -= (double)(obj->subpos[1] = (int)(dy+0.49999));
 /* Resample to lower resolution */
@@ -258,7 +258,7 @@ INPUT	Previous object index in list,
 OUTPUT	Next object index in list.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	23/02/2018
  ***/
 static int	pthread_nextobj(int obji, int proc)
   {
@@ -319,15 +319,17 @@ static int	pthread_nextobj(int obji, int proc)
       if (pthread_gridflag)
         {
         obj->pos[0] = (pthread_gridindex%pthread_ngridx)*pthread_gridstep
-		+ pthread_gridoffsetx + random_double(proc)-0.5;
+		+ pthread_gridoffsetx + random_double(proc) + 0.5;
         obj->pos[1] = (pthread_gridindex/pthread_ngridx)*pthread_gridstep
-		+ pthread_gridoffsety + random_double(proc)-0.5;
+		+ pthread_gridoffsety + random_double(proc) + 0.5;
         pthread_gridindex++;
         }
       else
         {
-        obj->pos[0] = pthread_xrange*random_double(proc)-pthread_sim->margin[0];
-        obj->pos[1] = pthread_yrange*random_double(proc)-pthread_sim->margin[1];
+        obj->pos[0] = pthread_xrange * random_double(proc)
+		- pthread_sim->margin[0] + 1.0;
+        obj->pos[1] = pthread_yrange * random_double(proc)
+		- pthread_sim->margin[1] + 1.0;
         }
       }
     if (pthread_objqueue[obji])

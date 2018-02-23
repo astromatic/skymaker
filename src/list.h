@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/05/2012
+*	Last modified:		23/02/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -45,16 +45,16 @@ typedef	struct
 	int	type;			/* Source type */
 	double	pos[2];			/* Position of object center in pixels*/
 	double	wcspos[2];		/* Position of object center in WCS */
-	double	mag;			/* Catalog magnitude */
-	double	flux;			/* Instrumental flux */
-	double	bulge_ratio;		/* Bulge to total flux */
-	double	bulge_req;		/* Bulge equiv. radius */
-	double	bulge_posang;		/* Bulge position angle */
-	double	bulge_ar;		/* Bulge aspect ratio */
-	double	bulge_sersicn;		/* Bulge sersic index */
-	double	disk_scale;		/* Disk scale length */
-	double	disk_ar;		/* Disk aspect ratio */
-	double	disk_posang;		/* Disk position angle */
+	float	mag;			/* Catalog magnitude */
+	float	flux;			/* Instrumental flux */
+	float	bulge_ratio;		/* Bulge to total flux */
+	float	bulge_req;		/* Bulge equiv. radius */
+	float	bulge_posang;		/* Bulge position angle */
+	float	bulge_ar;		/* Bulge aspect ratio */
+	float	bulge_sersicn;		/* Bulge sersic index */
+	float	disk_scale;		/* Disk scale length */
+	float	disk_ar;		/* Disk aspect ratio */
+	float	disk_posang;		/* Disk position angle */
 	double	z;			/* Galaxy redshift */
 	float	hubble_type;		/* Hubble type */
         float	noiseqarea;		/* Galaxy image noise equivalent area */

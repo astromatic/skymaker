@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2016 IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		16/03/2016
+*	Last modified:		23/02/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -161,7 +161,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/03/2016
+VERSION	23/02/2018
  ***/
 int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   {
@@ -189,8 +189,6 @@ int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
     if (sim->wcsflag && sim->wcs)
 /*---- Convert World coordinates to pixel coordinates */
       wcs_to_raw(sim->wcs, obj->wcspos, obj->pos);
-    obj->pos[0] -= 1.0;
-    obj->pos[1] -= 1.0;
     }
 
   if (!(cptr=strtok_r(NULL, " \t", &strtokbuf)))
@@ -256,7 +254,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	15/03/2011
+VERSION	23/02/2018
  ***/
 void    writeobj(simstruct *sim, objstruct *obj)
   {
@@ -265,18 +263,18 @@ void    writeobj(simstruct *sim, objstruct *obj)
  /*-- The format depends on object type */
   if (obj->type == 100)
     fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f\n",
-	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag);
+	obj->type, obj->pos[0], obj->pos[1], obj->mag);
   else if (obj->type == 200)
     fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
 			"%+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
-	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
+	obj->type, obj->pos[0], obj->pos[1], obj->mag,
 	obj->bulge_ratio, obj->bulge_req, obj->bulge_ar, obj->bulge_posang,
 	obj->disk_scale, obj->disk_ar, obj->disk_posang, obj->z,
 	obj->hubble_type, obj->noiseqarea);
   else if (obj->type == 210)
     fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
 			"%4.2f %+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
-	obj->type, obj->pos[0]+1, obj->pos[1]+1, obj->mag,
+	obj->type, obj->pos[0], obj->pos[1], obj->mag,
 	obj->bulge_sersicn, obj->bulge_ratio, obj->bulge_req, obj->bulge_ar,
 	obj->bulge_posang, obj->disk_scale, obj->disk_ar, obj->disk_posang,
 	obj->z, obj->hubble_type, obj->noiseqarea);

@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/04/2013
+*	Last modified:		23/02/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -964,7 +964,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	number of indices/weights.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	23/02/2018
  ***/
 int	pos_to_indices(simstruct *sim, double *pos, int *index, PIXTYPE *weight)
 
@@ -973,14 +973,14 @@ int	pos_to_indices(simstruct *sim, double *pos, int *index, PIXTYPE *weight)
    int		ix,iy, step;
 
 /* We'll use a simple interpolation scheme for now */
-  dx = (sim->psfsize[2]-1) * pos[0] / (sim->imasize[0]-1);
+  dx = (sim->psfsize[2]-1) * (pos[0] - 1.0) / (sim->imasize[0]-1);
   ix = (int)dx;
   if (ix >= sim->psfsize[2]-2)
     ix = sim->psfsize[2]-2;
   else if (ix<0)
     ix = 0;
   dx -= ix;
-  dy = (sim->psfsize[3]-1) * pos[1] / (sim->imasize[1]-1);
+  dy = (sim->psfsize[3]-1) * (pos[1] - 1.0) / (sim->imasize[1]-1);
   iy = (int)dy;
   if (iy >= sim->psfsize[3]-2)
     iy = sim->psfsize[3]-2;

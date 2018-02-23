@@ -105,7 +105,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       {
       NFPRINTF(OUTPUT, "");
       sprintf(str, "Bulge radius too small for galaxy at (%.1f,%.1f): ",
-	obj->pos[0]+1.0, obj->pos[1]+1.0);
+	obj->pos[0], obj->pos[1]);
       warning(str, "skipped");
       return;
       }
@@ -127,7 +127,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       {
       NFPRINTF(OUTPUT, "");
       sprintf(str, "Disk scale too small for galaxy at (%.1f,%.1f): ",
-	obj->pos[0]+1.0,obj->pos[1]+1.0);
+	obj->pos[0], obj->pos[1]);
       warning(str, "skipped");
       return;
       }
@@ -135,7 +135,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       {
       NFPRINTF(OUTPUT, "");
       sprintf(str, "Disk A/R too small for galaxy at (%.1f,%.1f): ",
-	obj->pos[0]+1.0, obj->pos[1]+1.0);
+	obj->pos[0], obj->pos[1]);
       warning(str, "skipped");
       return;
       }
@@ -165,7 +165,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 /*
   sprintf(str,
 	"Adding %dx%d galaxy at position (%.1f,%.1f) with magnitude %.2f",
-	subwidth, subheight, obj->pos[0]+1.0,obj->pos[1]+1.0,obj->mag);
+	subwidth, subheight, obj->pos[0], obj->pos[1], obj->mag);
 
   NFPRINTF(OUTPUT, str);
 */
@@ -219,8 +219,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   fft_conv(sub, psfdft, subwidth,subheight);
   if (sim->npsf>1)
     QFFTWF_FREE(psfdft);
-  dx = (obj->pos[0] + sim->margin[0] - dpos[0])/sim->mscan[0];
-  dy = (obj->pos[1] + sim->margin[1] - dpos[1])/sim->mscan[1];
+  dx = (obj->pos[0] - 1.0 + sim->margin[0] - dpos[0])/sim->mscan[0];
+  dy = (obj->pos[1] - 1.0 + sim->margin[1] - dpos[1])/sim->mscan[1];
   dx -= (double)(obj->subpos[0] = (int)(dx+0.49999));
   dy -= (double)(obj->subpos[1] = (int)(dy+0.49999));
 /* Truncate again */
