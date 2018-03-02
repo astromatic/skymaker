@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		04/05/2017
+*	Last modified:		23/02/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -51,12 +51,12 @@ INPUT   -.
 OUTPUT  Pointer to an allocated and filled sim structure.
 NOTES   Global prefs variables are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 04/05/2012
+VERSION 23/02/2018
 */
 simstruct	*sim_init(void)
   {
    simstruct	*sim;
-   double	motfact[2];
+   double	motfact[2], pos[2];
    int		i,o, nx,ny,xoffset,yoffset;
 
   QCALLOC(sim, simstruct, 1);
@@ -64,6 +64,7 @@ simstruct	*sim_init(void)
   strcpy(sim->headname, prefs.headname);
   strcpy(sim->inlistname, prefs.inlistname);
   strcpy(sim->outlistname, prefs.outlistname);
+
   sim->imatype = prefs.imatype;
   sim->imasize[0] = prefs.imasize[0];
   sim->imasize[1] = prefs.imasize[1];
@@ -71,8 +72,49 @@ simstruct	*sim_init(void)
   sim->mscan[0] = prefs.mscan[0];
   sim->mscan[1] = prefs.mscan[1];
   sim->nmscan = sim->mscan[0]*sim->mscan[1];
-  sim->pixscale[0] = prefs.pixscale[0];
-  sim->pixscale[1] = prefs.pixscale[1];
+
+  if (sim->imatype==GRID || sim->imatype==GRID_NONOISE)
+    {
+    sim->gridstep = prefs.grid_size;
+    nx = sim->imasize[0]/prefs.grid_size;
+    if (nx<1)
+      {
+      nx = 1;
+      xoffset = sim->imasize[0]/2;
+      }
+    else
+      xoffset = prefs.grid_size/2;
+
+    ny = sim->imasize[1]/prefs.grid_size;
+    if (ny<1)
+      {
+      ny = 1;
+      yoffset = sim->imasize[1]/2;
+      }
+    else
+      yoffset = prefs.grid_size/2;
+
+    sim->ngrid[0] = nx;
+    sim->ngrid[1] = ny;
+    sim->gridoffset[0] = xoffset;
+    sim->gridoffset[1] = yoffset;
+    sim->gridindex = 0;
+    }
+  else
+    sim->wcsflag = (prefs.listcoord_type == LISTCOORD_WORLD);
+
+  sim->cat = imaout_inithead(sim);
+
+  if (sim->wcsflag && sim->wcs) {
+    pos[0] = (sim->imasize[0] + 1.0) / 2.0;
+    pos[1] = (sim->imasize[1] + 1.0 )/ 2.0;
+    sim->pixscale[0] = sim->pixscale[1] = sqrt(wcs_scale(sim->wcs, pos)) * DEG
+						/ ARCSEC;
+  } else {
+    sim->pixscale[0] = prefs.pixscale[0];
+    sim->pixscale[1] = prefs.pixscale[1];
+  }
+
   sim->lambdaeq = prefs.lambdaeq;
   sim->wellcap = prefs.wellcap;
   sim->satlev = prefs.satlev;
@@ -197,39 +239,6 @@ simstruct	*sim_init(void)
 				/(sim->mscan[0]*sim->mscan[1])));
   if (sim->minquant<QUANT_ACCURACY)
     sim->minquant = QUANT_ACCURACY;
-
-/* Temporary fix */
-  if (sim->imatype==GRID || sim->imatype==GRID_NONOISE)
-    {
-    sim->gridstep = prefs.grid_size;
-    nx = sim->imasize[0]/prefs.grid_size;
-    if (nx<1)
-      {
-      nx = 1;
-      xoffset = sim->imasize[0]/2;
-      }
-    else
-      xoffset = prefs.grid_size/2;
-
-    ny = sim->imasize[1]/prefs.grid_size;
-    if (ny<1)
-      {
-      ny = 1;
-      yoffset = sim->imasize[1]/2;
-      }
-    else
-      yoffset = prefs.grid_size/2;
-
-    sim->ngrid[0] = nx;
-    sim->ngrid[1] = ny;
-    sim->gridoffset[0] = xoffset;
-    sim->gridoffset[1] = yoffset;
-    sim->gridindex = 0;
-    }
-  else
-    sim->wcsflag = (prefs.listcoord_type == LISTCOORD_WORLD);
-
-  sim->cat = imaout_inithead(sim);
 
   return sim;
   }

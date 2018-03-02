@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		07/06/2013
+*	Last modified:		24/02/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -70,14 +70,14 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	07/06/2013
+VERSION	24/02/2018
  ***/
 void	make_galaxy(simstruct *sim, objstruct *obj)
 
   {
    char		str[MAXCHAR];
    PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt, *psfdft;
-   double	dpos[2],
+   double	dpos[2], jac[4],
 		osamp, dratio, bsize,size,
 		bflux,flux,flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
    int		i, subwidth,subheight, suborder,
@@ -162,19 +162,21 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
     suborder = PSF_NORDER;
     }
   subheight = subwidth = 1<<suborder;
-/*
-  sprintf(str,
-	"Adding %dx%d galaxy at position (%.1f,%.1f) with magnitude %.2f",
-	subwidth, subheight, obj->pos[0], obj->pos[1], obj->mag);
-
-  NFPRINTF(OUTPUT, str);
-*/
   nsub = subwidth*subheight;
   memnsub = (((subwidth>>1) + 1)<< 1) * subheight;/* Provide margin for FFTW */
 
 /* Compute (or retrieve) PSF DFT at this position */
   psfdft = interp_dft(sim, suborder, obj->pos, dpos);
 
+// Compute Jacobian
+  if (sim->wcs) {
+     double	invpixscale = 1.0 / (sim->pixscale[0] * ARCSEC / DEG);
+    wcs_jacobian(sim->wcs, obj->pos, jac);
+    for (i=0; i<4; i++)
+      jac[i] *= invpixscale;
+  }
+
+// Render galaxies
   sub = NULL;			/* To avoid gcc -Wall warnings */
   flux = 0.0;			/* idem */
 /* Bulge component */
@@ -182,8 +184,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
     {
     QFFTWF_MALLOC(bsub, PIXTYPE, memnsub);
     memset(bsub, 0, memnsub*sizeof(PIXTYPE));
-    flux = bflux = make_sersic(bsub, subwidth, subheight, osamp*beq,
-	obj->bulge_ar,obj->bulge_posang, n) / obj->bulge_ratio;
+    flux = bflux = make_sersic(bsub, subwidth, subheight, sim->wcs? jac : NULL,
+	osamp*beq, obj->bulge_ar,obj->bulge_posang, n) / obj->bulge_ratio;
     sub = bsub;
     }
   else
@@ -197,8 +199,8 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
     {
     QFFTWF_MALLOC(dsub, PIXTYPE, memnsub);
     memset(dsub, 0, memnsub*sizeof(PIXTYPE));
-    flux = make_sersic(dsub, subwidth, subheight,  osamp*dscale*1.67835,
-		obj->disk_ar, obj->disk_posang, 1.0) / dratio;
+    flux = make_sersic(dsub, subwidth, subheight, sim->wcs? jac : NULL,
+	osamp*dscale*1.67835, obj->disk_ar, obj->disk_posang, 1.0) / dratio;
     sub = dsub;
     }
   else
@@ -258,12 +260,13 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 
 
 /****** make sersic **********************************************************
-PROTO	double make_sersic(PIXTYPE *pix, int width, int height, double reff,
-		double aspect, double posang, double n)
+PROTO	double make_sersic(PIXTYPE *pix, int width, int height, double *jac,
+		double reff, double aspect, double posang, double n)
 PURPOSE	Rasterize an unnormalized 2D Sersic (exp(r**(-1/n))) model.
 INPUT	pointer to the raster,
 	raster width,
 	raster height,
+	Jacobian array of the local astrometric deprojection (NULL if none),
 	model effective radius,
 	model aspect ratio,
 	model position angle,
@@ -271,13 +274,15 @@ INPUT	pointer to the raster,
 OUTPUT	Total flux.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	25/07/2011
+VERSION	23/02/2018
  ***/
-double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
-		double aspect, double posang, double n)
+double	make_sersic(PIXTYPE *pix, int width, int height, double *jac,
+		double reff, double aspect, double posang, double n)
 
   {
-   double	ddx1[36],ddx2[36], cpos,spos, a2,b2, bn, sum;
+   double	ddx1[36], ddx2[36],
+		cpos,spos, ascale, bscale, bn, sum, dct11,dct12,dct21,dct22,
+		dcd11,dcd12,dcd21,dcd22, dinvdet;
    float	k, invn,hinvn,krspinvn,ekrspinvn, krpinvn,dkrpinvn,
 		r,r2,dr, rs,rs2,
 		p1,p2,c0,c2,c3, x1c,x2c, x1,x10,x2, cxx,cyy,cxy,cxydy,cyydy2,
@@ -290,16 +295,35 @@ double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
     return 0.0;
 
 /* Preliminaries: compute the ellipse parameters */
-  a2 = 1.0/(reff*reff);
-  b2 = a2/(aspect*aspect);
+  ascale = 1.0 / reff;
+  bscale = ascale / aspect;
   cpos = cos(posang*DEG);
   spos = sin(posang*DEG);
-  cxx = cpos*cpos*a2 + spos*spos*b2;
-  cyy = spos*spos*a2 + cpos*cpos*b2;
-  cxy = 2*cpos*spos*(a2-b2);
+
+  dct11 = ascale * cpos;
+  dct12 = ascale * spos;
+  dct21 = -bscale * spos;
+  dct22 = bscale * cpos;
+
+  if (jac) {
+    dcd11 = dct11 * jac[0] + dct12 * jac[2];
+    dcd12 = dct11 * jac[1] + dct12 * jac[3];
+    dcd21 = dct21 * jac[0] + dct22 * jac[2];
+    dcd22 = dct21 * jac[1] + dct22 * jac[3];
+  } else {
+    dcd11 = dct11;
+    dcd12 = dct12;
+    dcd21 = dct21;
+    dcd22 = dct22;
+  }
+
+  cxx = (float)(dcd11 * dcd11 + dcd21 * dcd21);
+  cyy = (float)(dcd12 * dcd12 + dcd22 * dcd22);
+  cxy = (float)(2.0 * (dcd11 * dcd12 + dcd21 * dcd22));
+
 
 /* Compute sharp/smooth transition radius */
-  rs = SERSIC_SMOOTHR/(reff*aspect);
+  rs = SERSIC_SMOOTHR * bscale;
   if (rs<=0)
     rs = 1.0;
   rs2 = rs*rs;
@@ -366,10 +390,11 @@ double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
 /* Compute the sharp part of the profile */
   dx1c = x1c + 0.4999999;
   dx2c = x2c + 0.4999999;
-  a11 = reff*cpos;
-  a12 = -reff*aspect*spos;
-  a21 = reff*spos;
-  a22 = reff*aspect*cpos;
+  dinvdet = 1.0 / fabs(dcd11*dcd22 - dcd12*dcd21);
+  a11 = (float) (dcd22 * dinvdet);
+  a12 = (float) (-dcd12 * dinvdet);
+  a21 = (float) (-dcd21 * dinvdet);
+  a22 = (float) (dcd11 * dinvdet);
   nang = 72 / 2;	/* 72 angles; only half of them are computed*/
   angstep = PI/nang;
   ang = 0.0;

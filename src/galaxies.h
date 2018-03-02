@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		01/03/2011
+*	Last modified:		24/02/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -42,9 +42,8 @@
 
 /*---------------------------------- protos --------------------------------*/
 extern void	make_galaxy(simstruct *sim, objstruct *obj);
-extern double	make_sersic(PIXTYPE *pix, int width, int height, double reff,
-		double aspect, double posang, double n)
-;
+extern double	make_sersic(PIXTYPE *pix, int width, int height, double *jac,
+			double reff, double aspect, double posang, double n);
 
 extern PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,
 			int width, int height);
