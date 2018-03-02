@@ -213,10 +213,11 @@ void	makepsf(simstruct *sim)
     warning("PSF mask is too coarse (important aliasing): ",
 	"increase oversampling");
   narms = sim->psfnarms;
-  if (narms && (fscale[0]>sim->psfarmw || fscale[1]>sim->psfarmw)
+  if (narms && (fscale[0]>sim->psfarmw || fscale[1]>sim->psfarmw))
     warning("PSF mask is too small to yield accurate diffraction spikes: ",
 	"increase map size");
-  if (sim->psfdm2 > psfsize[0] * fscale[0])
+  if (sim->psfdm2 > psfsize[0] * fscale[0]
+		|| sim->psfdm2 > psfsize[1] * fscale[1])
     warning("PSF mask is too small for secondary obstruction: ",
 	"increase map size or increase oversampling");
 
