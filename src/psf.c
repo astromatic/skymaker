@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/02/2018
+*	Last modified:		02/03/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -213,12 +213,12 @@ void	makepsf(simstruct *sim)
     warning("PSF mask is too coarse (important aliasing): ",
 	"increase oversampling");
   narms = sim->psfnarms;
-  if (narms && fscale[0]>sim->psfarmw)
+  if (narms && (fscale[0]>sim->psfarmw || fscale[1]>sim->psfarmw)
     warning("PSF mask is too small to yield accurate diffraction spikes: ",
-	"increase map width");
-  if (narms && fscale[1]>sim->psfarmw)
-    warning("PSF mask is too small to yield accurate diffraction spikes: ",
-	"increase map height");
+	"increase map size");
+  if (sim->psfdm2 > psfsize[0] * fscale[0])
+    warning("PSF mask is too small for secondary obstruction: ",
+	"increase map size or increase oversampling");
 
 /* Generate the PSF in the Fourier plane */
   hpsfsize[0] = psfsize[0]/2;
