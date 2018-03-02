@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/01/2018
+*	Last modified:		02/03/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -233,6 +233,7 @@ catstruct	*imaout_inithead(simstruct *sim)
   tab->bytepix = 4;
   tab->naxis = sim->imasize[2]>1? (sim->imasize[3]>1? 4 : 3): 2;
   QCALLOC(tab->naxisn, int, 4);
+// Initialize with default simulation size
   tab->naxisn[0] = sim->imasize[0];
   tab->naxisn[1] = sim->imasize[1];
   tab->naxisn[2] = sim->imasize[2];
@@ -313,7 +314,7 @@ INPUT	Pointer to the simulation.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/01/2018
+VERSION	02/03/2018
  ***/
 void	imaout_write(simstruct *sim) {
 
@@ -321,11 +322,15 @@ void	imaout_write(simstruct *sim) {
 
   tab = sim->cat->tab;
   tab->bodybuf = (void *)sim->image;
+// Update simulation size
+  tab->naxisn[0] = sim->imasize[0];
+  tab->naxisn[1] = sim->imasize[1];
+  update_head(tab);
   tab->tabsize = (KINGSIZE_T)tab->naxisn[0]*tab->naxisn[1] * tab->bytepix;
   if (tab->naxis > 2) {
-    tab->tabsize *= tab->naxisn[2];
+    tab->tabsize *= (tab->naxisn[2] = sim->imasize[2]);
     if (tab->naxis > 3)
-      tab->tabsize *= tab->naxisn[4];
+      tab->tabsize *= (tab->naxisn[3] = sim->imasize[3]);
   }
 
   save_cat(sim->cat, sim->filename);
