@@ -137,6 +137,7 @@ void	noise_generate(simstruct *sim) {
   init_random(0);
 #endif
 
+printf("== %d %d \n", sim->fimasize[0] , sim->fimasize[1]);
 #pragma omp parallel for num_threads(prefs.nthreads)
   for (y = 0; y < sim->fimasize[1]; y++)
     noise_generateline(sim, y);
@@ -171,7 +172,7 @@ INPUT	Pointer to the simulation,
 OUTPUT	-.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/05/2017
+VERSION	09/04/2018
  ***/
 void	noise_generateline(simstruct *sim, int y) {
 
@@ -193,15 +194,15 @@ void	noise_generateline(simstruct *sim, int y) {
 
   npix = sim->fimasize[0];
   ron = (PIXTYPE)sim->ron;
-  imapix = sim->image + y * npix;
-  noisepix = sim->noise + y * npix;
+  imapix = sim->image + (size_t)y * npix;
+  noisepix = sim->noise + (size_t)y * npix;
 
   rmspix = sim->weightbuf[p] + sim->margin[0];
 
   if (sim->weight && y >= sim->margin[1] && y < sim->fimasize[1] - sim->margin[1])
 /* Weightmaps have no margin! */
     memcpy(rmspix,
-	sim->weight + (y - sim->margin[1]) * sim->imasize[0],
+	sim->weight + (size_t)(y - sim->margin[1]) * sim->imasize[0],
 	sim->imasize[0] * sizeof(PIXTYPE));
   else  
     for (i = sim->imasize[0]; i--;)
@@ -219,7 +220,7 @@ void	noise_generateline(simstruct *sim, int y) {
   vsRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF,
 		(VSLStreamStatePtr)sim->streams[p], npix,
 		sim->gaussbuf[p], 0.0, 1.0);
-  imapix = sim->image + y * npix;
+  imapix = sim->image + (size_t)y * npix;
   poissonbuf = sim->poissonbuf[p];
   gaussbuf = sim->gaussbuf[p];
   if (sim->weight)
