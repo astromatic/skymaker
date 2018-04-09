@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/05/2017
+*	Last modified:		07/03/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -95,12 +95,13 @@ INPUT	Pointer to the simulation.
 OUTPUT	-.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/05/2017
+VERSION	07/03/2018
  ***/
 void	noise_generate(simstruct *sim) {
 
 #ifdef HAVE_MKL
-   unsigned int	seed;
+   struct timeval	t; 
+   unsigned int		seed;
 #endif
 
    PIXTYPE	*rmspix;
@@ -119,6 +120,8 @@ void	noise_generate(simstruct *sim) {
 #ifdef HAVE_MKL
 /* Allocate buffer memory */
   seed = (unsigned int)time(NULL);
+  gettimeofday(&t, NULL);
+  seed=(unsigned int)t.tv_usec;
   QCALLOC(sim->streams,  void *, prefs.nthreads);
   QCALLOC(sim->lambdabuf, double *, prefs.nthreads);
   QCALLOC(sim->poissonbuf, int *, prefs.nthreads);

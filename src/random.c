@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/04/2013
+*	Last modified:		07/03/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -123,18 +123,21 @@ NOTES	The seed is used to initialize the random sequence at a particular
 	second). For multithreaded code, a series of secondary seeds is
 	generated.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/08/2006
+VERSION	07/03/2018
 */
 void	init_random(int seed)
   {
+   struct timeval	t; 
 #ifdef USE_THREADS
-   int	p;
+   int			p;
 #endif
 
   if (seed)
     srand((unsigned int)seed);
-  else
-    srand((unsigned int)time(NULL));
+  else {
+    gettimeofday(&t, NULL);
+    srand((unsigned int)(t.tv_usec));
+  }
 #ifdef USE_THREADS
   for (p=0; p<THREADS_NMAX; p++)
     glob_seed[p] = (unsigned int)rand();
