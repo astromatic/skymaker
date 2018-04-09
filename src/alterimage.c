@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		04/05/2017
+*	Last modified:		09/04/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -65,7 +65,7 @@ void	addback(simstruct *sim)
 
   {
    PIXTYPE	*pix, back;
-   int		i, nbpix;
+   size_t	i, nbpix;
 
   nbpix = sim->fimasize[0]*sim->fimasize[1];
   back = sim->pixscale[0]*sim->pixscale[1]
@@ -124,7 +124,7 @@ void	etoadu(simstruct *sim)
 
   {
    PIXTYPE	*pix, gain, satlev;
-   int		i, nbpix;
+   size_t	i, nbpix;
 
   
   nbpix = sim->imasize[0]*sim->imasize[1];

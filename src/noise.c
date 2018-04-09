@@ -107,7 +107,7 @@ void	noise_generate(simstruct *sim) {
    PIXTYPE	*rmspix;
    int		i, p, y;
 
-  QMALLOC16(sim->noise, PIXTYPE, sim->fimasize[0]*sim->fimasize[1]);
+  QMALLOC16(sim->noise, PIXTYPE, (size_t)sim->fimasize[0]*sim->fimasize[1]);
   QCALLOC(sim->weightbuf, PIXTYPE *, sim->fimasize[0] * prefs.nthreads);
   for (p = 0; p<prefs.nthreads; p++) {
     QMALLOC16(sim->weightbuf[p], PIXTYPE, sim->fimasize[0]);
@@ -137,7 +137,6 @@ void	noise_generate(simstruct *sim) {
   init_random(0);
 #endif
 
-printf("== %d %d \n", sim->fimasize[0] , sim->fimasize[1]);
 #pragma omp parallel for num_threads(prefs.nthreads)
   for (y = 0; y < sim->fimasize[1]; y++)
     noise_generateline(sim, y);
