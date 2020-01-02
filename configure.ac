@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		02/03/2018
+#	Last modified:		02/01/2020
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -44,7 +44,7 @@ date2=`date +"%a %b %d %Y"`
 date3=`date +"%B %Y"`
 AC_DEFINE_UNQUOTED(DATE, "$date", [Archive creation date])
 AC_SUBST(PACKAGER, "AstrOmatic")
-AC_SUBST(DATE2, "$date1")
+AC_SUBST(DATE1, "$date1")
 AC_SUBST(DATE2, "$date2")
 AC_SUBST(DATE3, "$date3")
 
@@ -55,8 +55,19 @@ sinclude(acx_openmp.m4)
 sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
 
+# Provide a special option for setting the package release number
+AC_ARG_WITH(release,
+	[AS_HELP_STRING([--with-release=<release number>],
+	[set the package release number (default = 1)])],
+	[],
+	[with_release="no"])
+if test "$with_release" = "no"; then
+  with_release=1
+fi
+AC_SUBST(PACKAGE_RELEASE, "$with_release")
+
 # Display pakage and version number
-AC_MSG_RESULT([******** Configuring:  $PACKAGE_NAME $VERSION ($date) ********])
+AC_MSG_RESULT([******** Configuring:  $PACKAGE_NAME $PACKAGE_VERSION - $PACKAGE_RELEASE ($date) ********])
 
 # Provide special option for choosing automatically the compilation flags.
 AC_MSG_CHECKING([if compilation flags are set automatically])
@@ -134,7 +145,7 @@ AC_ARG_WITH(fftw-libdir,
 	[AS_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
 	[Provide an alternative path to the FFTW library])])
 AC_ARG_WITH(fftw-incdir,
-        [AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
+	[AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
 	[Provide an alternative path to the FFTW include directory])])
 
 # Provide special options for the MKL library

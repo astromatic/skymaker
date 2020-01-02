@@ -7,7 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-#	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
+#	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 #
 #	License:		GNU General Public License
 #
@@ -22,15 +22,15 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		28/05/2017
+#	Last modified:		02/01/2020
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %define name @PACKAGE_TARNAME@
 %define version @PACKAGE_VERSION@
-%define release 1%{?dist}
-%undefine _missing_build_ids_terminate_build
+%define release @PACKAGE_RELEASE@%{?dist}
 %define debug_package %{nil}
+%undefine _missing_build_ids_terminate_build
 
 Summary: simulate astronomical images
 Name: %{name}
@@ -52,11 +52,11 @@ SkyMaker is a program that simulates astronomical images in FITS format.
 
 %build
 if test "$USE_BEST"; then
-%configure --enable-mkl --enable-auto-flags --enable-best-link
+%configure --enable-mkl --enable-auto-flags --enable-best-link --with-release=@PACKAGE_RELEASE@
 elif test "$USE_ICC"; then
-%configure --enable-icc
+%configure --enable-icc --with-release=@PACKAGE_RELEASE@
 else
-%configure
+%configure --with-release=@PACKAGE_RELEASE@
 fi
 make %{?_smp_mflags}
 
@@ -82,4 +82,3 @@ rm -rf $RPM_BUILD_ROOT
 - First RPM build for V3.0
 
 # end of file
-
