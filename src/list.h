@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/04/2018
+*	Last modified:		09/03/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -40,43 +40,48 @@
 
 typedef enum	{LISTCOORD_PIXEL, LISTCOORD_WORLD}	listcoordenum;
 
-typedef	struct
-	{
-	int	type;			/* Source type */
-	int	ok;			/* Object OK for rendering */
-	double	pos[2];			/* Position of object center in pixels*/
-	double	wcspos[2];		/* Position of object center in WCS */
-	float	mag;			/* Catalog magnitude */
-	float	flux;			/* Instrumental flux */
-	float	bulge_ratio;		/* Bulge to total flux */
-	float	bulge_req;		/* Bulge equiv. radius */
-	float	bulge_posang;		/* Bulge position angle */
-	float	bulge_ar;		/* Bulge aspect ratio */
-	float	bulge_sersicn;		/* Bulge sersic index */
-	float	disk_scale;		/* Disk scale length */
-	float	disk_ar;		/* Disk aspect ratio */
-	float	disk_posang;		/* Disk position angle */
-	double	z;			/* Galaxy redshift */
-	float	hubble_type;		/* Hubble type */
-        float	noiseqarea;		/* Galaxy image noise equivalent area */
-	PIXTYPE	*subimage;		/* Sub-frame with the final object */
-	int	subsize[2];		/* Sub-frame dimensions */
-	int	subpos[2];		/* Sub-frame position in image */
-	float	subfactor;		/* Sub-frame amplitude factor */
-	float	*maskbuf;		/* Interpolation kernel buffer */
-	int	*nmaskbuf;		/* Interpolation kernel size */
-	int	*startbuf;		/* Interpolation kernel start */
-	int	buf1size;		/* Size of first buffers series */
-	float	*buf2;			/* Second (intermediary) buffer */
-	int	buf2size;		/* Size of second buffer */
-	}	objstruct;
+typedef	struct {
+  int		type;			// Source type
+  int		ok;			// Object OK for rendering
+  double	pos[2];			// Position of object center in pixels
+  double	wcspos[2];		// Position of object center in WCS
+  float		mag;			// Catalog magnitude
+  float		flux;			// Instrumental flux
+// Galaxies
+  float		bulge_ratio;		// Bulge to total flux
+  float		bulge_req;		// Bulge equiv. radius
+  float		bulge_posang;		// Bulge position angle
+  float		bulge_ar;		// Bulge aspect ratio
+  float		bulge_sersicn;		// Bulge sersic index
+  float		disk_scale;		// Disk scale length
+  float		disk_ar;		// Disk aspect ratio
+  float		disk_posang;		// Disk position angle
+  double	z;			// Galaxy redshift
+  float		hubble_type;		// Hubble type
+// Rasters
+  float		size;
+  float		ratio;
+  float		posang;
+// Misc assets
+  float		noiseqarea;		// Galaxy image noise equivalent area
+  PIXTYPE	*subimage;		// Sub-frame with the final object
+  int		subsize[2];		// Sub-frame dimensions
+  int		subpos[2];		// Sub-frame position in image
+  float		subfactor;		// Sub-frame amplitude factor
+  float		*maskbuf;		// Interpolation kernel buffer
+  int		*nmaskbuf;		// Interpolation kernel size
+  int		*startbuf;		// Interpolation kernel start
+  int		buf1size;		// Size of first buffers series
+  float		*buf2;			// Second (intermediary) buffer
+  int		buf2size;		// Size of second buffer
+}	objstruct;
 
 /*-------------------------------- protos -----------------------------------*/
-extern void		closeoutlist(simstruct *sim),
-			endobj(objstruct *obj),
-			openoutlist(simstruct *sim),
-			readlist(simstruct *sim),
-			writeobj(simstruct *sim, objstruct *obj);
-extern int		readobj(simstruct *sim, objstruct *obj, char *str,
+extern void		list_closeout(simstruct *sim),
+			list_endobj(objstruct *obj),
+			list_openout(simstruct *sim),
+			list_read(simstruct *sim),
+			list_writeobj(simstruct *sim, objstruct *obj);
+extern int		list_readobj(simstruct *sim, objstruct *obj, char *str,
 				int proc);
 #endif

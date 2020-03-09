@@ -273,7 +273,7 @@ INPUT	Previous object index in list,
 OUTPUT	Next object index in list.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2018
+VERSION	09/03/2020
  ***/
 static int	pthread_nextobj(int obji, int proc)
   {
@@ -301,7 +301,7 @@ static int	pthread_nextobj(int obji, int proc)
         QPTHREAD_MUTEX_UNLOCK(&imagemutex);
 /*------ Add the object to the output list */
         obj->flux = 0.0;
-        writeobj(pthread_sim, obj);
+        list_writeobj(pthread_sim, obj);
         }
       pthread_addobjflag[pthread_addobji] = 0;
       QPTHREAD_COND_BROADCAST(&objcond[pthread_addobji]);
@@ -367,7 +367,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/08/2013
+VERSION	09/03/2020
  ***/
 static void	pthread_makestarfield(simstruct *sim, int nstars)
   {
@@ -431,7 +431,7 @@ static void	pthread_makestarfield(simstruct *sim, int nstars)
   for (o=0; o<pthread_nobj; o++)
     {
     QPTHREAD_COND_DESTROY(&objcond[o]);
-    endobj(&pthread_obj[o]);
+    list_endobj(&pthread_obj[o]);
     }
 
   if (pthread_gridflag)

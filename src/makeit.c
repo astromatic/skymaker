@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/05/2017
+*	Last modified:		09/03/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -86,10 +86,10 @@ void    makeit() {
   QCALLOC(simul->image, PIXTYPE, (size_t)simul->fimasize[0]*simul->fimasize[1]);
   if (prefs.weight_type != WEIGHT_NONE)
     weight_load(simul);
-  openoutlist(simul);
-  readlist(simul);
+  list_openout(simul);
+  list_read(simul);
   makestarfield(simul);
-  closeoutlist(simul);
+  list_closeout(simul);
   freepsf(simul);
   if (simul->aurange) {
     NFPRINTF(OUTPUT, "Adding diffuse component...");
