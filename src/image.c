@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2017 IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/11/2017
+*	Last modified:		09/03/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -276,17 +276,6 @@ int	resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
   }
 
 
-/****** make_kernel **********************************************************
-PROTO	void make_kernel(double pos, double *kernel, interpenum interptype)
-PURPOSE	Conpute interpolation-kernel data
-INPUT	Position,
-	Pointer to the output kernel data,
-	Interpolation method.
-OUTPUT	-.
-NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	07/04/2008
- ***/
 /****** make_kernel **********************************************************
 PROTO	void make_kernel(float pos, float *kernel, interpenum interptype)
 PURPOSE	Conpute interpolation-kernel data
