@@ -150,7 +150,7 @@ void	makestarfield(simstruct *sim)
       add_image(obj.subimage, obj.subsize[0], obj.subsize[1],
 	sim->image, sim->fimasize[0], sim->fimasize[1],
 	obj.subpos[0], obj.subpos[1], (float)obj.subfactor);
-       obj.flux = 0.0;
+      obj.flux = 0.0;
       writeobj(sim, &obj);
       }
     }
@@ -173,30 +173,35 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2018
+VERSION	10/04/2018
  ***/
-void	make_star(simstruct *sim, objstruct *obj)
+int	make_star(simstruct *sim, objstruct *obj)
 
   {
    PIXTYPE	*subt, *psf;
    double	dpos[2],
 		dx,dy,flux, osamp;
-   int		i, nsub2, nsubo;
+   int		i, nsub2, nsubo, subsize, xmin, ymin;
 
   psf = interp_psf(sim, obj->pos, dpos);
-/* Convert magnitude to linear units */ 
-  if (obj->flux)
-    flux = (float)obj->flux;
-  else
-    obj->flux = (float)(flux = DEXP(0.4*(sim->magzero2-obj->mag)));
-  osamp = sim->psfoversamp;
   dx = (obj->pos[0] - 1.0 + sim->margin[0] - dpos[0])/sim->mscan[0];
   dy = (obj->pos[1] - 1.0 + sim->margin[1] - dpos[1])/sim->mscan[1];
   dx -= (double)(obj->subpos[0] = (int)(dx+0.49999));
   dy -= (double)(obj->subpos[1] = (int)(dy+0.49999));
-/* Resample to lower resolution */
+
   nsubo = obj->subsize[0]*obj->subsize[1];
-  obj->subsize[0] = obj->subsize[1] = (int)(sim->psfsize[0]/osamp+1.0);
+  osamp = sim->psfoversamp;
+  subsize = (int)(sim->psfsize[0]/osamp+1.0);
+
+/* Check image boundaries */
+  ymin = obj->subpos[1] - subsize / 2;
+  xmin = obj->subpos[0] - subsize / 2;
+
+  if ((xmin + subsize) <= 0 || (ymin + subsize) <= 0 ||
+	xmin >= sim->fimasize[0] || ymin >= sim->fimasize[1])
+    return RETURN_ERROR;
+
+  obj->subsize[0] = obj->subsize[1] = subsize;
   nsub2 = obj->subsize[0]*obj->subsize[1];
   if (!nsubo)
     {
@@ -206,17 +211,27 @@ void	make_star(simstruct *sim, objstruct *obj)
     {
     QREALLOC(obj->subimage, PIXTYPE, nsub2);
     }
+
+/* Resample to lower resolution */
   resample_image(psf, sim->psfsize[0], sim->psfsize[1], obj,
 	-dx*osamp, -dy*osamp, osamp);
   if (sim->npsf>1)
     free(psf);
+
+/* Convert magnitude to linear units */ 
+  if (obj->flux)
+    flux = (float)obj->flux;
+  else
+    obj->flux = (float)(flux = DEXP(0.4*(sim->magzero2-obj->mag)));
+
+/* Normalize flux */
   flux = 0.0;
   for (i=nsub2,subt=obj->subimage; i--;)
     flux += (double)*(subt++);
 
   obj->subfactor = obj->flux/flux;
 
-  return;
+  return RETURN_OK;
   }
 
 #ifdef USE_THREADS

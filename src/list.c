@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2018 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/02/2018
+*	Last modified:		05/07/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -62,7 +62,7 @@ static objstruct	*pthread_obj;
 static char		pthread_str[MAXCHAR];
 static int		*pthread_addobjflag, *pthread_objqueue, pthread_endflag,
 			pthread_addobji,pthread_procobji, pthread_nobj,
-			pthread_objn,
+			pthread_objn, pthread_objnp,
 			pthread_gridoffsetx,pthread_gridoffsety,
 			pthread_ngridx, pthread_gridstep, pthread_gridindex,
 			pthread_ngrid, pthread_gridflag;
@@ -75,7 +75,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	Global prefs variables are used.
 AUTHOR	E. Bertin (IAP)
-VERSION	24/05/2012
+VERSION	10/04/2018
  ***/
 void    readlist(simstruct *sim)
 
@@ -112,15 +112,18 @@ void    readlist(simstruct *sim)
 
   for (i=0; fgets(str, MAXCHAR, sim->inlistfile); i++)
     {
+    if (!(i%READLIST_DISPSTEP))
+      {
+      sprintf(msg, "Painting input list... (%d objects painted / %d read)",
+		prefs.nobj ,i);
+      NFPRINTF(OUTPUT, msg);
+      }
     if (gridflag && gridindex>=ngrid)
       break;
     if (readobj(sim, &obj, str, 0) == RETURN_ERROR)
       continue;
-    if (!(i%READLIST_DISPSTEP))
-      {
-      sprintf(msg, "Painting input list... (%d objects)", i);
-      NFPRINTF(OUTPUT, msg);
-      }
+    if (obj.mag < prefs.listmag_limits[0] || obj.mag > prefs.listmag_limits[1])
+      continue;
     if (gridflag)
       {
       obj.pos[0] = gridindex%sim->ngrid[0] + sim->gridoffset[0]
@@ -130,13 +133,17 @@ void    readlist(simstruct *sim)
       gridindex++;
       }
     if (obj.type == 100)
-      make_star(sim, &obj);
+      {
+      if (make_star(sim, &obj))
+        continue;;
+      }
     else
       make_galaxy(sim, &obj);
-/*-- Add the object to the image */
-    add_image(obj.subimage, obj.subsize[0], obj.subsize[1],
+/*-- Try adding the object to the image (and continue if out of frame) */
+    if ((add_image(obj.subimage, obj.subsize[0], obj.subsize[1],
 	sim->image, sim->fimasize[0], sim->fimasize[1],
-	obj.subpos[0], obj.subpos[1], (float)obj.subfactor);
+	obj.subpos[0], obj.subpos[1], (float)obj.subfactor))
+      continue;
 /*-- Add the object to the output list */
     writeobj(sim, &obj);
     }
@@ -161,7 +168,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2018
+VERSION	05/07/2018
  ***/
 int	readobj(simstruct *sim, objstruct *obj, char *str, int proc)
   {
@@ -354,7 +361,7 @@ INPUT	Pointer to the thread number.
 OUTPUT	NULL void pointer.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/09/2007
+VERSION	05/07/2018
  ***/
 static void	*pthread_readobj(void *arg)
   {
@@ -368,12 +375,19 @@ static void	*pthread_readobj(void *arg)
   while ((obji=pthread_nextobj(obji, str, proc))!=-1)
     {
     obj = &pthread_obj[obji];
+    obj->ok = 0;
     if (readobj(pthread_sim, obj, str, proc) != RETURN_OK)
       continue;
+    if (obj->mag < prefs.listmag_limits[0] || obj->mag > prefs.listmag_limits[1])
+      continue;
     if (obj->type == 100)
-      make_star(pthread_sim, obj);
+      {
+      if (make_star(pthread_sim, obj))
+        continue;
+      }
     else
       make_galaxy(pthread_sim, obj);
+    obj->ok = 1;
     }
 
   pthread_exit(NULL);
@@ -389,12 +403,12 @@ INPUT	Previous object index in list,
 OUTPUT	Next object index in list.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2010
+VERSION	10/04/2018
  ***/
 static int	pthread_nextobj(int obji, char *str, int proc)
   {
    objstruct	*obj;
-   int		q;
+   int		q, retcode;
 
   QPTHREAD_MUTEX_LOCK(&objmutex);
 /* The newly processed object is ready to be added to the image */
@@ -407,17 +421,22 @@ static int	pthread_nextobj(int obji, char *str, int proc)
       {
       obj = &pthread_obj[pthread_addobji];
 /*---- Add the object to the image */
-      if (obj->subimage)
+      if (obj->subimage && obj->ok)
         {
         QPTHREAD_MUTEX_LOCK(&imagemutex);
-        add_image(obj->subimage, obj->subsize[0], obj->subsize[1],
+        retcode = add_image(obj->subimage, obj->subsize[0], obj->subsize[1],
 		pthread_sim->image, pthread_sim->fimasize[0],
 		pthread_sim->fimasize[1],
 		obj->subpos[0], obj->subpos[1], (float)obj->subfactor);
+        obj->ok = 0;
         QPTHREAD_MUTEX_UNLOCK(&imagemutex);
 /*------ Add the object to the output list */
         obj->flux = 0.0;
-        writeobj(pthread_sim, obj);
+        if (!retcode)
+          {
+          writeobj(pthread_sim, obj);
+          pthread_objnp++;
+          }
         }
       pthread_addobjflag[pthread_addobji] = 0;
       QPTHREAD_COND_BROADCAST(&objcond[pthread_addobji]);
@@ -430,7 +449,8 @@ static int	pthread_nextobj(int obji, char *str, int proc)
     {
     if (!(pthread_objn%READLIST_DISPSTEP))
       {
-      sprintf(pthread_str, "Painting input list... (%d objects)", pthread_objn);
+      sprintf(pthread_str, "Painting input list... (%d objects painted / %d read)",
+		pthread_objnp, pthread_objn);
       NFPRINTF(OUTPUT, pthread_str);
       }
     pthread_objn++;
@@ -473,7 +493,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/04/2010
+VERSION	10/04/2018
  ***/
 static void	pthread_readlist(simstruct *sim)
   {
@@ -501,7 +521,7 @@ static void	pthread_readlist(simstruct *sim)
   QPTHREAD_ATTR_SETDETACHSTATE(&pthread_attr, PTHREAD_CREATE_JOINABLE);
   pthread_sim = sim;
   pthread_endflag = 0;
-  pthread_addobji = pthread_procobji = pthread_objn = 0;
+  pthread_addobji = pthread_procobji = pthread_objn = pthread_objnp = 0;
   pthread_gridflag = (sim->imatype==GRID || sim->imatype==GRID_NONOISE);
   if (pthread_gridflag)
     {

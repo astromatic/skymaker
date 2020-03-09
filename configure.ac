@@ -7,7 +7,11 @@
 #
 #	This file part of:	SkyMaker
 #
+<<<<<<< HEAD
+#	Copyright:		(C) 2003-2018 IAP/CNRS/SorbonneU
+=======
 #	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
+>>>>>>> 2bacca57090d06be691a917a468d098f31080928
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +26,11 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
+<<<<<<< HEAD
+#	Last modified:		05/07/2018
+=======
 #	Last modified:		02/01/2020
+>>>>>>> 2bacca57090d06be691a917a468d098f31080928
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +39,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([SkyMaker],[4.1.1], [https://github.com/astromatic/skymaker],
+AC_INIT([SkyMaker],[4.2.0], [https://github.com/astromatic/skymaker],
 	skymaker, [http://astromatic.net/software/skymaker])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)

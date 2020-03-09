@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/02/2018
+*	Last modified:		10/04/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -34,7 +34,7 @@
 #define _LIST_H_
 /*------------------------------ Internal constants -------------------------*/
 
-#define	READLIST_DISPSTEP	1000
+#define	READLIST_DISPSTEP	5000
 
 /*------------------------------ Type definitions ---------------------------*/
 
@@ -43,6 +43,7 @@ typedef enum	{LISTCOORD_PIXEL, LISTCOORD_WORLD}	listcoordenum;
 typedef	struct
 	{
 	int	type;			/* Source type */
+	int	ok;			/* Object OK for rendering */
 	double	pos[2];			/* Position of object center in pixels*/
 	double	wcspos[2];		/* Position of object center in WCS */
 	float	mag;			/* Catalog magnitude */

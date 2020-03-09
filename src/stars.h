@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		10/04/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -36,5 +36,5 @@
 
 /*---------------------------- Internal constants ---------------------------*/
 /*---------------------------------- protos --------------------------------*/
-extern void	makestarfield(simstruct *sim),
-		make_star(simstruct *sim, objstruct *obj);
+extern void	makestarfield(simstruct *sim);
+extern int	make_star(simstruct *sim, objstruct *obj);
