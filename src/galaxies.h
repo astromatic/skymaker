@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/02/2018
+*	Last modified:		06/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -41,8 +41,8 @@
 /*--------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
-extern void	make_galaxy(simstruct *sim, objstruct *obj);
-extern double	make_sersic(PIXTYPE *pix, int width, int height, double *jac,
+extern int	make_galaxy(simstruct *sim, objstruct *obj);
+extern double	raster_sersic(PIXTYPE *pix, int width, int height, double *jac,
 			double reff, double aspect, double posang, double n);
 
 extern PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,

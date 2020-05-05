@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		24/02/2018
+*	Last modified:		06/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -62,24 +62,26 @@ extern pthread_mutex_t	fftmutex;
 static double	gamm(double xx);
 
 /****** make_galaxy *******************************************************
-PROTO	void make_galaxy(simstruct *sim, objstruct *obj)
+PROTO	int make_galaxy(simstruct *sim, objstruct *obj)
 PURPOSE	Generate a galaxy at a definite position in the image.
 INPUT	Pointer to the sim structure,
 	pointer to the object structure.
-OUTPUT	-.
+OUTPUT	RETURN_OK if the galaxy was succesfully rasterized, or RETURN_ERROR
+	otherwise.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	24/02/2018
+VERSION	06/05/2020
  ***/
-void	make_galaxy(simstruct *sim, objstruct *obj)
+int	make_galaxy(simstruct *sim, objstruct *obj)
 
   {
    char		str[MAXCHAR];
-   PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt, *psfdft;
+   PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt, *psfdft,
+		invflux, invbflux;
    double	dpos[2], jac[4],
 		osamp, dratio, bsize,size,
-		bflux,flux,flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
+		bflux, flux, flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
    int		i, subwidth,subheight, suborder,
 		nsub,nsub2,nsubo,memnsub;
 
@@ -95,7 +97,7 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
     if (expo>-30.0)
       obj->flux = DEXP(expo);
     if (!obj->flux)
-      return;
+      return RETURN_ERROR;
     }
 /* No need to quantize below 1 sigma at the object scale: */
 /* Set mask size limits from the bulge */
@@ -107,14 +109,14 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       sprintf(str, "Bulge radius too small for galaxy at (%.1f,%.1f): ",
 	obj->pos[0], obj->pos[1]);
       warning(str, "skipped");
-      return;
+      return RETURN_ERROR;
       }
     n = obj->bulge_sersicn;
     bn = 2.0*n - 1.0/3.0 + 4.0/(405.0*n) + 46.0/(25515.0*n*n)
 	+ 131.0/(1148175*n*n*n);        /* Ciotti & Bertin 1999 */
     ampfac = pow(bn, 2*n) / (PI * gamm(2*n+1));
     bsize = log(obj->bulge_ratio*obj->flux*ampfac
-		/(obj->bulge_ar*beq*sim->minquant))/bn;
+		/(obj->bulge_aspect*beq*sim->minquant))/bn;
     size = bsize = bsize>0.0 ? beq*pow(bsize, n) : 0.0;
     }
   else
@@ -129,20 +131,20 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
       sprintf(str, "Disk scale too small for galaxy at (%.1f,%.1f): ",
 	obj->pos[0], obj->pos[1]);
       warning(str, "skipped");
-      return;
+      return RETURN_ERROR;
       }
-    if (obj->disk_ar < SMALL)
+    if (obj->disk_aspect < SMALL)
       {
       NFPRINTF(OUTPUT, "");
       sprintf(str, "Disk A/R too small for galaxy at (%.1f,%.1f): ",
 	obj->pos[0], obj->pos[1]);
       warning(str, "skipped");
-      return;
+      return RETURN_ERROR;
       }
 
 /*-- Estimate the maximum extent of the disk */
     size = dscale*log(dratio*obj->flux
-		/(2*PI*obj->disk_ar*dscale*sim->minquant));
+		/(2*PI*obj->disk_aspect*dscale*sim->minquant));
     if (size<0.0)
       size = 0.0;
 /*-- Don't go beyond van der Kruit cut-off */
@@ -178,29 +180,30 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 
 // Render galaxies
   sub = NULL;			/* To avoid gcc -Wall warnings */
-  flux = 0.0;			/* idem */
+  invflux = 0.0;			/* idem */
 /* Bulge component */
   if (obj->bulge_ratio)
     {
-    QFFTWF_MALLOC(bsub, PIXTYPE, memnsub);
-    memset(bsub, 0, memnsub*sizeof(PIXTYPE));
-    flux = bflux = make_sersic(bsub, subwidth, subheight, sim->wcs? jac : NULL,
-	osamp*beq, obj->bulge_ar,obj->bulge_posang, n) / obj->bulge_ratio;
+    QFFTWF_CALLOC(bsub, PIXTYPE, memnsub);
+    invflux = invbflux = obj->bulge_ratio / raster_sersic(bsub,
+	subwidth, subheight,
+	sim->wcs? jac : NULL,
+	osamp*beq, obj->bulge_aspect, obj->bulge_posang, n);
     sub = bsub;
     }
   else
     {
-    bflux = 0.0;		/* To avoid gcc -Wall warnings */
+    invbflux = 0.0;		/* To avoid gcc -Wall warnings */
     bsub = NULL;
     }
 
 /* Disk component */
   if (dratio>0.001) 
     {
-    QFFTWF_MALLOC(dsub, PIXTYPE, memnsub);
-    memset(dsub, 0, memnsub*sizeof(PIXTYPE));
-    flux = make_sersic(dsub, subwidth, subheight, sim->wcs? jac : NULL,
-	osamp*dscale*1.67835, obj->disk_ar, obj->disk_posang, 1.0) / dratio;
+    QFFTWF_CALLOC(dsub, PIXTYPE, memnsub);
+    invflux = dratio / raster_sersic(dsub, subwidth, subheight,
+	sim->wcs? jac : NULL,
+	osamp*dscale*1.67835, obj->disk_aspect, obj->disk_posang, 1.0);
     sub = dsub;
     }
   else
@@ -209,10 +212,10 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
 /* Combine and normalize (flux will change later, though) */
   if (bsub && dsub)
     for (i=nsub,subt=sub,bsubt=bsub; i--; subt++)
-      *subt = *subt/flux + *(bsubt++)/bflux;
+      *subt = *subt * invflux + *(bsubt++) * invbflux;
   else
     for (i=nsub,subt=sub; i--;)
-      *(subt++) /= flux;
+      *(subt++) *= invflux;
 
 /* Truncate to avoid introducing anistropy in the vignet corners */
   trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
@@ -255,12 +258,12 @@ void	make_galaxy(simstruct *sim, objstruct *obj)
   QFFTWF_FREE(bsub);
   QFFTWF_FREE(dsub);
 
-  return;
+  return RETURN_OK;
   }
 
 
-/****** make sersic **********************************************************
-PROTO	double make_sersic(PIXTYPE *pix, int width, int height, double *jac,
+/****** raster_sersic *********************************************************
+PROTO	double raster_sersic(PIXTYPE *pix, int width, int height, double *jac,
 		double reff, double aspect, double posang, double n)
 PURPOSE	Rasterize an unnormalized 2D Sersic (exp(r**(-1/n))) model.
 INPUT	pointer to the raster,
@@ -274,9 +277,9 @@ INPUT	pointer to the raster,
 OUTPUT	Total flux.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2018
+VERSION	06/05/2020
  ***/
-double	make_sersic(PIXTYPE *pix, int width, int height, double *jac,
+double	raster_sersic(PIXTYPE *pix, int width, int height, double *jac,
 		double reff, double aspect, double posang, double n)
 
   {

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/03/2020
+*	Last modified:		06/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -51,17 +51,17 @@ typedef	struct {
   float		bulge_ratio;		// Bulge to total flux
   float		bulge_req;		// Bulge equiv. radius
   float		bulge_posang;		// Bulge position angle
-  float		bulge_ar;		// Bulge aspect ratio
+  float		bulge_aspect;		// Bulge aspect ratio
   float		bulge_sersicn;		// Bulge sersic index
   float		disk_scale;		// Disk scale length
-  float		disk_ar;		// Disk aspect ratio
+  float		disk_aspect;		// Disk aspect ratio
   float		disk_posang;		// Disk position angle
   double	z;			// Galaxy redshift
   float		hubble_type;		// Hubble type
 // Rasters
-  float		size;
-  float		ratio;
-  float		posang;
+  float		raster_size;
+  float		raster_aspect;
+  float		raster_posang;
 // Misc assets
   float		noiseqarea;		// Galaxy image noise equivalent area
   PIXTYPE	*subimage;		// Sub-frame with the final object
