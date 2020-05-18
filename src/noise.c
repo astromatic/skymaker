@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		07/03/2018
+*	Last modified:		18/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -100,7 +100,7 @@ VERSION	07/03/2018
 void	noise_generate(simstruct *sim) {
 
 #ifdef HAVE_MKL
-   struct timeval	t; 
+   struct timespec	t; 
    unsigned int		seed;
 #endif
 
@@ -120,8 +120,8 @@ void	noise_generate(simstruct *sim) {
 #ifdef HAVE_MKL
 /* Allocate buffer memory */
   seed = (unsigned int)time(NULL);
-  gettimeofday(&t, NULL);
-  seed=(unsigned int)t.tv_usec;
+  clock_gettime(CLOCK_MONOTONIC, &t);
+  seed=(unsigned int)t.tv_nsec;
   QCALLOC(sim->streams,  void *, prefs.nthreads);
   QCALLOC(sim->lambdabuf, double *, prefs.nthreads);
   QCALLOC(sim->poissonbuf, int *, prefs.nthreads);
