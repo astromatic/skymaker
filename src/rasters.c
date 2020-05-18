@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/03/2020
+*	Last modified:		18/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -43,6 +43,7 @@
 
 #include "define.h"
 #include "globals.h"
+#include "fits/fitscat.h"
 #include "fft.h"
 #include "galaxies.h"
 #include "image.h"
@@ -71,25 +72,28 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/05/2020
+VERSION	18/05/2020
  ***/
 int	make_raster(simstruct *sim, objstruct *obj)
 
   {
+   catstruct	*cat;
+   tabstruct	*tab;
    char		str[MAXCHAR];
-   PIXTYPE	*sub, *subt, *psfdft,
+   PIXTYPE	*sub, *subt, *psfdft, *raster,
 		invflux;
    double	dpos[2], jac[4],
 		osamp, size,
 		flux,flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
    int		i, subwidth,subheight, suborder,
+		rasterwidth, rasterheight, rastersize,
 		nsub,nsub2,nsubo,memnsub;
 
   osamp = sim->psfoversamp;
   size = obj->raster_size / sim->pixscale[0];
-  n = 0.0;	/* avoid gcc -Wall warnings */
+  n = 0.0;	// avoid gcc -Wall warnings
 
-/* Convert magnitude to linear units */
+// Convert magnitude to linear units
   if (!obj->flux)
     {
     expo = 0.4*(sim->magzero2-obj->mag);
@@ -108,19 +112,39 @@ int	make_raster(simstruct *sim, objstruct *obj)
     return RETURN_ERROR;
   }
 
+// Read file
+  if (obj->type==300) {
+    if (obj->raster_index <= 0) {
+      error(EXIT_FAILURE, "Raster with negative index in ", sim->inlistname);
+    }
+    sprintf(str, "%s_%09d.fits", prefs.raster_prefix, obj->raster_index);
+    if (!(cat = read_cat(str))) {
+      sprintf(gstr, "*Error*: %s not found", str);
+      error(EXIT_FAILURE, gstr,"");
+    }
+  }
+  tab = cat->tab;
+  if (tab->naxis<2)
+    error(EXIT_FAILURE, "*Error*: Not an image in ", cat->filename);
+
+  rasterwidth = tab->naxisn[0];
+  rasterheight = tab->naxisn[1];
+  rastersize =  rasterwidth * rasterheight;
+  QMALLOC(raster, PIXTYPE, rastersize);
+  read_body(tab, raster, rastersize);
+
   i = 2*(int)(osamp*sqrt(size*size
 	+16.0*sim->psfarea/(sim->pixscale[0]*sim->pixscale[1])));
   for (suborder=1; i>>=1; suborder++);
-  if (suborder>=PSF_NORDER)
-    {
+  if (suborder>=PSF_NORDER) {
     osamp /= (double)(1<<(suborder-PSF_NORDER));
     suborder = PSF_NORDER;
-    }
+  }
   subheight = subwidth = 1<<suborder;
   nsub = subwidth*subheight;
-  memnsub = (((subwidth>>1) + 1)<< 1) * subheight;/* Provide margin for FFTW */
+  memnsub = (((subwidth>>1) + 1)<< 1) * subheight; // Provide margin for FFTW
 
-/* Compute (or retrieve) PSF DFT at this position */
+// Compute (or retrieve) PSF DFT at this position
   psfdft = interp_dft(sim, suborder, obj->pos, dpos);
 
 // Compute Jacobian
@@ -139,13 +163,13 @@ int	make_raster(simstruct *sim, objstruct *obj)
 	osamp*obj->raster_size / sim->pixscale[0], obj->raster_aspect,
 	obj->raster_posang);
 
-/* Combine and normalize (flux will change later, though) */
+// Combine and normalize (flux will change later, though)
     for (i=nsub,subt=sub; i--;)
       *(subt++) *= invflux;
 
 /* Truncate to avoid introducing anistropy in the vignet corners */
-  trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
-		subwidth, subheight);
+//  trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
+//		subwidth, subheight);
 /* Convolve with the oversampled PSF */
   fft_conv(sub, psfdft, subwidth,subheight);
   if (sim->npsf>1)
@@ -154,34 +178,32 @@ int	make_raster(simstruct *sim, objstruct *obj)
   dy = (obj->pos[1] - 1.0 + sim->margin[1] - dpos[1])/sim->mscan[1];
   dx -= (double)(obj->subpos[0] = (int)(dx+0.49999));
   dy -= (double)(obj->subpos[1] = (int)(dy+0.49999));
-/* Truncate again */
-  trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
-		subwidth, subheight);
-/* Resample to lower resolution */
+// Truncate again
+//  trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
+//		subwidth, subheight);
+// Resample to lower resolution
   nsubo = obj->subsize[0]*obj->subsize[1];
   obj->subsize[0]  = obj->subsize[1] = (int)(subwidth/osamp+1.0);
   nsub2 = obj->subsize[0]*obj->subsize[1];
-  if (!nsubo)
-    {
+  if (!nsubo) {
     QMALLOC(obj->subimage, PIXTYPE, nsub2);
-    }
-  else if (nsub2>nsubo)
-    {
+  }
+  else if (nsub2>nsubo) {
     QREALLOC(obj->subimage, PIXTYPE, nsub2);
-    }
-  resample_image(sub, subwidth, subheight, obj, -dx*osamp, -dy*osamp, osamp);
+  }
+  image_resample_obj(sub, subwidth, subheight, obj, -dx*osamp, -dy*osamp, osamp);
   flux = flux2 = 0.0;
-  for (i=nsub2,subt=obj->subimage; i--;)
-    {
+  for (i=nsub2,subt=obj->subimage; i--;) {
     dval = (double)*(subt++);
     flux += dval;
     flux2 += dval*dval;
-    }
+  }
 
   obj->subfactor = obj->flux/flux;
   obj->noiseqarea = flux*flux / flux2;
 
   QFFTWF_FREE(sub);
+  free(raster);
 
   return RETURN_OK;
   }
@@ -206,6 +228,7 @@ VERSION	06/05/2020
 double	raster_raster(PIXTYPE *pix, int width, int height, double *jac,
 		double size, double aspect, double posang) {
 
+  
   return	1.0;
 
 };

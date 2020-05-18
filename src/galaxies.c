@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/05/2020
+*	Last modified:		19/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -71,7 +71,7 @@ OUTPUT	RETURN_OK if the galaxy was succesfully rasterized, or RETURN_ERROR
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/05/2020
+VERSION	19/05/2020
  ***/
 int	make_galaxy(simstruct *sim, objstruct *obj)
 
@@ -243,7 +243,8 @@ int	make_galaxy(simstruct *sim, objstruct *obj)
     {
     QREALLOC(obj->subimage, PIXTYPE, nsub2);
     }
-  resample_image(sub, subwidth, subheight, obj, -dx*osamp, -dy*osamp, osamp);
+  image_resample_obj(sub, subwidth, subheight, obj, -dx*osamp, -dy*osamp,
+		osamp);
   flux = flux2 = 0.0;
   for (i=nsub2,subt=obj->subimage; i--;)
     {

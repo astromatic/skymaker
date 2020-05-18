@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		04/05/2017
+*	Last modified:		18/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -113,6 +113,7 @@ pkeystruct key[] =
    {""}, 1, 3, &prefs.npsfd80qua22},
   {"QUA_CENTER", P_FLOATLIST, prefs.psfquac, 0,0, -1e18, 1e18,
    {""}, 2, 2, &prefs.npsfquac},
+  {"RASTER_PREFIX", P_STRING, prefs.raster_prefix},
   {"READOUT_NOISE", P_FLOAT, &prefs.ron, 0,0, 0.0,1e9},
   {"SATUR_LEVEL", P_FLOAT, &prefs.satlev, 0,0, -1e18,1e18},
   {"SEED_MOTION", P_INT, &prefs.psfmotionseed, 0, 0x7fffffffL},
@@ -252,6 +253,10 @@ char *default_prefs[] =
 "STARCOUNT_SLOPE    0.2          # slope of differential star counts (dexp/mag)",
 "MAG_LIMITS         17.0,26.0    # stellar magnitude range",
 " ",
+"*#--------------------------------- Rasters -----------------------------------",
+"* ",
+"*RASTER_PREFIX      raster       # Prefix for input raster images,",
+"* ",
 "#------------------------------ Random Seeds ---------------------------------",
 " ",
 "SEED_MOTION        0            # rand. seed for PSF turbulent motion (0=time)",

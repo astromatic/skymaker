@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/05/2020
+*	Last modified:		19/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -70,6 +70,7 @@ static int		*pthread_addobjflag, *pthread_objqueue, pthread_endflag,
 #endif
 
 static double		list_strtofloat(char *str, char **buf, double def);
+static int		list_strtoint(char *str, char **buf, int def);
 
 /****** list_read ************************************************************
 PROTO	void readlist(simstruct *sim)
@@ -159,7 +160,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/05/2020
+VERSION	17/05/2020
  ***/
 int	list_readobj(simstruct *sim, objstruct *obj, char *str, int proc) {
    char		*cptr, *cptr2, *strtokbuf;
@@ -210,12 +211,12 @@ int	list_readobj(simstruct *sim, objstruct *obj, char *str, int proc) {
       obj->hubble_type =  list_strtofloat(NULL, &strtokbuf, 0.0);
       break;
     case 300:
-      obj->raster_size = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
-	atof(cptr) : 1.0;
-      obj->raster_aspect = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
-	atof(cptr) : 1.0;
-      obj->raster_posang = (cptr=strtok_r(NULL, " \t", &strtokbuf))?
-	atof(cptr) : random_double(proc)*360.0 - 180.0;
+      obj->raster_index =  list_strtoint(NULL, &strtokbuf, 0);
+      obj->raster_size = list_strtofloat(NULL, &strtokbuf, 1.0);
+      obj->raster_aspect = list_strtofloat(NULL, &strtokbuf, 1.0);
+      obj->raster_posang = list_strtofloat(NULL, &strtokbuf,
+				random_double(proc)*360.0 - 180.0);
+      obj->z = list_strtofloat(NULL, &strtokbuf, 0.0);
       break;
     default:
       break;
@@ -240,6 +241,24 @@ static double    list_strtofloat(char *str, char **buf, double def) {
    char	*cptr;
 
   return (cptr=strtok_r(str, " \t", buf))? atof(cptr) : def;
+}
+
+
+/****** list_strtoint ********************************************************
+PROTO	int list_strtoint(char *str, char *buf, int default)
+PURPOSE	Write the data an object.
+INPUT	Pointer to the sim structure,
+	pointer to the obj structure.
+OUTPUT	-.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	18/05/2020
+ ***/
+static int    list_strtoint(char *str, char **buf, int def) {
+
+   char	*cptr;
+
+  return (cptr=strtok_r(str, " \t", buf))? atoi(cptr) : def;
 }
 
 
@@ -286,39 +305,48 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/05/2020
+VERSION	17/05/2020
  ***/
-void    list_writeobj(simstruct *sim, objstruct *obj)
-  {
+void    list_writeobj(simstruct *sim, objstruct *obj) {
    char			str[MAXCHAR];
 
  /*-- The format depends on object type */
-  if (obj->type == 100)
-    fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f\n",
+  switch(obj->type) {
+    case 100:
+      fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f\n",
 	obj->type, obj->pos[0], obj->pos[1], obj->mag);
-  else if (obj->type == 200)
-    fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
-			"%+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
+      break;
+    case 200:
+      fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
+		"%+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
 	obj->type, obj->pos[0], obj->pos[1], obj->mag,
 	obj->bulge_ratio, obj->bulge_req, obj->bulge_aspect, obj->bulge_posang,
 	obj->disk_scale, obj->disk_aspect, obj->disk_posang, obj->z,
 	obj->hubble_type, obj->noiseqarea);
-  else if (obj->type == 210)
-    fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
-			"%4.2f %+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
+      break;
+    case 210:
+      fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f %5.3f %9.3f %5.3f "
+		"%4.2f %+7.2f %9.3f %5.3f %+7.2f %8.5f %+4.1f %11.2f\n",
 	obj->type, obj->pos[0], obj->pos[1], obj->mag,
 	obj->bulge_sersicn, obj->bulge_ratio, obj->bulge_req, obj->bulge_aspect,
 	obj->bulge_posang, obj->disk_scale, obj->disk_aspect, obj->disk_posang,
 	obj->z, obj->hubble_type, obj->noiseqarea);
-  else
-    {
-    sprintf(str, "%d", obj->type);
-    error(EXIT_FAILURE, "*Error*: Unknown object type in input list: ", str);
-    }
+      break;
+    case 300:
+      fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f "
+		"%9.3f %5.3f %+7.2f %8.5f %11.2f\n",
+	obj->type, obj->pos[0], obj->pos[1], obj->mag,
+	obj->raster_size, obj->raster_aspect, obj->raster_posang,
+	obj->z, obj->noiseqarea);
+      break;
+    default:
+      sprintf(str, "%d", obj->type);
+      error(EXIT_FAILURE, "*Error*: Unknown object type in input list: ", str);
+  }
   prefs.nobj++;
 
   return;
-  }
+}
 
 
 /****** list_openout *********************************************************
@@ -429,7 +457,7 @@ INPUT	Previous object index in list,
 OUTPUT	Next object index in list.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	10/03/2020
+VERSION	19/05/2020
  ***/
 static int	pthread_list_nextobj(int obji, char *str, int proc) {
 
@@ -447,7 +475,7 @@ static int	pthread_list_nextobj(int obji, char *str, int proc) {
 /*---- Add the object to the image */
       if (obj->subimage && obj->ok) {
         QPTHREAD_MUTEX_LOCK(&imagemutex);
-        retcode = add_image(obj->subimage, obj->subsize[0], obj->subsize[1],
+        retcode = image_add(obj->subimage, obj->subsize[0], obj->subsize[1],
 		pthread_sim->image, pthread_sim->fimasize[0],
 		pthread_sim->fimasize[1],
 		obj->subpos[0], obj->subpos[1], (float)obj->subfactor);

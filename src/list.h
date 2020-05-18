@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/05/2020
+*	Last modified:		18/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -59,9 +59,10 @@ typedef	struct {
   double	z;			// Galaxy redshift
   float		hubble_type;		// Hubble type
 // Rasters
-  float		raster_size;
-  float		raster_aspect;
-  float		raster_posang;
+  int		raster_index;		// Index of the rasterized image
+  float		raster_size;		// Rasterized image size
+  float		raster_aspect;		// Rasterized image aspect ratio
+  float		raster_posang;		// Rasterized image position angle
 // Misc assets
   float		noiseqarea;		// Galaxy image noise equivalent area
   PIXTYPE	*subimage;		// Sub-frame with the final object
