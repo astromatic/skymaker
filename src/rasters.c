@@ -74,9 +74,8 @@ NOTES	Writes to an allocated image buffer, not directly to the image to
 AUTHOR	E. Bertin (IAP)
 VERSION	25/05/2020
  ***/
-int	make_raster(simstruct *sim, objstruct *obj)
+int	make_raster(simstruct *sim, objstruct *obj) {
 
-  {
    catstruct	*cat;
    tabstruct	*tab;
    char		str[MAXCHAR];
@@ -84,24 +83,23 @@ int	make_raster(simstruct *sim, objstruct *obj)
 		invflux;
    double	dpos[2], geo[4], jac[4], lin[4], invlin[4],
 		osamp, size, cang, sang, det, invdet,
-		flux,flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
+		flux, flux2, dx,dy, scale, expo, n, dval;
    int		i, subwidth,subheight, suborder,
 		rasterwidth, rasterheight, rastersize,
-		nsub,nsub2,nsubo,memnsub, oversamp;
+		nsub, nsub2, nsubo, memnsub, oversamp;
 
   osamp = sim->psfoversamp;
   size = obj->raster_size / sim->pixscale[0];
   n = 0.0;	// avoid gcc -Wall warnings
 
 // Convert magnitude to linear units
-  if (!obj->flux)
-    {
+  if (!obj->flux) {
     expo = 0.4*(sim->magzero2-obj->mag);
     if (expo>-30.0)
       obj->flux = DEXP(expo);
     if (!obj->flux)
       return RETURN_ERROR;
-    }
+  }
 
 // Set mask size limits
   if (size < SMALL) {
@@ -133,6 +131,7 @@ int	make_raster(simstruct *sim, objstruct *obj)
   QMALLOC(raster, PIXTYPE, rastersize);
   QFSEEK(cat->file, tab->bodypos, SEEK_SET, cat->filename);
   read_body(tab, raster, rastersize);
+  free_cat(&cat, 1);
 
   i = 2*(int)(osamp*sqrt(size*size
 	+16.0*sim->psfarea/(sim->pixscale[0]*sim->pixscale[1])));
@@ -155,10 +154,11 @@ int	make_raster(simstruct *sim, objstruct *obj)
   cang = cos(obj->raster_posang * DEG);
   sang = sin(obj->raster_posang * DEG)
 #endif
-  lin[0] = geo[0] = cang;
-  lin[1] = geo[1] = -obj->raster_aspect * sang;
-  lin[2] = geo[2] = sang;
-  lin[3] = geo[3] = obj->raster_aspect * cang;
+  scale = osamp * (double)size / rasterwidth;
+  lin[0] = geo[0] = scale * cang;
+  lin[1] = geo[1] = - scale * obj->raster_aspect * sang;
+  lin[2] = geo[2] = scale * sang;
+  lin[3] = geo[3] = scale * obj->raster_aspect * cang;
 
   if (sim->wcs) {
 //-- Include Jacobian from the WCS transformation if in world coordinates
@@ -166,10 +166,10 @@ int	make_raster(simstruct *sim, objstruct *obj)
     wcs_jacobian(sim->wcs, obj->pos, jac);
     for (i=0; i<4; i++)
       jac[i] *= invpixscale;
-  lin[0] = jac[0] * geo[0] + jac[1] * geo[2];
-  lin[1] = jac[0] * geo[1] + jac[1] * geo[3];
-  lin[2] = jac[2] * geo[0] + jac[3] * geo[2];
-  lin[3] = jac[2] * geo[1] + jac[3] * geo[3];
+    lin[0] = jac[0] * geo[0] + jac[1] * geo[2];
+    lin[1] = jac[0] * geo[1] + jac[1] * geo[3];
+    lin[2] = jac[2] * geo[0] + jac[3] * geo[2];
+    lin[3] = jac[2] * geo[1] + jac[3] * geo[3];
   }
 
 // Compute determinant and invert 2x2 input transformation matrix
@@ -192,7 +192,6 @@ int	make_raster(simstruct *sim, objstruct *obj)
   oversamp = (int)sqrt(invdet);
   if (oversamp < 1)
     oversamp = 1;
-
 // Render
   QFFTWF_CALLOC(sub, PIXTYPE, memnsub);
   flux = fabs(image_resample_lin(raster, rasterwidth, rasterheight,

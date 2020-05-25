@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic FITS/LDAC library
 *
-*	Copyright:		(C) 1995-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1995-2017 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/03/2013
+*	Last modified:		04/10/2017
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -304,12 +304,12 @@ INPUT	A pointer to the tab structure,
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2013
+VERSION	04/10/2017
  ***/
 void	read_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
   {
   catstruct		*cat;
-  static double		bufdata0[DATA_BUFSIZE/sizeof(double)];
+  double		bufdata0[DATA_BUFSIZE/sizeof(double)];
   unsigned char		cuval, cublank;
   char			*bufdata,
 			cval, cblank;
@@ -630,12 +630,12 @@ INPUT	A pointer to the tab structure,
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2013
+VERSION	04/10/2017
  ***/
 void	read_ibody(tabstruct *tab, FLAGTYPE *ptr, size_t size)
   {
    catstruct	*cat;
-   static int	bufdata0[DATA_BUFSIZE/sizeof(int)];
+   int		bufdata0[DATA_BUFSIZE/sizeof(int)];
    char		*bufdata;
    short	val16;
    int		i, bowl, spoonful, npix, curval, dval;
@@ -810,11 +810,11 @@ INPUT	A pointer to the tab structure,
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2013
+VERSION	04/10/2017
  ***/
 void	write_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
   {
-  static double	bufdata0[DATA_BUFSIZE/sizeof(double)];
+  double	bufdata0[DATA_BUFSIZE/sizeof(double)];
   catstruct	*cat;
   char		*cbufdata0;
   size_t	i, bowl, spoonful;
@@ -972,11 +972,11 @@ INPUT	A pointer to the tab structure,
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2013
+VERSION	04/10/2017
  ***/
 void	write_ibody(tabstruct *tab, FLAGTYPE *ptr, size_t size)
   {
-   static FLAGTYPE	bufdata0[DATA_BUFSIZE/sizeof(FLAGTYPE)];
+   FLAGTYPE		bufdata0[DATA_BUFSIZE/sizeof(FLAGTYPE)];
    catstruct		*cat;
    char			*cbufdata0;
    size_t		i, bowl, spoonful;
