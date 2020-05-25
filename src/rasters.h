@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/05/2020
+*	Last modified:		25/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -41,5 +41,3 @@
 /*---------------------------------- protos --------------------------------*/
 extern int	make_raster(simstruct *sim, objstruct *obj);
 
-extern double	raster_raster(PIXTYPE *pix, int width, int height, double *jac,
-		double size, double aspect, double posang);

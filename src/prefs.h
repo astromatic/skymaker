@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/05/2020
+*	Last modified:		25/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -148,7 +148,7 @@ typedef struct
   double	maglim[2];		// Brightest and faintest mag. allowed
   int		nmaglim;		// Number of arguments 
 //------ Rasters 
-  char		raster_prefix[MAXCHAR];	// File prefix for rasters
+  char		raster_pattern[MAXCHAR];	// File pattern for rasters
 //------ Random generator 
   int		psfmotionseed;		// Seed for PSF motion 
   int		starposseed;		// Seed for star positions 

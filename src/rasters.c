@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/05/2020
+*	Last modified:		25/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -72,7 +72,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/05/2020
+VERSION	25/05/2020
  ***/
 int	make_raster(simstruct *sim, objstruct *obj)
 
@@ -82,12 +82,12 @@ int	make_raster(simstruct *sim, objstruct *obj)
    char		str[MAXCHAR];
    PIXTYPE	*sub, *subt, *psfdft, *raster,
 		invflux;
-   double	dpos[2], jac[4],
-		osamp, size,
+   double	dpos[2], geo[4], jac[4], lin[4], invlin[4],
+		osamp, size, cang, sang, det, invdet,
 		flux,flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
    int		i, subwidth,subheight, suborder,
 		rasterwidth, rasterheight, rastersize,
-		nsub,nsub2,nsubo,memnsub;
+		nsub,nsub2,nsubo,memnsub, oversamp;
 
   osamp = sim->psfoversamp;
   size = obj->raster_size / sim->pixscale[0];
@@ -106,8 +106,8 @@ int	make_raster(simstruct *sim, objstruct *obj)
 // Set mask size limits
   if (size < SMALL) {
     NFPRINTF(OUTPUT, "");
-    sprintf(str, "Final image size too small for raster at (%.1f,%.1f): ",
-	obj->pos[0], obj->pos[1]);
+    sprintf(str, "Final image size too small for raster #%d at (%.1f,%.1f): ",
+	obj->raster_index, obj->pos[0], obj->pos[1]);
     warning(str, "skipped");
     return RETURN_ERROR;
   }
@@ -117,7 +117,7 @@ int	make_raster(simstruct *sim, objstruct *obj)
     if (obj->raster_index <= 0) {
       error(EXIT_FAILURE, "Raster with negative index in ", sim->inlistname);
     }
-    sprintf(str, "%s_%09d.fits", prefs.raster_prefix, obj->raster_index);
+    sprintf(str, prefs.raster_pattern, obj->raster_index);
     if (!(cat = read_cat(str))) {
       sprintf(gstr, "*Error*: %s not found", str);
       error(EXIT_FAILURE, gstr,"");
@@ -131,6 +131,7 @@ int	make_raster(simstruct *sim, objstruct *obj)
   rasterheight = tab->naxisn[1];
   rastersize =  rasterwidth * rasterheight;
   QMALLOC(raster, PIXTYPE, rastersize);
+  QFSEEK(cat->file, tab->bodypos, SEEK_SET, cat->filename);
   read_body(tab, raster, rastersize);
 
   i = 2*(int)(osamp*sqrt(size*size
@@ -148,24 +149,68 @@ int	make_raster(simstruct *sim, objstruct *obj)
   psfdft = interp_dft(sim, suborder, obj->pos, dpos);
 
 // Compute Jacobian
+#ifdef HAVE_SINCOS
+  sincos(obj->raster_posang * DEG, &sang, &cang);
+#else
+  cang = cos(obj->raster_posang * DEG);
+  sang = sin(obj->raster_posang * DEG)
+#endif
+  lin[0] = geo[0] = cang;
+  lin[1] = geo[1] = -obj->raster_aspect * sang;
+  lin[2] = geo[2] = sang;
+  lin[3] = geo[3] = obj->raster_aspect * cang;
+
   if (sim->wcs) {
+//-- Include Jacobian from the WCS transformation if in world coordinates
      double	invpixscale = 1.0 / (sim->pixscale[0] * ARCSEC / DEG);
     wcs_jacobian(sim->wcs, obj->pos, jac);
     for (i=0; i<4; i++)
       jac[i] *= invpixscale;
+  lin[0] = jac[0] * geo[0] + jac[1] * geo[2];
+  lin[1] = jac[0] * geo[1] + jac[1] * geo[3];
+  lin[2] = jac[2] * geo[0] + jac[3] * geo[2];
+  lin[3] = jac[2] * geo[1] + jac[3] * geo[3];
   }
 
-// Render
-  sub = NULL;
-  QFFTWF_CALLOC(sub, PIXTYPE, memnsub);
-  invflux = obj->raster_aspect / raster_raster(sub, subwidth, subheight,
-	sim->wcs? jac : NULL,
-	osamp*obj->raster_size / sim->pixscale[0], obj->raster_aspect,
-	obj->raster_posang);
+// Compute determinant and invert 2x2 input transformation matrix
+  det = fabs(lin[0] * lin[3] - lin[1] * lin[2]);
+  if (det < SMALL) {
+    NFPRINTF(OUTPUT, "");
+    sprintf(str, "Null matrix determinant for raster #%d at (%.1f,%.1f): ",
+	obj->raster_index, obj->pos[0], obj->pos[1]);
+    warning(str, "skipped");
+    return RETURN_ERROR;
+  }
 
-// Combine and normalize (flux will change later, though)
-    for (i=nsub,subt=sub; i--;)
+  invdet = 1.0 / det;
+  invlin[0] =  invdet * lin[3];
+  invlin[1] = -invdet * lin[1];
+  invlin[2] = -invdet * lin[2];
+  invlin[3] =  invdet * lin[0];
+
+// Set oversampling factor
+  oversamp = (int)sqrt(invdet);
+  if (oversamp < 1)
+    oversamp = 1;
+
+// Render
+  QFFTWF_CALLOC(sub, PIXTYPE, memnsub);
+  flux = fabs(image_resample_lin(raster, rasterwidth, rasterheight,
+			sub, subwidth, subheight,
+			obj->raster_aspect, obj->raster_posang, invlin,
+			oversamp));
+
+  if (fabs(flux) <= SMALL) {
+    NFPRINTF(OUTPUT, "");
+    sprintf(str, "Null average for raster #%d at (%.1f,%.1f): ",
+	obj->raster_index, obj->pos[0], obj->pos[1]);
+    warning(str, "normalization dropped");
+  } else {
+//-- Combine and normalize (flux will change later, though)
+    invflux = 1.0 / flux;
+    for (i=n,subt=sub; i--;)
       *(subt++) *= invflux;
+  }
 
 /* Truncate to avoid introducing anistropy in the vignet corners */
 //  trunc_prof(sub, (double)(subwidth/2),(double)(subheight/2),
@@ -191,6 +236,7 @@ int	make_raster(simstruct *sim, objstruct *obj)
   else if (nsub2>nsubo) {
     QREALLOC(obj->subimage, PIXTYPE, nsub2);
   }
+
   image_resample_obj(sub, subwidth, subheight, obj, -dx*osamp, -dy*osamp, osamp);
   flux = flux2 = 0.0;
   for (i=nsub2,subt=obj->subimage; i--;) {
@@ -199,8 +245,13 @@ int	make_raster(simstruct *sim, objstruct *obj)
     flux2 += dval*dval;
   }
 
-  obj->subfactor = obj->flux/flux;
-  obj->noiseqarea = flux*flux / flux2;
+  if (fabs(flux) <= SMALL) {
+    obj->subfactor = 1.0;
+    obj->noiseqarea = 0.0;
+  } else {
+    obj->subfactor = fabs(obj->flux/flux);
+    obj->noiseqarea = flux*flux / flux2;
+  }
 
   QFFTWF_FREE(sub);
   free(raster);
@@ -209,26 +260,3 @@ int	make_raster(simstruct *sim, objstruct *obj)
   }
 
 
-/****** raster_raster ********************************************************
-PROTO	double raster_raster(PIXTYPE *pix, int width, int height, double *jac,
-		double size, double aspect, double posang)
-PURPOSE	Rasterize an unnormalized 2D image.
-INPUT	pointer to the raster,
-	raster width,
-	raster height,
-	Jacobian array of the local astrometric deprojection (NULL if none),
-	raster size (scale),
-	raster aspect ratio,
-	raster position angle.
-OUTPUT	Total flux.
-NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	06/05/2020
- ***/
-double	raster_raster(PIXTYPE *pix, int width, int height, double *jac,
-		double size, double aspect, double posang) {
-
-  
-  return	1.0;
-
-};

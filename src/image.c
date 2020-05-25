@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/05/2020
+*	Last modified:		25/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -327,9 +327,9 @@ int	image_resample_obj(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
 
 
 /****** image_resample_lin **************************************************
-PROTO	int image_resample_lin(PIXTYPE *pix1, int w1, int h1,
+PROTO	double image_resample_lin(PIXTYPE *pix1, int w1, int h1,
 			PIXTYPE *pix2, int w2, int h2, 
-			double dx, double dy, double *lin)
+			double dx, double dy, double *lin, int oversamp)
 
 PURPOSE Apply shifting and linear geometric transformation to a small image
 	through interpolation.
@@ -341,53 +341,59 @@ INPUT   Pointer to input raster,
 	output height,
 	shift in x,
 	shift in y,
-	pointer to the linear transformation matrix.
-OUTPUT  -.
+	pointer to the linear transformation matrix,
+	oversampling factor.
+OUTPUT  Sum of all output pixel values.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/05/2020
+VERSION 25/05/2020
  ***/
 
-int	image_resample_lin(PIXTYPE *pix1, int w1, int h1,
+double	image_resample_lin(PIXTYPE *pix1, int w1, int h1,
 			PIXTYPE *pix2, int w2, int h2, 
-			double dx1, double dy1, double *lin) {
+			double dx1, double dy1, double *lin, int oversamp) {
 
-   double	invlin[4], pos1[2],
-		det, invdet;
+   PIXTYPE	*pix2o,
+		val;
+   double	pos1[2],
+		y2, dx2, dy2, dx12, dy12, offset, dstep, invnstep, dflux;
    int		dim1[2],
-		interp_type, iy2, nx2, ny2;
+		interp_type, nx2, ny2, ox2, oy2;
 
 
-// Invert 2x2 input transformation matrix
-  det = lin[0] * lin[3] - lin[1] * lin[2];
-  if (fabs(det) < SMALL)
-    return RETURN_ERROR;
-
-  invdet = 1.0 / det;
-  invlin[0]  =  invdet * lin[3];
-  invlin[1] *= -invdet;
-  invlin[2] *= -invdet;
-  invlin[3]  =  invdet * lin[0];
-
+  memset(pix2, 0, w2 * h2 * sizeof(PIXTYPE));
   interp_type = INTERP_TYPE;
   dim1[0] = w1;
   dim1[1] = h1;
 // Incorporate initial x2 and y2 positions into the x1 and y2 shifts
-  dx1 -= invlin[0] * (w2/2);
-  dy1 -= invlin[2] * (w2/2);
-// Loop on all output pixels (reverse mapping)
+  dx1 += (w1/2) - lin[0] * (w2/2);
+  dy1 += (h1/2) - lin[2] * (w2/2);
+// Loop on all output pixels (reverse mapping) with oversampling
 // Pixels outside of bounds are set to 0
-  for (ny2=h2, iy2=-(h2/2); ny2--; iy2++) {
-    pos1[0] = invlin[1] * iy2 + dx1;
-    pos1[1] = invlin[3] * iy2 + dy1;
-    for (nx2=w2; nx2--;) {
-      pos1[0] += invlin[0];
-      pos1[1] += invlin[2];
-      *(pix2++) = image_interpolate_pix(pos1, pix1, dim1, interp_type);
+  dstep = 1.0 / oversamp;
+  offset = 0.5 * (dstep - 1.0);
+  invnstep = 1.0 / (oversamp * oversamp);
+  dflux = 0.0;
+  for (oy2=oversamp, dy2 = offset; oy2--; dy2 += dstep) {
+    for (ox2=oversamp, dx2 = offset; ox2--; dx2 += dstep) {
+      dx12 = dx1 + lin[0] * dx2;
+      dy12 = dy1 + lin[2] * dx2;
+      pix2o = pix2;
+      for (ny2=h2, y2 = dy2 -(h2/2); ny2--; y2 += 1.0) {
+        pos1[0] = lin[1] * y2 + dx12;
+        pos1[1] = lin[3] * y2 + dy12;
+        for (nx2=w2; nx2--;) {
+          pos1[0] += lin[0];
+          pos1[1] += lin[2];
+          val = image_interpolate_pix(pos1, pix1, dim1, interp_type) * invnstep;
+          dflux += val;
+          *(pix2o++) += val;
+        }
+      }
     }
   }
-      
-  return RETURN_OK;
+
+  return dflux;
 }
 
 

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/05/2020
+*	Last modified:		25/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -45,11 +45,12 @@ typedef enum {INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
 /*----------------------------- Global variables ----------------------------*/
 
 /*------------------------------- functions ---------------------------------*/
+extern double	image_resample_lin(PIXTYPE *pix1, int w1, int h1,
+			PIXTYPE *pix2, int w2, int h2, 
+			double dx, double dy, double *lin, int oversamp);
+
 extern int	image_add(PIXTYPE *pix1, int w1, int h1, PIXTYPE *pix2,
 			int w2, int h2, int ix, int iy, float amplitude),
 		image_resample_obj(PIXTYPE *pix1, int w1, int h1,
-			objstruct *obj, float dx, float dy, float step2),
-		image_resample_lin(PIXTYPE *pix1, int w1, int h1,
-			PIXTYPE *pix2, int w2, int h2, 
-			double dx, double dy, double *lin);
+			objstruct *obj, float dx, float dy, float step2);
 
