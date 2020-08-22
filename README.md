@@ -1,4 +1,4 @@
-#SkyMaker
+# SkyMaker
 
 a program that simulates astronomical images.
 
