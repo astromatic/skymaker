@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2016IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		07/11/2016
+*	Last modified:		13/11/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -60,6 +60,8 @@
 #include "fits/fitscat.h"
 #include "prefs.h"
 #include "preflist.h"
+
+prefstruct	prefs;
 
 /********************************* dumpprefs ********************************/
 /*
@@ -416,9 +418,6 @@ void	useprefs(void)
 #ifdef USE_THREADS
    int                  nproc;
 #endif
-
-/* Test if byteswapping will be needed */
-  bswapflag = *((char *)&ashort);
 
 /* Multithreading */
 #ifdef USE_THREADS

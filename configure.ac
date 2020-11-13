@@ -7,11 +7,7 @@
 #
 #	This file part of:	SkyMaker
 #
-<<<<<<< HEAD
-#	Copyright:		(C) 2003-2018 IAP/CNRS/SorbonneU
-=======
 #	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
->>>>>>> 2bacca57090d06be691a917a468d098f31080928
 #
 #	License:		GNU General Public License
 #
@@ -26,11 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with SkyMaker.  If not, see <http://www.gnu.org/licenses/>.
 #
-<<<<<<< HEAD
-#	Last modified:		05/07/2018
-=======
-#	Last modified:		02/01/2020
->>>>>>> 2bacca57090d06be691a917a468d098f31080928
+#	Last modified:		13/11/2020
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -57,6 +49,7 @@ AC_SUBST(DATE2, "$date2")
 AC_SUBST(DATE3, "$date3")
 
 # Include macros
+sinclude(acx_cfitsio.m4)
 sinclude(acx_fftw.m4)
 sinclude(acx_mkl.m4)
 sinclude(acx_openmp.m4)
@@ -141,12 +134,22 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MMAP
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS([atexit getenv memcpy memmove memset munmap sincos sincosf \
-		strstr sysconf])
+AC_CHECK_FUNCS([atexit getenv gettimeofday memcpy memmove memset munmap \
+		sincos sincosf strstr sysconf])
  
 # Check support for large files
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
+
+# Provide special options for CFITSIO
+AC_ARG_WITH(cfitsio,
+        [Link with the CFITSIO library])
+AC_ARG_WITH(cfitsio-libdir,
+        [AS_HELP_STRING([--with-cfitsio-libdir=<CFITSIO library path>],
+        [Provide an alternative path to the CFITSIO library])])
+AC_ARG_WITH(cfitsio-incdir,
+        [AS_HELP_STRING([--with-cfitsio-incdir=<CFITSIO include dir>],
+        [Provide an alternative path to the CFITSIO include directory])])
 
 # Provide special options for FFTW
 AC_ARG_WITH(fftw-libdir,
@@ -208,6 +211,16 @@ if test "$use_pthreads" = "yes"; then
   LIBS="$LIBS $PTHREAD_LIBS"
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
+
+########################## handle the CFITSIO library ########################
+if test "$with_cfitsio" = "yes"; then
+  ACX_CFITSIO($with_cfitsio_libdir, $with_cfitsio_incdir,
+	[LIBS="$CFITSIO_LIBS $LIBS"]
+	if test "$CFITSIO_WARN" != ""; then
+	  AC_MSG_WARN([$CFITSIO_WARN])
+	fi,
+	AC_MSG_ERROR([$CFITSIO_ERROR Exiting.]))
+fi
 
 #################### handle the INTEL MKL library (FFTW + LAPACKe) ###########
 if test "$enable_mkl" = "yes"; then
