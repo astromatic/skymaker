@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/05/2020
+*	Last modified:		26/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -114,6 +114,9 @@ pkeystruct key[] =
   {"QUA_CENTER", P_FLOATLIST, prefs.psfquac, 0,0, -1e18, 1e18,
    {""}, 2, 2, &prefs.npsfquac},
   {"RASTER_PATTERN", P_STRING, prefs.raster_pattern},
+  {"RASTERCENTER_TYPE", P_KEY, &prefs.raster_centertype, 0,0, 0.0,0.0,
+	{"UPPERHALF", "LOWERHALF", "HALF", "CENTROID", "CENTROID_COMMON",
+	"PEAK",""}},
   {"READOUT_NOISE", P_FLOAT, &prefs.ron, 0,0, 0.0,1e9},
   {"SATUR_LEVEL", P_FLOAT, &prefs.satlev, 0,0, -1e18,1e18},
   {"SEED_MOTION", P_INT, &prefs.psfmotionseed, 0, 0x7fffffffL},
@@ -257,7 +260,8 @@ char *default_prefs[] =
 "*#--------------------------------- Rasters -----------------------------------",
 "* ",
 "*RASTER_PATTERN    rasters/raster_%06d.fits",
-"*                               # Filename pattern for input raster images,",
+"*                                # Filename pattern for input raster images,",
+"*RASTERCENTER_TYPE UPPERHALF     # UPPERHALF, LOWERHALF, HALF, CENTROID,",
 "* ",
 "#------------------------------ Random Seeds ---------------------------------",
 " ",

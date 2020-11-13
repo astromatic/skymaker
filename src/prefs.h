@@ -148,7 +148,8 @@ typedef struct
   double	maglim[2];		// Brightest and faintest mag. allowed
   int		nmaglim;		// Number of arguments 
 //------ Rasters 
-  char		raster_pattern[MAXCHAR];	// File pattern for rasters
+  char		raster_pattern[MAXCHAR]; // File pattern for rasters
+  centertypenum	rastercentertype;	// Raster centering type 
 //------ Random generator 
   int		psfmotionseed;		// Seed for PSF motion 
   int		starposseed;		// Seed for star positions 
