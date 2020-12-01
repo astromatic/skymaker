@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/05/2020
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -85,7 +85,7 @@ pkeystruct key[] =
   {"IMAGE_SIZE", P_INTLIST, prefs.imasize, 1, 100000, 0.0,0.0,
    {""}, 1, 2, &prefs.nimasize},
   {"LISTCOORD_TYPE", P_KEY, &prefs.listcoord_type, 0,0, 0.0,0.0,
-   {"PIXEL","WORLD",""}},
+   {"PIXEL","WORLD","SKY", ""}},
   {"LISTMAG_LIMITS", P_FLOATLIST, prefs.listmag_limits, 0,0, -100.0, 100.0,
    {""}, 2,2, &prefs.nlistmag_limits},
   {"M1_DIAMETER", P_FLOAT, &prefs.psfdm1, 0,0, 0.0, 100.0},
@@ -174,7 +174,7 @@ char *default_prefs[] =
 "                                # or GRID_NONOISE",
 "*GRID_SIZE          64           # Distance between objects in GRID mode",
 "IMAGE_HEADER       INTERNAL     # File name or INTERNAL",
-"LISTCOORD_TYPE     PIXEL        # Coordinates in input lists: PIXEL or WORLD",
+"LISTCOORD_TYPE     PIXEL        # Input list coordinates: PIXEL, WORLD or SKY",
 "LISTMAG_LIMITS     -99.0,99.0   # Magnitude range restriction for input lists",
 " ",
 "*#----------------------------- Pixel weights --------------------------------",

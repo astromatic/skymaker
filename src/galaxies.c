@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/05/2020
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -71,7 +71,7 @@ OUTPUT	RETURN_OK if the galaxy was succesfully rasterized, or RETURN_ERROR
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/05/2020
+VERSION	01/12/2020
  ***/
 int	make_galaxy(simstruct *sim, objstruct *obj)
 
@@ -79,7 +79,7 @@ int	make_galaxy(simstruct *sim, objstruct *obj)
    char		str[MAXCHAR];
    PIXTYPE	*bsub, *bsubt, *dsub, *sub, *subt, *psfdft,
 		invflux, invbflux;
-   double	dpos[2], jac[4],
+   double	dpos[2],
 		osamp, dratio, bsize,size,
 		bflux, flux, flux2, dx,dy, beq, dscale,expo, n, bn, ampfac, dval;
    int		i, subwidth,subheight, suborder,
@@ -170,14 +170,6 @@ int	make_galaxy(simstruct *sim, objstruct *obj)
 /* Compute (or retrieve) PSF DFT at this position */
   psfdft = interp_dft(sim, suborder, obj->pos, dpos);
 
-// Compute Jacobian
-  if (sim->wcs) {
-     double	invpixscale = 1.0 / (sim->pixscale[0] * ARCSEC / DEG);
-    wcs_jacobian(sim->wcs, obj->pos, jac);
-    for (i=0; i<4; i++)
-      jac[i] *= invpixscale;
-  }
-
 // Render galaxies
   sub = NULL;			/* To avoid gcc -Wall warnings */
   invflux = 0.0;			/* idem */
@@ -185,10 +177,9 @@ int	make_galaxy(simstruct *sim, objstruct *obj)
   if (obj->bulge_ratio)
     {
     QFFTWF_CALLOC(bsub, PIXTYPE, memnsub);
-    invflux = invbflux = obj->bulge_ratio / raster_sersic(bsub,
-	subwidth, subheight,
-	sim->wcs? jac : NULL,
-	osamp*beq, obj->bulge_aspect, obj->bulge_posang, n);
+    invflux = invbflux = obj->bulge_ratio / raster_sersic(sim, obj, bsub,
+    	subwidth, subheight,
+    	osamp*beq, obj->bulge_aspect, obj->bulge_posang, n);
     sub = bsub;
     }
   else
@@ -201,8 +192,7 @@ int	make_galaxy(simstruct *sim, objstruct *obj)
   if (dratio>0.001) 
     {
     QFFTWF_CALLOC(dsub, PIXTYPE, memnsub);
-    invflux = dratio / raster_sersic(dsub, subwidth, subheight,
-	sim->wcs? jac : NULL,
+    invflux = dratio / raster_sersic(sim, obj, dsub, subwidth, subheight,
 	osamp*dscale*1.67835, obj->disk_aspect, obj->disk_posang, 1.0);
     sub = dsub;
     }
@@ -264,13 +254,15 @@ int	make_galaxy(simstruct *sim, objstruct *obj)
 
 
 /****** raster_sersic *********************************************************
-PROTO	double raster_sersic(PIXTYPE *pix, int width, int height, double *jac,
+PROTO	double raster_sersic(simstruct *sim, objstruct *obj, PIXTYPE *pix,
+		int width, int height,
 		double reff, double aspect, double posang, double n)
 PURPOSE	Rasterize an unnormalized 2D Sersic (exp(r**(-1/n))) model.
-INPUT	pointer to the raster,
+INPUT	Pointer to the sim structure,
+	pointer to the object,
+	pointer to the raster,
 	raster width,
 	raster height,
-	Jacobian array of the local astrometric deprojection (NULL if none),
 	model effective radius,
 	model aspect ratio,
 	model position angle,
@@ -278,21 +270,21 @@ INPUT	pointer to the raster,
 OUTPUT	Total flux.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/05/2020
+VERSION	01/12/2020
  ***/
-double	raster_sersic(PIXTYPE *pix, int width, int height, double *jac,
+double	raster_sersic(simstruct *sim, objstruct *obj,
+		PIXTYPE *pix, int width, int height,
 		double reff, double aspect, double posang, double n)
 
   {
-   double	ddx1[36], ddx2[36],
-		cpos,spos, ascale, bscale, bn, sum, dct11,dct12,dct21,dct22,
-		dcd11,dcd12,dcd21,dcd22, dinvdet;
+   double	ddx1[36], ddx2[36], lin[4], geo[4], jac[4],
+		cposang,sposang, ascale, bscale, bn, sum, dinvdet;
    float	k, invn,hinvn,krspinvn,ekrspinvn, krpinvn,dkrpinvn,
 		r,r2,dr, rs,rs2,
 		p1,p2,c0,c2,c3, x1c,x2c, x1,x10,x2, cxx,cyy,cxy,cxydy,cyydy2,
 		dx1c,dx2c,a11,a12,a21,a22, ang,angstep, dca,dsa, selem, val;
    PIXTYPE	*pixt,*pixt2;
-   int		a,i, ix1,ix2, nx2,npix2, nang;
+   int		a,i, i11,i12,i21,i22, lng,lat, ix1,ix2, nx2,npix2, nang;
 
 /* No point source */
   if (reff == 0.0)
@@ -301,29 +293,46 @@ double	raster_sersic(PIXTYPE *pix, int width, int height, double *jac,
 /* Preliminaries: compute the ellipse parameters */
   ascale = 1.0 / reff;
   bscale = ascale / aspect;
-  cpos = cos(posang*DEG);
-  spos = sin(posang*DEG);
+  cposang = cos(posang*DEG);
+  sposang = sin(posang*DEG);
 
-  dct11 = ascale * cpos;
-  dct12 = ascale * spos;
-  dct21 = -bscale * spos;
-  dct22 = bscale * cpos;
+  lin[0] = geo[0] =  ascale * cposang;
+  lin[1] = geo[1] =  ascale * sposang;
+  lin[2] = geo[2] = -bscale * sposang;
+  lin[3] = geo[3] =  bscale * cposang;
 
-  if (jac) {
-    dcd11 = dct11 * jac[0] + dct12 * jac[2];
-    dcd12 = dct11 * jac[1] + dct12 * jac[3];
-    dcd21 = dct21 * jac[0] + dct22 * jac[2];
-    dcd22 = dct21 * jac[1] + dct22 * jac[3];
-  } else {
-    dcd11 = dct11;
-    dcd12 = dct12;
-    dcd21 = dct21;
-    dcd22 = dct22;
+// Compute Jacobian
+  if (sim->wcs) {
+     double	invpixscale = 1.0 / (sim->pixscale[0] * ARCSEC / DEG);
+
+    wcs_jacobian(sim->wcs, obj->pos, jac);
+    for (i=0; i<4; i++)
+      jac[i] *= invpixscale;
+
+    if (prefs.listcoord_type != LISTCOORD_WORLD) {
+//---- If in sky coordinates the reference axis is now lat
+//---- (angles are expressed East of North).
+      lng = sim->wcs->lng;
+      lat = sim->wcs->lat;
+      i11 = lat + 2*lat;
+      i12 = lng + 2*lat;
+      i21 = lat + 2*lng;
+      i22 = lng + 2*lng;
+    } else {
+      i11 = 0;
+      i12 = 1;
+      i21 = 2;
+      i22 = 3;
+    }
+    lin[0] = geo[i11] * jac[0] + geo[i12] * jac[2];
+    lin[1] = geo[i11] * jac[1] + geo[i12] * jac[3];
+    lin[2] = geo[i21] * jac[0] + geo[i22] * jac[2];
+    lin[3] = geo[i21] * jac[1] + geo[i22] * jac[3];
   }
-
-  cxx = (float)(dcd11 * dcd11 + dcd21 * dcd21);
-  cyy = (float)(dcd12 * dcd12 + dcd22 * dcd22);
-  cxy = (float)(2.0 * (dcd11 * dcd12 + dcd21 * dcd22));
+  
+  cxx = (float)(lin[0] * lin[0] + lin[2] * lin[2]);
+  cyy = (float)(lin[1] * lin[1] + lin[3] * lin[3]);
+  cxy = (float)(2.0 * (lin[0] * lin[1] + lin[2] * lin[3]));
 
 
 /* Compute sharp/smooth transition radius */
@@ -394,11 +403,11 @@ double	raster_sersic(PIXTYPE *pix, int width, int height, double *jac,
 /* Compute the sharp part of the profile */
   dx1c = x1c + 0.4999999;
   dx2c = x2c + 0.4999999;
-  dinvdet = 1.0 / fabs(dcd11*dcd22 - dcd12*dcd21);
-  a11 = (float) (dcd22 * dinvdet);
-  a12 = (float) (-dcd12 * dinvdet);
-  a21 = (float) (-dcd21 * dinvdet);
-  a22 = (float) (dcd11 * dinvdet);
+  dinvdet = 1.0 / fabs(lin[0]*lin[3] - lin[1]*lin[2]);
+  a11 = (float) (lin[3] * dinvdet);
+  a12 = (float) (-lin[1] * dinvdet);
+  a21 = (float) (-lin[2] * dinvdet);
+  a22 = (float) (lin[0] * dinvdet);
   nang = 72 / 2;	/* 72 angles; only half of them are computed*/
   angstep = PI/nang;
   ang = 0.0;

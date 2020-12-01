@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/05/2020
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -38,7 +38,8 @@
 
 /*------------------------------ Type definitions ---------------------------*/
 
-typedef enum	{LISTCOORD_PIXEL, LISTCOORD_WORLD}	listcoordenum;
+typedef enum	{LISTCOORD_PIXEL, LISTCOORD_WORLD, LISTCOORD_SKY}
+			listcoordenum;
 
 typedef	struct {
   int		type;			// Source type

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/05/2020
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -305,7 +305,7 @@ INPUT	Pointer to the sim structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/05/2020
+VERSION	01/12/2020
  ***/
 void    list_writeobj(simstruct *sim, objstruct *obj) {
    char			str[MAXCHAR];
@@ -334,10 +334,10 @@ void    list_writeobj(simstruct *sim, objstruct *obj) {
       break;
     case 300:
       fprintf(sim->outlistfile, "%3d %11.4f %11.4f %8.4f "
-		"%9.3f %5.3f %+7.2f %8.5f %11.2f\n",
+		"%010d %9.3f %5.3f %+7.2f %8.5f %11.2f\n",
 	obj->type, obj->pos[0], obj->pos[1], obj->mag,
-	obj->raster_size, obj->raster_aspect, obj->raster_posang,
-	obj->z, obj->noiseqarea);
+	obj->raster_index, obj->raster_size, obj->raster_aspect,
+	obj->raster_posang, obj->z, obj->noiseqarea);
       break;
     default:
       sprintf(str, "%d", obj->type);

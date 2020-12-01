@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/02/2018
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -51,7 +51,7 @@ INPUT   -.
 OUTPUT  Pointer to an allocated and filled sim structure.
 NOTES   Global prefs variables are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 23/02/2018
+VERSION 01/12/2020
 */
 simstruct	*sim_init(void)
   {
@@ -101,7 +101,7 @@ simstruct	*sim_init(void)
     sim->gridindex = 0;
     }
   else
-    sim->wcsflag = (prefs.listcoord_type == LISTCOORD_WORLD);
+    sim->wcsflag = (prefs.listcoord_type != LISTCOORD_PIXEL);
 
   sim->cat = imaout_inithead(sim);
 

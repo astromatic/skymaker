@@ -72,7 +72,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	25/05/2020
+VERSION	01/12/2020
  ***/
 int	make_raster(simstruct *sim, objstruct *obj) {
 
@@ -84,7 +84,7 @@ int	make_raster(simstruct *sim, objstruct *obj) {
    double	dpos[2], geo[4], jac[4], lin[4], invlin[4],
 		osamp, size, cang, sang, det, invdet,
 		flux, flux2, dx,dy, scale, expo, n, dval;
-   int		i, subwidth,subheight, suborder,
+   int		i, i11,i12,i21,i22, lng, lat, subwidth,subheight, suborder,
 		rasterwidth, rasterheight, rastersize,
 		nsub, nsub2, nsubo, memnsub, oversamp;
 
@@ -166,10 +166,25 @@ int	make_raster(simstruct *sim, objstruct *obj) {
     wcs_jacobian(sim->wcs, obj->pos, jac);
     for (i=0; i<4; i++)
       jac[i] *= invpixscale;
-    lin[0] = jac[0] * geo[0] + jac[1] * geo[2];
-    lin[1] = jac[0] * geo[1] + jac[1] * geo[3];
-    lin[2] = jac[2] * geo[0] + jac[3] * geo[2];
-    lin[3] = jac[2] * geo[1] + jac[3] * geo[3];
+    if (prefs.listcoord_type != LISTCOORD_WORLD) {
+//---- If in sky coordinates the reference axis is now lat
+//---- (angles are expressed East of North).
+      lng = sim->wcs->lng;
+      lat = sim->wcs->lat;
+      i11 = lat + 2*lat;
+      i12 = lng + 2*lat;
+      i21 = lat + 2*lng;
+      i22 = lng + 2*lng;
+    } else {
+      i11 = 0;
+      i12 = 1;
+      i21 = 2;
+      i22 = 3;
+    }
+    lin[0] = jac[0] * geo[i11] + jac[1] * geo[i21];
+    lin[1] = jac[0] * geo[i12] + jac[1] * geo[i22];
+    lin[2] = jac[2] * geo[i11] + jac[3] * geo[i21];
+    lin[3] = jac[2] * geo[i12] + jac[3] * geo[i22];
   }
 
 // Compute determinant and invert 2x2 input transformation matrix

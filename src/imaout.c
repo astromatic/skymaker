@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		05/11/2020
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -212,7 +212,7 @@ INPUT	Pointer to the simulation.
 OUTPUT	Pointer to the initialized FITScat structure.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/11/2020
+VERSION	01/12/2020
  ***/
 catstruct	*imaout_inithead(simstruct *sim)
 
@@ -264,7 +264,7 @@ catstruct	*imaout_inithead(simstruct *sim)
 /* If no external header is used, add SkyMaker custom parameters */
   if (hflag)
     {
-    if (prefs.listcoord_type == LISTCOORD_WORLD) {
+    if (prefs.listcoord_type != LISTCOORD_PIXEL) {
 //-- Add some basic WCS
       addkeywordto_head(tab, "CTYPE1  ", "Projection type on AXIS1");
       fitswrite(tab->headbuf, "CTYPE1  ", "RA---TAN", H_STRING, T_STRING);
