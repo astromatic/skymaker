@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		13/11/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,6 +46,10 @@ EXECUTABLE " [<list_file>] [-c <configuration_file>] [-<keyword> <value>]\n"\
 
 extern const char	notokstr[];
 char			prefsname[MAXCHAR];
+
+//------------------- global variables for multithreading -------------------
+
+int			nproc;	// Number of child threads
 
 /********************************** main ************************************/
 int	main(int argc, char *argv[])
