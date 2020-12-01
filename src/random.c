@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		07/03/2018
+*	Last modified:		13/11/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -32,7 +32,7 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include "define.h"
 #include "globals.h"

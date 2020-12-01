@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/05/2020
+*	Last modified:		1/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -149,7 +149,7 @@ typedef struct
   int		nmaglim;		// Number of arguments 
 //------ Rasters 
   char		raster_pattern[MAXCHAR]; // File pattern for rasters
-  centertypenum	rastercentertype;	// Raster centering type 
+  centertypenum	raster_centertype;	// Raster centering type 
 //------ Random generator 
   int		psfmotionseed;		// Seed for PSF motion 
   int		starposseed;		// Seed for star positions 
@@ -169,7 +169,7 @@ typedef struct
   int		nobj;				// Number of sources added 
         }	prefstruct;
 
-prefstruct	prefs;
+extern prefstruct	prefs;
 
 //-------------------------------- protos -----------------------------------
 extern int	cistrcmp(char *cs, char *ct, int mode);

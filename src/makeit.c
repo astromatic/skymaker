@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/03/2020
+*	Last modified:		13/11/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -48,6 +48,8 @@
 #include "simul.h"
 #include "stars.h"
 #include "weight.h"
+
+char		gstr[MAXCHAR];
 
 /******************************** makeit *************************************/
 /*
