@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
+*	Copyright:		(C) 2003-2021 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/05/2020
+*	Last modified:		27/09/2021
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -72,7 +72,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	01/12/2020
+VERSION	27/09/2021
  ***/
 int	make_raster(simstruct *sim, objstruct *obj) {
 
@@ -211,7 +211,7 @@ int	make_raster(simstruct *sim, objstruct *obj) {
   QFFTWF_CALLOC(sub, PIXTYPE, memnsub);
   flux = fabs(image_resample_lin(raster, rasterwidth, rasterheight,
 			sub, subwidth, subheight,
-			obj->raster_aspect, obj->raster_posang, invlin,
+			0.0, 0.0, invlin,
 			oversamp));
 
   if (fabs(flux) <= SMALL) {
