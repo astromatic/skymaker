@@ -7,7 +7,9 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
+*	Copyright:		(C) 1998-2021 IAP/CNRS/SorbonneU
+*	          		(C) 2021-2023 CFHT/CNRS
+*	          		(C) 2023-2025 CEA/AIM/UParisSaclay
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +24,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/05/2020
+*	Last modified:		02/04/2025
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -134,8 +136,8 @@ INPUT   Pointer to input raster,
 	step in pixels.
 OUTPUT  -.
 NOTES   -.
-AUTHOR  E. Bertin (IAP)
-VERSION 20/05/2020
+AUTHOR	E. Bertin (CEA/AIM/UParisSaclay)
+VERSION	02/04/2025
  ***/
 int	image_resample_obj(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
 			float dx, float dy, float step2) {
@@ -208,7 +210,7 @@ int	image_resample_obj(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
 
 // Allocate interpolant stuff for the x direction
   if (obj->buf1size < nx2) {
-    if (!obj->buf1size) {
+    if (obj->buf1size) {
       free(obj->maskbuf);
       free(obj->nmaskbuf);
       free(obj->startbuf);
@@ -243,7 +245,7 @@ int	image_resample_obj(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
   }
 
   if (obj->buf2size < nx2*ny1) {
-    if (!obj->buf2size)
+    if (obj->buf2size)
       free(obj->buf2);
     obj->buf2size = nx2*ny1;
     QCALLOC16(obj->buf2, float, obj->buf2size);	// Intermediary frame-buffer

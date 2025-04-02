@@ -7,9 +7,9 @@
 *
 *	This file part of:	SkyMaker
 *
-#	Copyright:		(C) 1998-2021 IAP/CNRS/SorbonneU
-#	          		(C) 2021-2023 CFHT/CNRS
-#	          		(C) 2023-2025 CEA/AIM/UParisSaclay
+*	Copyright:		(C) 1998-2021 IAP/CNRS/SorbonneU
+*	          		(C) 2021-2023 CFHT/CNRS
+*	          		(C) 2023-2025 CEA/AIM/UParisSaclay
 *
 *	License:		GNU General Public License
 *

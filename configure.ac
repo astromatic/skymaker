@@ -152,7 +152,7 @@ AC_FUNC_MMAP
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([atexit getenv gettimeofday memcpy memmove memset munmap \
-		sincos sincosf strstr sysconf])
+		posix_memalign sincos sincosf strstr sysconf])
  
 # Check support for large files
 AC_SYS_LARGEFILE
