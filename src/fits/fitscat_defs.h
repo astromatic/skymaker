@@ -1,3 +1,4 @@
+#pragma once
 /*
 *				fitscat_defs.h
 *
@@ -89,8 +90,6 @@ typedef	int		LONG;			/* for DEC-Alpha... */
 extern char		fits_str[MAXCHAR];
 
 /*----------------------------- External constants --------------------------*/
-
-extern int	bswapflag;		/* != 0 if bytes are swapped/IEEE */
 
 /*------------------------------- Other Macros -----------------------------*/
 

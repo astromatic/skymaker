@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2017 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		04/05/2017
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -85,7 +85,7 @@ pkeystruct key[] =
   {"IMAGE_SIZE", P_INTLIST, prefs.imasize, 1, 100000, 0.0,0.0,
    {""}, 1, 2, &prefs.nimasize},
   {"LISTCOORD_TYPE", P_KEY, &prefs.listcoord_type, 0,0, 0.0,0.0,
-   {"PIXEL","WORLD",""}},
+   {"PIXEL","WORLD","SKY", ""}},
   {"LISTMAG_LIMITS", P_FLOATLIST, prefs.listmag_limits, 0,0, -100.0, 100.0,
    {""}, 2,2, &prefs.nlistmag_limits},
   {"M1_DIAMETER", P_FLOAT, &prefs.psfdm1, 0,0, 0.0, 100.0},
@@ -113,6 +113,10 @@ pkeystruct key[] =
    {""}, 1, 3, &prefs.npsfd80qua22},
   {"QUA_CENTER", P_FLOATLIST, prefs.psfquac, 0,0, -1e18, 1e18,
    {""}, 2, 2, &prefs.npsfquac},
+  {"RASTER_PATTERN", P_STRING, prefs.raster_pattern},
+  {"RASTERCENTER_TYPE", P_KEY, &prefs.raster_centertype, 0,0, 0.0,0.0,
+	{"UPPERHALF", "LOWERHALF", "HALF", "CENTROID", "CENTROID_COMMON",
+	"PEAK",""}},
   {"READOUT_NOISE", P_FLOAT, &prefs.ron, 0,0, 0.0,1e9},
   {"SATUR_LEVEL", P_FLOAT, &prefs.satlev, 0,0, -1e18,1e18},
   {"SEED_MOTION", P_INT, &prefs.psfmotionseed, 0, 0x7fffffffL},
@@ -170,7 +174,7 @@ char *default_prefs[] =
 "                                # or GRID_NONOISE",
 "*GRID_SIZE          64           # Distance between objects in GRID mode",
 "IMAGE_HEADER       INTERNAL     # File name or INTERNAL",
-"LISTCOORD_TYPE     PIXEL        # Coordinates in input lists: PIXEL or WORLD",
+"LISTCOORD_TYPE     PIXEL        # Input list coordinates: PIXEL, WORLD or SKY",
 "LISTMAG_LIMITS     -99.0,99.0   # Magnitude range restriction for input lists",
 " ",
 "*#----------------------------- Pixel weights --------------------------------",
@@ -200,6 +204,7 @@ char *default_prefs[] =
 " ",
 "PIXEL_SIZE         0.200        # pixel size in arcsec.",
 "MICROSCAN_NSTEP    1            # number of microscanning steps (1=no mscan)",
+" ",
 "#---------------------------------- PSF --------------------------------------",
 " ",
 "PSF_TYPE           INTERNAL     # INTERNAL or FILE",
@@ -252,6 +257,12 @@ char *default_prefs[] =
 "STARCOUNT_SLOPE    0.2          # slope of differential star counts (dexp/mag)",
 "MAG_LIMITS         17.0,26.0    # stellar magnitude range",
 " ",
+"*#--------------------------------- Rasters -----------------------------------",
+"* ",
+"*RASTER_PATTERN    rasters/raster_%06d.fits",
+"*                                # Filename pattern for input raster images,",
+"*RASTERCENTER_TYPE UPPERHALF     # UPPERHALF, LOWERHALF, HALF, CENTROID,",
+"* ",
 "#------------------------------ Random Seeds ---------------------------------",
 " ",
 "SEED_MOTION        0            # rand. seed for PSF turbulent motion (0=time)",

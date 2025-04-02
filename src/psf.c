@@ -7,7 +7,9 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2021 IAP/CNRS/SorbonneU
+*	          		(C) 2021-2023 CFHT/CNRS
+*	          		(C) 2023-2025 CEA/AIM/UParisSaclay
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +24,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/03/2018
+*	Last modified:		02/04/2025
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -666,6 +668,8 @@ void	makepsf(simstruct *sim)
   poly_end(polytri30);
   poly_end(polyqua00);
   poly_end(polyqua22);
+  if (narms)
+    free(carms);
 
 /* Save the final resolution image of the PSF ("no-return" option!) */
   if  (sim->imatype == PSF_FINALRES)

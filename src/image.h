@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 2003-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2003-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		25/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -45,8 +45,12 @@ typedef enum {INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
 /*----------------------------- Global variables ----------------------------*/
 
 /*------------------------------- functions ---------------------------------*/
-extern int	add_image(PIXTYPE *pix1, int w1, int h1, PIXTYPE *pix2,
+extern double	image_resample_lin(PIXTYPE *pix1, int w1, int h1,
+			PIXTYPE *pix2, int w2, int h2, 
+			double dx, double dy, double *lin, int oversamp);
+
+extern int	image_add(PIXTYPE *pix1, int w1, int h1, PIXTYPE *pix2,
 			int w2, int h2, int ix, int iy, float amplitude),
-		resample_image(PIXTYPE *pix1, int w1, int h1, objstruct *obj,
-			float dx, float dy, float step2);
+		image_resample_obj(PIXTYPE *pix1, int w1, int h1,
+			objstruct *obj, float dx, float dy, float step2);
 

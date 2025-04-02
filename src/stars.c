@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/02/2018
+*	Last modified:		18/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -173,7 +173,7 @@ OUTPUT	-.
 NOTES	Writes to an allocated image buffer, not directly to the image to
 	allow multithreading.
 AUTHOR	E. Bertin (IAP)
-VERSION	10/04/2018
+VERSION	18/05/2020
  ***/
 int	make_star(simstruct *sim, objstruct *obj)
 
@@ -213,7 +213,7 @@ int	make_star(simstruct *sim, objstruct *obj)
     }
 
 /* Resample to lower resolution */
-  resample_image(psf, sim->psfsize[0], sim->psfsize[1], obj,
+  image_resample_obj(psf, sim->psfsize[0], sim->psfsize[1], obj,
 	-dx*osamp, -dy*osamp, osamp);
   if (sim->npsf>1)
     free(psf);
@@ -273,7 +273,7 @@ INPUT	Previous object index in list,
 OUTPUT	Next object index in list.
 NOTES	Relies on global variables.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2018
+VERSION	18/05/2020
  ***/
 static int	pthread_nextobj(int obji, int proc)
   {
@@ -294,14 +294,14 @@ static int	pthread_nextobj(int obji, int proc)
       if (obj->subimage && obj->mag > pthread_sim->maglim[0])
         {
         QPTHREAD_MUTEX_LOCK(&imagemutex);
-        add_image(obj->subimage, obj->subsize[0], obj->subsize[1],
+        image_add(obj->subimage, obj->subsize[0], obj->subsize[1],
 		pthread_sim->image, pthread_sim->fimasize[0],
 		pthread_sim->fimasize[1],
 		obj->subpos[0], obj->subpos[1], (float)obj->subfactor);
         QPTHREAD_MUTEX_UNLOCK(&imagemutex);
 /*------ Add the object to the output list */
         obj->flux = 0.0;
-        writeobj(pthread_sim, obj);
+        list_writeobj(pthread_sim, obj);
         }
       pthread_addobjflag[pthread_addobji] = 0;
       QPTHREAD_COND_BROADCAST(&objcond[pthread_addobji]);
@@ -367,7 +367,7 @@ INPUT	Pointer to the sim structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/08/2013
+VERSION	09/03/2020
  ***/
 static void	pthread_makestarfield(simstruct *sim, int nstars)
   {
@@ -431,7 +431,7 @@ static void	pthread_makestarfield(simstruct *sim, int nstars)
   for (o=0; o<pthread_nobj; o++)
     {
     QPTHREAD_COND_DESTROY(&objcond[o]);
-    endobj(&pthread_obj[o]);
+    list_endobj(&pthread_obj[o]);
     }
 
   if (pthread_gridflag)

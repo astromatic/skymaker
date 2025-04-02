@@ -7,7 +7,7 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2018 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/03/2018
+*	Last modified:		01/12/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -212,7 +212,7 @@ INPUT	Pointer to the simulation.
 OUTPUT	Pointer to the initialized FITScat structure.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	24/05/2012
+VERSION	01/12/2020
  ***/
 catstruct	*imaout_inithead(simstruct *sim)
 
@@ -264,6 +264,37 @@ catstruct	*imaout_inithead(simstruct *sim)
 /* If no external header is used, add SkyMaker custom parameters */
   if (hflag)
     {
+    if (prefs.listcoord_type != LISTCOORD_PIXEL) {
+//-- Add some basic WCS
+      addkeywordto_head(tab, "CTYPE1  ", "Projection type on AXIS1");
+      fitswrite(tab->headbuf, "CTYPE1  ", "RA---TAN", H_STRING, T_STRING);
+      addkeywordto_head(tab, "CTYPE2  ", "Projection type on AXIS2");
+      fitswrite(tab->headbuf, "CTYPE2  ", "DEC--TAN", H_STRING, T_STRING);
+      dval = 0.0;
+      addkeywordto_head(tab, "CRVAL1  ", "Projection center on AXIS1");
+      fitswrite(tab->headbuf, "CRVAL1  ", &dval, H_FLOAT, T_DOUBLE);
+      dval = 0.0;
+      addkeywordto_head(tab, "CRVAL2  ", "Projection center on AXIS2");
+      fitswrite(tab->headbuf, "CRVAL2  ", &dval, H_FLOAT, T_DOUBLE);
+      dval = -prefs.pixscale[0] * ARCSEC / DEG;
+      addkeywordto_head(tab, "CD1_1   ", "WCS Jacobian term");
+      fitswrite(tab->headbuf, "CD1_1  ", &dval, H_FLOAT, T_DOUBLE);
+      dval = 0.0;
+      addkeywordto_head(tab, "CD1_2   ", "WCS Jacobian term");
+      fitswrite(tab->headbuf, "CD1_2  ", &dval, H_FLOAT, T_DOUBLE);
+      dval = 0.0;
+      addkeywordto_head(tab, "CD2_1   ", "WCS Jacobian term");
+      fitswrite(tab->headbuf, "CD2_1  ", &dval, H_FLOAT, T_DOUBLE);
+      dval = prefs.pixscale[1] * ARCSEC / DEG;
+      addkeywordto_head(tab, "CD2_2   ", "WCS Jacobian term");
+      fitswrite(tab->headbuf, "CD2_2  ", &dval, H_FLOAT, T_DOUBLE);
+      dval = (sim->imasize[0] + 1.0) / 2.0;
+      addkeywordto_head(tab, "CRPIX1  ", "Pixel coords of center on AXIS1");
+      fitswrite(tab->headbuf, "CRPIX1  ", &dval, H_FLOAT, T_DOUBLE);
+      dval = (sim->imasize[1] + 1.0) / 2.0;
+      addkeywordto_head(tab, "CRPIX2  ", "Pixel coords of center on AXIS2");
+      fitswrite(tab->headbuf, "CRPIX2  ", &dval, H_FLOAT, T_DOUBLE);
+    }
 /*--- User name */
 #ifdef HAVE_GETENV
   if (!(pstr=getenv("USERNAME")))       /* Cygwin,... */

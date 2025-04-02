@@ -2,11 +2,9 @@
 
 a program that simulates astronomical images.
 
-Check out the on-line [documentation], the [official web page], and the [user forum].
+Check out the [official web page].
 
-[documentation]: http://skymaker.readthedocs.org
-[official web page]: http://astromatic.net/software/skymaker
-[user forum]: http://astromatic.net/forum/forumdisplay.php?fid=19
+[official web page]: https://astromatic.net/software/skymaker
 
 The general SYNTAX is similar to that of SExtractor:
 
@@ -16,7 +14,8 @@ The general SYNTAX is similar to that of SExtractor:
 
 - A list file is an ASCII file containing a list of objects that can be added to
   the simulated image. An example is provided in the config/sample.list file.
-  Note that   only stars (code = 100) and galaxies (code = 200) are recognized
+  Note that only stars (code = 100) galaxies (code = 200), and image rasters
+  (code = 300) are recognized
   in this version.
 - Keyword parameters given in the command line override those from the
   configuration file.
@@ -45,3 +44,4 @@ The general SYNTAX is similar to that of SExtractor:
 - Beware of large AUREOLE_RADIUS values: during the calculation of the image,
   a temporary border of <AUREOLE_RADIUS> pixels in thickness is added all
   around the image, and can significantly affect the computation time.
+

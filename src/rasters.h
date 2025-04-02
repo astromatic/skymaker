@@ -1,7 +1,7 @@
 /*
-*				galaxies.h
+*				rasters.h
 *
-* Include file for galaxies.c.
+* Include file for rasters.c.
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		01/12/2020
+*	Last modified:		25/05/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -35,17 +35,9 @@
 #endif
 
 /*---------------------------- Internal constants ---------------------------*/
-#define	SERSIC_SMOOTHR	4.0	/* Profile smoothing radius (pixels) */
-#define	VDKCUTRAD	5.0	/* van der Kruit disk truncation radius in r_h*/
 
 /*--------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
-extern int	make_galaxy(simstruct *sim, objstruct *obj);
-extern double	raster_sersic(simstruct *sim, objstruct *obj, PIXTYPE *pix,
-			int width, int height,
-			double reff, double aspect, double posang, double n);
-
-extern PIXTYPE	trunc_prof(PIXTYPE *pix, double xcenter, double ycenter,
-			int width, int height);
+extern int	make_raster(simstruct *sim, objstruct *obj);
 
