@@ -7,7 +7,9 @@
 *
 *	This file part of:	SkyMaker
 *
-*	Copyright:		(C) 1998-2020 IAP/CNRS/SorbonneU
+#	Copyright:		(C) 1998-2021 IAP/CNRS/SorbonneU
+#	          		(C) 2021-2023 CFHT/CNRS
+#	          		(C) 2023-2025 CEA/AIM/UParisSaclay
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +24,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with SkyMaker. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		13/11/2020
+*	Last modified:		02/04/2025
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -40,6 +42,7 @@
 #include "globals.h"
 #include "alterimage.h"
 #include "corr.h"
+#include "fits/fitscat.h"
 #include "imaout.h"
 #include "list.h"
 #include "noise.h"
@@ -57,10 +60,16 @@ Manage the whole stuff.
 */
 void    makeit() {
 
+   keystruct    *key;
+   tabstruct    *tab;
    simstruct	*simul;
    time_t	thetime, thetime2;
    struct tm	*tm;
    double	dtime;
+
+/* Dummy add_key() call to get around stupid INTEL OneAPI compiler bug */
+  add_key(key=new_key("DUMMY"), tab=new_tab("dummy"), 0);
+  free_tab(tab);
 
 /* Processing start date and time */
   thetime = time(NULL);
