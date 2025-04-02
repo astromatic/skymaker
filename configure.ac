@@ -33,7 +33,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT([SkyMaker],[4.2.2], [https://github.com/astromatic/skymaker],
+AC_INIT([SkyMaker],[4.3.0], [https://github.com/astromatic/skymaker],
 	skymaker, [https://astromatic.net/software/skymaker])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
